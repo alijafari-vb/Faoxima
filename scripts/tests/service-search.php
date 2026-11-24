@@ -11,6 +11,10 @@ declare(strict_types=1);
 if (PHP_SAPI === 'cli-server') {
     header('Content-Type: application/json');
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if (in_array($path, ['/legacy/sub/fixture-token/info', '/wrong/fixture-token/info'], true)) {
+        echo '{"username":"external_username"}';
+        return;
+    }
     if ($path === '/xui-legacy/login' && ($_POST['username'] ?? '') === 'fixture-admin' && ($_POST['password'] ?? '') === 'fixture-password') {
         setcookie('session', 'fixture-session', 0, '/xui-legacy');
         echo '{"success":true}';
@@ -149,16 +153,23 @@ function search(PDO $pdo, string $query, ?string $owner, bool $includeTextMatche
 $pdo->exec('CREATE TEMPORARY TABLE textbot (id_text varchar(150), text text)');
 $textInsert = $pdo->prepare('INSERT INTO textbot VALUES (?, ?)');
 $textInsert->execute(['jsontext.users.search.usernamgeget', 'نام کاربری را وارد کنید.']);
+$textInsert->execute(['jsontext.users.stateus.SendUsername', 'نام کاربری یا لینک اشتراک را بفرستید.']);
+$textInsert->execute(['jsontext.users.page.notusernameme', '🔎 نام کاربری من در لیست نیست']);
 $textInsert->execute(['jsontext.Admin.order.vieworderusername', 'نام کاربری، UUID یا لینک اشتراک']);
 $textInsert->execute(['jsontext.users.customsellvolume.title', '⚙️ سرویس دلخواه']);
 $textInsert->execute(['dyn_testaccount_product_name', 'سرویس تست']);
 $lang = languagechange(dirname(__DIR__, 2) . '/text.json');
 same('📌 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $lang['users']['search']['usernamgeget'], 'an old database prompt does not hide the supported inputs');
+same($lang['users']['search']['usernamgeget'], $lang['users']['stateus']['SendUsername'], 'the missing subscription prompt advertises the supported inputs');
+same('🔎 اشتراک من در لیست نیست', $lang['users']['page']['notusernameme'], 'the old database button caption is updated at runtime');
 same('🔎 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $lang['Admin']['order']['vieworderusername'], 'an old administrator prompt does not advertise UUID');
 same('⚙️ سرویس دلخواه', $lang['users']['customsellvolume']['title'], 'custom product identity remains compatible with invoice lookups');
 same('سرویس تست', faoxima_textbot_get('dyn_testaccount_product_name'), 'the legacy test product name is preserved for storage');
 same('🛍 اشتراک‌های من', rxSubscriptionCopy('🛍 سرویس های من'), 'a reply keyboard saved before updating keeps working');
-same('نام پلن: {name_service} · نام اشتراک: {username}', rxSubscriptionCopy('نام اشتراک:  {name_service} · نام اشتراک: {username}'), 'old templates distinguish a plan from its subscription username');
+same('نام پلن:  {name_service} · نام اشتراک: {username}', rxSubscriptionCopy('نام اشتراک:  {name_service} · نام اشتراک: {username}'), 'old templates distinguish a plan from its subscription username');
+same("<b>نام پلن:</b> <code>{product}</code>\n🆔 نام اشتراک : <code>{username}</code>",
+    rxSubscriptionTemplate('text_service_detail', "<b>نام سرویس:</b> <code>{product}</code>\n🆔 شناسهٔ اشتراک : <code>{username}</code>"),
+    'saved bot detail templates label their plan and username by placeholder, preserving markup');
 same('سرویس پیش‌فرض ربکا', rxSubscriptionCopy('سرویس پیش‌فرض ربکا'), 'a provider service is distinct from a customer subscription');
 same('پیش‌فرض 20 گیگ 60 روز', rxPlanLabel(['Volume_constraint' => '20', 'Service_time' => '60']), 'standard plans are named from their limits');
 same('پیش‌فرض 20 گیگ نامحدود', rxPlanLabel(['Volume' => 20, 'Service_time' => 0]), 'unlimited time stays explicit');
@@ -253,10 +264,18 @@ same(['🟢 same-name (91)', '1GB', '4'], array_column($table[1], 'text'), 'warn
 same(['<1GB', 'تمام', '∞', '—'], array_column(array_column(array_slice($table, 2), 1), 'text'), 'traffic distinguishes near-threshold, depleted, unlimited, and unknown values');
 same(['منقضی', '∞', '—'], array_column(array_column(array_slice($table, 3), 2), 'text'), 'days distinguish expired, unlimited, and unknown values');
 same(array_fill(0, 3, 'quickview_e123'), array_column($table[1], 'callback_data'), 'warning cells still open subscription details');
-$renewalTable = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'renewtable', 'extend_', neutralRows: true);
-same(['text' => 'روز مانده ↑', 'callback_data' => 'renewtable:days_remaining:d:1'], $renewalTable[0][2], 'renewal uses the same headers with its own reversible sorting');
+$renewalTable = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'renewtable', 'extend_');
+same(rxServiceTableAction('روز مانده ↑', 'renewtable:days_remaining:d:1'), $renewalTable[0][2], 'renewal uses the same headers with its own reversible sorting');
 same(array_fill(0, 3, 'extend_e123'), array_column($renewalTable[1], 'callback_data'), 'all renewal cells select the same invoice for renewal');
-same(true, isset($renewalTable[1][0]['_rxap'], $renewalTable[1][1]['_rxap']), 'normal renewal cells opt out of the cron renewal color');
+require_once dirname(__DIR__, 2) . '/botapi.php';
+foreach (['svctable' => 'quickview_', 'renewtable' => 'extend_', 'admsub:all' => 'manageinvoice_', 'admsub:online' => 'manageinvoice_'] as $prefix => $details) {
+    $buttons = rxServiceTableButtons([$warningRows[0]], 'recent', 'd', $prefix, $details);
+    $buttons[] = [rxServiceTableAction('بعدی', "$prefix:recent:d:2"), rxServiceTableAction('بازگشت', 'backorder', 'danger')];
+    $markup = processKeyboardStyles(['inline_keyboard' => $buttons], str_starts_with($prefix, 'admsub'));
+    same([['primary', 'primary', 'primary'], [null, null, 'danger'], ['primary', 'danger']],
+        array_map(static fn(array $row): array => array_map(static fn(array $btn): ?string => $btn['style'] ?? null, $row), $markup['inline_keyboard']),
+        'normal Telegram rendering uses the same headings, neutral rows, warnings and navigation for ' . $prefix);
+}
 $backCallback = 'admsub:online:remaining_bytes:a:2';
 same('manageinvoice_e123:' . $backCallback, rxAdminSubscriptionDetailsCallback('e123', $backCallback), 'management detail callback retains its originating page');
 same('manageinvoice_' . str_repeat('a', 40), rxAdminSubscriptionDetailsCallback(str_repeat('a', 40), $backCallback), 'long IDs fall back to the existing detail callback');
@@ -281,6 +300,22 @@ $legacy = $panel->DataUser('east', 'same-name');
 same('https://shop.example.test/sub/later-order', $legacy['subscription_url'] ?? null, 'legacy callers resolve the latest order in their panel');
 $pdo->exec("UPDATE invoice SET Status = 'active' WHERE id_invoice = 'w123'");
 $pdo->exec("ALTER TABLE marzban_panel ADD code_panel varchar(20), ADD xui_api_mode varchar(20), ADD xui_api_token varchar(50), ADD username_panel varchar(50), ADD password_panel varchar(50)");
+$pdo->exec("UPDATE marzban_panel SET code_panel = name_panel");
+$panelButtons = json_encode(['inline_keyboard' => [[['text' => 'East', 'callback_data' => 'locationnotuser_east'], ['text' => 'West', 'callback_data' => 'location_west']]]]);
+[$options, $accounts] = rxMissingSubscriptionOptions($panelButtons, 'same_name');
+same(['east' => 'same_name', 'west' => 'same_name'], $accounts, 'legacy username lookup keeps underscores and uses permitted panels');
+[, $accounts] = rxMissingSubscriptionOptions($panelButtons, '۹۱');
+same(['east' => 'same-name', 'west' => 'same-name'], $accounts, 'numeric Rebecca lookup resolves identities independently per panel');
+[$options, $accounts] = rxMissingSubscriptionOptions($panelButtons, 'https://east.subscriptions.test/sub/old-rebecca-token-signed');
+same([['east' => 'same-name'], 'locationnotuser_east'], [$accounts, $options[0][0]['callback_data']], 'link lookup stores the resolved username only and presents its matching panel');
+[, $accounts] = rxMissingSubscriptionOptions($panelButtons, '11111111-2222-4333-8444-555555555555');
+same(['east' => 'same-name'], $accounts, 'UUID lookup keeps its native exact match and does not store the credential');
+same([[], []], rxMissingSubscriptionOptions($panelButtons, 'https://shop.example.test/sub/w123'), 'local links cannot fall through to panel-only lookup');
+same(true, rxMissingSubscriptionHasOtherOwner($pdo, 'east', 'same-name', '200'), 'an invoice for another user cannot be viewed by the external lookup');
+same(false, rxMissingSubscriptionHasOtherOwner($pdo, 'west', 'same-name', '200'), 'ownership is evaluated on the matching panel');
+$legacyPanel = ['type' => 'marzban', 'url_panel' => 'http://127.0.0.1:43497/legacy'];
+same('external_username', ServiceSearch::externalPanelUsername($legacyPanel, 'http://127.0.0.1:43497/legacy/sub/fixture-token'), 'external legacy links use their configured panel subscription URL');
+same(null, ServiceSearch::externalPanelUsername($legacyPanel, 'http://127.0.0.1:43497/wrong/fixture-token'), 'links outside the configured subscription path are not resolved');
 $pdo->exec("INSERT INTO marzban_panel (id, name_panel, type, url_panel, code_panel, xui_api_mode, xui_api_token, username_panel, password_panel) VALUES
     (4, 'xui-token', 'x-ui_single', 'http://127.0.0.1:43497/xui-token', 'xui-token', 'token', 'fixture-api-key', NULL, NULL),
     (5, 'xui-legacy', 'x-ui_single', 'http://127.0.0.1:43497/xui-legacy', 'xui-legacy', 'legacy', NULL, 'fixture-admin', 'fixture-password'),

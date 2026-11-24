@@ -254,8 +254,8 @@ function nmStockInvoiceText(array $invoice,array $stock=null){
     }
     $shelfNameSafe=htmlspecialchars($shelfName!==''?$shelfName:'انبار شبکه‌ملی',ENT_QUOTES,'UTF-8');
     $txt="✅ وضعیت نت ملی فعال است؛ این اشتراک از انبار شبکه‌ملی تحویل شده است.\n\n";
-    $txt.="👤 نام کاربری: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>\n";
-    $txt.="🛍 محصول: <code>".htmlspecialchars((string)($invoice['name_product']??''),ENT_QUOTES,'UTF-8')."</code>\n";
+    $txt.="👤 نام اشتراک: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>\n";
+    $txt.="🛍 نام پلن: <code>".htmlspecialchars((string)($invoice['name_product']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📍 پنل: <code>".htmlspecialchars((string)($invoice['Service_location']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📦 انبار: <code>{$shelfNameSafe}</code>\n";
     if($vol!=='')$txt.="🗜 حجم اشتراک: <code>".htmlspecialchars($vol,ENT_QUOTES,'UTF-8')."</code>\n";

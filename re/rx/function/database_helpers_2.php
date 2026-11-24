@@ -2830,7 +2830,12 @@ function rxServiceTableTraffic(?int $bytes): string
     return $size . ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'][$unit];
 }
 
-function rxServiceTableButtons(array $rows, string $sort, string $direction, string $tablePrefix, string|callable $detailsCallback, bool $neutralRows = false): array
+function rxServiceTableAction(string $text, string $callback, string $style = 'primary'): array
+{
+    return ['text' => $text, 'callback_data' => $callback, 'style' => $style, '_rxkeep' => 1];
+}
+
+function rxServiceTableButtons(array $rows, string $sort, string $direction, string $tablePrefix, string|callable $detailsCallback): array
 {
     if ($rows === []) {
         return [];
@@ -2840,7 +2845,7 @@ function rxServiceTableButtons(array $rows, string $sort, string $direction, str
     foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
         $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
         $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
-        $headings[] = ['text' => $label . $arrow, 'callback_data' => "$tablePrefix:$field:$nextDirection:1"];
+        $headings[] = rxServiceTableAction($label . $arrow, "$tablePrefix:$field:$nextDirection:1");
     }
     $buttons = [$headings];
     foreach ($rows as $row) {
@@ -2865,7 +2870,7 @@ function rxServiceTableButtons(array $rows, string $sort, string $direction, str
             null => '—', -1 => '∞', 0 => 'منقضی', default => $days > 999 ? '999+' : (string) $days,
         };
         $details = is_string($detailsCallback) ? $detailsCallback . $row['id_invoice'] : $detailsCallback($row);
-        $normal = $neutralRows ? ['_rxap' => 1] : [];
+        $normal = ['_rxap' => 1];
         $warning = ['style' => 'danger', '_rxkeep' => 1];
         $buttons[] = [
             ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details] + $normal,
@@ -2883,6 +2888,46 @@ function rxAdminSubscriptionDetailsCallback(string $id, string $backCallback): s
     $details = 'manageinvoice_' . $id;
     $withBack = $details . ':' . $backCallback;
     return strlen($withBack) <= 64 ? $withBack : $details;
+}
+
+function rxMissingSubscriptionOptions(string $panelKeyboard, string $query): array
+{
+    if (strlen($query) > ServiceSearch::MAX_QUERY_LENGTH) {
+        return [[], []];
+    }
+    $privateReference = ServiceSearch::isPrivate($query);
+    $resolveReference = $privateReference || ServiceSearch::numericId($query) !== null;
+    $plainName = !$privateReference && preg_match('/^[A-Za-z0-9_.-]{1,64}$/D', $query) ? $query : null;
+    $buttons = [];
+    $accounts = [];
+    foreach (json_decode($panelKeyboard, true)['inline_keyboard'] ?? [] as $row) {
+        $options = [];
+        foreach ($row as $button) {
+            if (!preg_match('/^location(?:notuser)?_([A-Za-z0-9_-]+)$/D', $button['callback_data'] ?? '', $match)) {
+                continue;
+            }
+            $code = $match[1];
+            $panel = $resolveReference ? select('marzban_panel', '*', 'code_panel', $code, 'select') : null;
+            $username = (is_array($panel) ? ServiceSearch::externalPanelUsername($panel, $query) : null) ?? $plainName;
+            if ($username === null) {
+                continue;
+            }
+            $accounts[$code] = $username;
+            $button['callback_data'] = 'locationnotuser_' . $code;
+            $options[] = $button;
+        }
+        if ($options !== []) {
+            $buttons[] = $options;
+        }
+    }
+    return [$buttons, $accounts];
+}
+
+function rxMissingSubscriptionHasOtherOwner(PDO $pdo, string $panel, string $username, string $owner): bool
+{
+    $stmt = $pdo->prepare("SELECT 1 FROM invoice WHERE Service_location = :panel AND username = :username AND id_user <> '' AND id_user <> :owner LIMIT 1");
+    $stmt->execute([':panel' => $panel, ':username' => $username, ':owner' => $owner]);
+    return $stmt->fetchColumn() !== false;
 }
 
 function rxServiceListLabel(array $invoice): string

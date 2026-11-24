@@ -1208,6 +1208,9 @@ if ($text == "version") {
     $page = max(1, min($totalPages, $requestedPage));
     $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a');
 
+    if (in_array($user['step'] ?? '', ['getusernameinfo', 'getdata', 'getuseragnetservice'], true)) {
+        step('home', $from_id);
+    }
     rx_section_media_enter('services', $from_id, $datain, $message_id, ['myservicesbtn'], ['myservicesbtn']);
     $buttons = rxServiceTableButtons($rows, $sort, $direction, 'svctable', 'quickview_');
     $tableText = "🛍 <b>اشتراک‌های من</b>";
@@ -1219,20 +1222,20 @@ if ($text == "version") {
             $tableText .= "\nصفحه $page از $totalPages";
             $navigation = [];
             if ($page > 1) {
-                $navigation[] = ['text' => $textbotlang['users']['page']['previous'], 'callback_data' => "svctable:$sort:$direction:" . ($page - 1)];
+                $navigation[] = rxServiceTableAction($textbotlang['users']['page']['previous'], "svctable:$sort:$direction:" . ($page - 1));
             }
             if ($page < $totalPages) {
-                $navigation[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => "svctable:$sort:$direction:" . ($page + 1)];
+                $navigation[] = rxServiceTableAction($textbotlang['users']['page']['next'], "svctable:$sort:$direction:" . ($page + 1));
             }
             $buttons[] = $navigation;
         }
     }
     if (($setting['NotUser'] ?? '') === 'onnotuser') {
-        $buttons[] = [['text' => $textbotlang['users']['page']['notusernameme'], 'callback_data' => 'notusernameme']];
+        $buttons[] = [rxServiceTableAction($textbotlang['users']['page']['notusernameme'], 'notusernameme')];
     }
     $buttons[] = [
-        ['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchservice'],
-        rx_kb_style(['text' => '🔙 بازگشت به منوی اصلی', 'callback_data' => 'backuser'], 'backuser', is_array($_rx_nav_styles ?? null) ? $_rx_nav_styles : []),
+        rxServiceTableAction($textbotlang['users']['search']['title'], 'searchservice'),
+        rxServiceTableAction('🔙 بازگشت به منوی اصلی', 'backuser', 'danger'),
     ];
     $keyboard_json = json_encode(['inline_keyboard' => $buttons], JSON_INVALID_UTF8_SUBSTITUTE);
     if (!empty($serviceTable) || in_array($datain, ['backorder', 'myservicesbtn', 'next_page', 'previous_page'], true)) {
@@ -1240,47 +1243,36 @@ if ($text == "version") {
     } else {
         sendmessage($from_id, $tableText, $keyboard_json, 'HTML');
     }
-} elseif ($datain == "notusernameme") {
-    sendmessage($from_id, $textbotlang['users']['stateus']['SendUsername'], $backuser, 'html');
+} elseif ($datain === 'notusernameme' && ($setting['NotUser'] ?? '') === 'onnotuser') {
+    $backToSubscriptions = json_encode(['inline_keyboard' => [[rxServiceTableAction($textbotlang['users']['stateus']['backlist'], 'backorder', 'danger')]]]);
+    Editmessagetext($from_id, $message_id, $textbotlang['users']['stateus']['SendUsername'], $backToSubscriptions, 'HTML');
     step('getusernameinfo', $from_id);
-} elseif ($user['step'] == "getusernameinfo") {
-    if (!isset($update['message']) && empty($text)) { return; }
-    if (empty($text))
+} elseif (preg_match('/^locationnotuser_([A-Za-z0-9_-]+)$/D', $datain, $dataget)
+    && ($setting['NotUser'] ?? '') === 'onnotuser' && $user['step'] === 'getdata') {
+    $panelCode = $dataget[1];
+    $marzban_list_get = select('marzban_panel', '*', 'code_panel', $panelCode, 'select');
+    $stored = (string) ($user['Processing_value'] ?? '');
+    $accounts = json_decode($stored, true);
+    $lookupName = is_array($accounts) ? ($accounts[$panelCode] ?? null)
+        : (preg_match('/^[A-Za-z0-9_.-]{1,64}$/D', $stored) ? $stored : null);
+    $hiddenUsers = json_decode((string) ($marzban_list_get['hide_user'] ?? ''), true);
+    if (!is_string($lookupName) || ($marzban_list_get['status'] ?? '') !== 'active'
+        || !in_array($marzban_list_get['agent'] ?? '', ['all', $user['agent']], true)
+        || (is_array($hiddenUsers) && in_array($from_id, $hiddenUsers))
+        || rxMissingSubscriptionHasOtherOwner($pdo, $marzban_list_get['name_panel'], $lookupName, (string) $from_id)) {
+        sendmessage($from_id, $textbotlang['users']['stateus']['notUsernameget'], $keyboard, 'HTML');
+        step('home', $from_id);
         return;
-    $usernameconfig = "";
-    if (strlen($text) > 32) {
-        if (!filter_var($text, FILTER_VALIDATE_URL)) {
-            sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-            return;
-        }
-        $date = outputlunksub($text);
-        if (!isset($date)) {
-            sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-            return;
-        }
-        $date = json_decode($date, true);
-        if (!isset($date['username'])) {
-            sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-            return;
-        }
-        $usernameconfig = $date['username'];
-    } else {
-        $text = str_replace('_', '-', $text);
-        if (!preg_match('/^[A-Za-z0-9-]{3,32}$/', $text)) {
-            sendmessage($from_id, $textbotlang['users']['stateus']['Invalidusername'], $backuser, 'html');
-            return;
-        }
-        $usernameconfig = $text;
     }
-    update("user", "Processing_value", $usernameconfig, "id", $from_id);
-    sendmessage($from_id, $datatextbot['textselectlocation'], $list_marzban_panel_user, 'html');
-    step('getdata', $from_id);
-} elseif (preg_match('/locationnotuser_(.*)/', $datain, $dataget)) {
-    $marzban_list_get = select("marzban_panel", "*", "code_panel", $dataget[1]);
-    update("user", "Processing_value_four", $marzban_list_get['code_panel'], "id", $from_id);
-    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $user['Processing_value']);
+    $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $lookupName);
+    if (($DataUserOut['msg'] ?? '') === 'User not found' && str_contains($lookupName, '_')) {
+        $legacyName = str_replace('_', '-', $lookupName);
+        if (!rxMissingSubscriptionHasOtherOwner($pdo, $marzban_list_get['name_panel'], $legacyName, (string) $from_id)) {
+            $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $legacyName);
+        }
+    }
     if ($DataUserOut['status'] == "Unsuccessful") {
-        if ($DataUserOut['msg'] == "User not found") {
+        if (($DataUserOut['msg'] ?? '') === 'User not found') {
             sendmessage($from_id, $textbotlang['users']['stateus']['notUsernameget'], $keyboard, 'html');
             step('home', $from_id);
             return;
@@ -1290,6 +1282,8 @@ if ($text == "version") {
         return;
     }
 
+    update('user', 'Processing_value', $DataUserOut['username'], 'id', $from_id);
+    update('user', 'Processing_value_four', $panelCode, 'id', $from_id);
     $status = $DataUserOut['status'];
     $bExp = is_numeric($DataUserOut['expire'] ?? null) ? (int)$DataUserOut['expire'] : 0;
     $bDl = is_numeric($DataUserOut['data_limit'] ?? null) ? (float)$DataUserOut['data_limit'] : 0.0;
@@ -1369,15 +1363,20 @@ if ($text == "version") {
     } else {
         $keyboardinfo['inline_keyboard'][] = [['text' => $textbotlang['users']['extend']['title'], 'callback_data' => 'extends_' . $DataUserOut['username'] . "_" . $dataget[1]]];
     }
+    $keyboardinfo['inline_keyboard'][] = [rxServiceTableAction($textbotlang['users']['stateus']['backlist'], 'backorder', 'danger')];
     $keyboardinfo = json_encode($keyboardinfo);
     Editmessagetext($from_id, $message_id, $textbotlang['users']['stateus']['info'], $keyboardinfo);
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard, 'html');
     step('home', $from_id);
 } elseif (function_exists('nmMaybeHandleStockCallback') && nmMaybeHandleStockCallback($datain ?? '', $from_id, $message_id ?? null, $callback_query_id ?? null)) {
     return;
-} elseif (preg_match('/^quickview_(\w+)/', $datain, $dataget) || preg_match('/^product_(\w+)/', $datain, $dataget) || preg_match('/updateproduct_(\w+)/', $datain, $dataget) || ($user['step'] === "getuseragnetservice" && $datain === '' && trim($text) !== '') || $datain == "productcheckdata") {
+} elseif (preg_match('/^quickview_([A-Za-z0-9_-]+)$/D', $datain, $dataget) || preg_match('/^product_([A-Za-z0-9_-]+)$/D', $datain, $dataget)
+    || preg_match('/^updateproduct_([A-Za-z0-9_-]+)$/D', $datain, $dataget) || $datain === 'productcheckdata'
+    || ($datain === '' && trim($text) !== '' && ($user['step'] === 'getuseragnetservice'
+        || ($user['step'] === 'getusernameinfo' && ($setting['NotUser'] ?? '') === 'onnotuser')))) {
 
-    $isServiceSearch = $user['step'] === 'getuseragnetservice' && $datain === '' && trim($text) !== '';
+    $isServiceSearch = $datain === '' && trim($text) !== '' && in_array($user['step'], ['getuseragnetservice', 'getusernameinfo'], true);
+    $missingServiceSearch = $isServiceSearch && $user['step'] === 'getusernameinfo';
     if (is_string($datain) && strpos($datain, 'quickview_') === 0) {
         $id_invoice_qv = $dataget[1];
         $stmtQv = $pdo->prepare("SELECT * FROM invoice WHERE id_invoice = :i AND id_user = :u AND " . ServiceSearch::VISIBLE_STATUS . " LIMIT 1");
@@ -1443,7 +1442,8 @@ if ($text == "version") {
     if ($isServiceSearch) {
         $scope = 'id_user = :id_user AND ' . ServiceSearch::VISIBLE_STATUS;
         $params = [':id_user' => $from_id];
-        [$condition, $searchParams] = ServiceSearch::condition($pdo, $text, $scope, $params, ['username', 'note', 'Volume', 'Service_time']);
+        $searchColumns = $missingServiceSearch ? ['username'] : ['username', 'note', 'Volume', 'Service_time'];
+        [$condition, $searchParams] = ServiceSearch::condition($pdo, $text, $scope, $params, $searchColumns);
         $stmt = $pdo->prepare("SELECT * FROM invoice WHERE $scope AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 51");
         $stmt->execute($params + $searchParams);
     } elseif ($datain == "productcheckdata") {
@@ -1476,15 +1476,28 @@ if ($text == "version") {
     }
     if ($isServiceSearch) {
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($missingServiceSearch && $rows === []) {
+            [$options, $accounts] = rxMissingSubscriptionOptions($list_marzban_panel_user, trim($text));
+            $options[] = [rxServiceTableAction($textbotlang['users']['stateus']['backlist'], 'backorder', 'danger')];
+            $markup = json_encode(['inline_keyboard' => $options], JSON_INVALID_UTF8_SUBSTITUTE);
+            if ($accounts === []) {
+                sendmessage($from_id, $textbotlang['users']['stateus']['notUsernameget'], $markup, 'HTML');
+                return;
+            }
+            update('user', 'Processing_value', json_encode($accounts, JSON_INVALID_UTF8_SUBSTITUTE), 'id', $from_id);
+            sendmessage($from_id, $datatextbot['textselectlocation'], $markup, 'HTML');
+            step('getdata', $from_id);
+            return;
+        }
         if (count($rows) > 1) {
             $keyboardlists = ['inline_keyboard' => rxServiceListButtons($pdo, array_slice($rows, 0, 50), 'quickview_', ($setting['statusnamecustom'] ?? '') === 'onnamecustom')];
             $keyboardlists['inline_keyboard'][] = [
-                ['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchservice'],
+                ['text' => $textbotlang['users']['search']['title'], 'callback_data' => $missingServiceSearch ? 'notusernameme' : 'searchservice'],
                 ['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder'],
             ];
             $foundTemplate = ($datatextbot['dyn_errors_service_found_count'] ?? '') ?: '🛍 %s اشتراک پیدا شد. اشتراک موردنظر را انتخاب کنید.';
             $resultText = count($rows) > 50
-                ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ اشتراک را بفرستید.'
+                ? '🔎 بیش از ۵۰ نتیجه. نام کامل اشتراک یا شناسهٔ اشتراک را بفرستید.'
                 : sprintf($foundTemplate, count($rows));
             sendmessage($from_id, $resultText, json_encode($keyboardlists), 'html');
             step('home', $from_id);
@@ -1975,7 +1988,6 @@ $nameconfig";
             '{status}' => $status_var,
             '{username}' => $serviceUsernameHtml,
             $usernameField => '<code>' . $serviceUsernameHtml . '</code>' . $panelIdLine,
-            '👤 شناسهٔ اشتراک : ' => '👤 نام اشتراک: ',
             '{location}' => $nameloc['Service_location'],
             '{product}' => $planLabel,
             '{traffic}' => $LastTraffic,

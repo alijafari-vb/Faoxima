@@ -1859,7 +1859,7 @@ $text_porsant
     $page = max(1, min($totalPages, $requestedPage));
     $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a');
 
-    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'renewtable', 'extend_', neutralRows: true);
+    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'renewtable', 'extend_');
     if ($rows === []) {
         $tableText = $textbotlang['users']['extend']['emptyServiceforExtend'];
     } else {
@@ -1869,16 +1869,16 @@ $text_porsant
             $tableText .= "\nصفحه $page از $totalPages";
             $navigation = [];
             if ($page > 1) {
-                $navigation[] = ['text' => $textbotlang['users']['page']['previous'], 'callback_data' => "renewtable:$sort:$direction:" . ($page - 1)];
+                $navigation[] = rxServiceTableAction($textbotlang['users']['page']['previous'], "renewtable:$sort:$direction:" . ($page - 1));
             }
             if ($page < $totalPages) {
-                $navigation[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => "renewtable:$sort:$direction:" . ($page + 1)];
+                $navigation[] = rxServiceTableAction($textbotlang['users']['page']['next'], "renewtable:$sort:$direction:" . ($page + 1));
             }
             $buttons[] = $navigation;
         }
     }
     $buttons[] = [
-        rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser'], 'backuser', is_array($_rx_nav_styles ?? null) ? $_rx_nav_styles : []),
+        rxServiceTableAction($textbotlang['users']['backbtn'], 'backuser', 'danger'),
     ];
     $keyboard_json = json_encode(['inline_keyboard' => $buttons], JSON_INVALID_UTF8_SUBSTITUTE);
     if (!empty($renewTable) || in_array($datain, ['next_page_extends', 'previous_page_extends'], true)) {

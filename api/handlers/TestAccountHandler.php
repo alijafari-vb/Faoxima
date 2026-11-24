@@ -244,7 +244,7 @@ final class TestAccountHandler extends BaseHandler
 
         $template = $this->resolveTestTemplate((string)($panel['type'] ?? ''));
         if (trim($template) === '') {
-            $template = faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام اشتراک : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
+            $template = faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام اشتراک : {username}\n🌿 نام پلن : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
         }
         $displayDay    = rx_test_display_time($settings);
         $displayVolume = rx_test_display_volume($settings);

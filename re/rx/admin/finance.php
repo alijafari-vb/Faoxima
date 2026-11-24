@@ -2640,18 +2640,18 @@ $iduser  در ربات  رفع مسدود گردید
         $message .= "\nحجم و روز از آخرین اطلاعات ثبت‌شده‌اند.";
         $navigation = [];
         if ($page > 1) {
-            $navigation[] = ['text' => '« قبلی', 'callback_data' => "admsub:$mode:$sort:$direction:" . ($page - 1)];
+            $navigation[] = rxServiceTableAction('« قبلی', "admsub:$mode:$sort:$direction:" . ($page - 1));
         }
         if ($page < $pages) {
-            $navigation[] = ['text' => 'بعدی »', 'callback_data' => "admsub:$mode:$sort:$direction:" . ($page + 1)];
+            $navigation[] = rxServiceTableAction('بعدی »', "admsub:$mode:$sort:$direction:" . ($page + 1));
         }
         if ($navigation !== []) {
             $buttons[] = $navigation;
         }
     }
     $buttons[] = [
-        ['text' => 'جستجوی اشتراک', 'callback_data' => 'admin_sub_search'],
-        ['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions'],
+        rxServiceTableAction('جستجوی اشتراک', 'admin_sub_search'),
+        rxServiceTableAction('🔙 مدیریت اشتراک‌ها', 'admin_subscriptions', 'danger'),
     ];
     step('home', $from_id);
     Editmessagetext($from_id, $message_id, $message, json_encode(['inline_keyboard' => $buttons], JSON_INVALID_UTF8_SUBSTITUTE), 'HTML');

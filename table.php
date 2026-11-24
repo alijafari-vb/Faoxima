@@ -1594,7 +1594,7 @@ try {
     $text_service_detail = "🗂 نام پلن : {product}
 📊وضعیت اشتراک : {status}
 🌍 موقعیت اشتراک :{location}
-👤 شناسهٔ اشتراک : <code>{username}</code>
+👤 نام اشتراک : <code>{username}</code>
 
 🔋 ترافیک : {traffic}
 📥 حجم مصرفی : {used}
@@ -2040,7 +2040,7 @@ try {
         ['dyn_testaccount_manualsale_stock_depleted', '❌ موجودی این اشتراک به پایان رسیده.'],
         ['dyn_testaccount_create_failed_report_tpl', "⭕️ یک کاربر قصد دریافت اکانت تست از مینی‌اپ داشت که ساخت کانفیگ با خطا مواجه شده\n<blockquote>✍️ دلیل خطا :</blockquote>\n<blockquote>{reason}</blockquote>\n<blockquote>آیدی کابر : {user_id}</blockquote>\n<blockquote>نام کاربری کاربر : @{username}</blockquote>\n<blockquote>نام پنل : {panel_name}</blockquote>"],
         ['dyn_testaccount_create_failed_customer', '❌ خطایی در ساخت اکانت تست رخ داد. با پشتیبانی تماس بگیرید.'],
-        ['dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام پلن : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}"],
+        ['dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام اشتراک : {username}\n🌿 نام پلن : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}"],
         ['dyn_testaccount_product_name', 'سرویس تست'],
         ['dyn_testaccount_minimal_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : <code>{username}</code>"],
         ['dyn_testaccount_delivery_failed', '❌ اکانت تست ساخته شد اما ارسال آن به تلگرام ناموفق بود. لطفاً ربات را استارت کنید و دوباره تلاش کنید.'],

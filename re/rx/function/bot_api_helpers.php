@@ -1642,8 +1642,6 @@ function rxSubscriptionCopy(string $text): string
 {
     $text = strtr($text, [
         'نام محصول' => 'نام پلن',
-        'نام اشتراک : {product}' => 'نام پلن : {product}',
-        'نام اشتراک: {product}' => 'نام پلن: {product}',
         'خاموش کردن اکانت' => 'غیرفعال کردن اشتراک',
         'روشن کردن اکانت' => 'فعال کردن اشتراک',
         'نام کاربری سرویس' => 'نام اشتراک',
@@ -1651,7 +1649,9 @@ function rxSubscriptionCopy(string $text): string
         'شناسهٔ سرویس' => 'شناسهٔ اشتراک',
         'شناسه سرویس' => 'شناسهٔ اشتراک',
     ]);
-    $text = preg_replace('~نام اشتراک\s*:\s*(\{(?:name_service|product|product_name|name_product)\})~u', 'نام پلن: $1', $text) ?? $text;
+    $spacing = '(?:[\h‌]|</?(?:b|strong|i|em|u|code|span)(?:\h[^>]*)?>)*';
+    $text = preg_replace('~نام[\h‌]+(?:سرویس|اشتراک|اکانت)(?=' . $spacing . '[:：]' . $spacing
+        . '\{(?:name_service|product|product_name|name_product)\})~u', 'نام پلن', $text) ?? $text;
     if (!str_contains($text, 'سرویس')) {
         return $text;
     }
@@ -1668,7 +1668,17 @@ function rxSubscriptionTemplate(string $key, string $text): string
     if (in_array($key, ['dyn_testaccount_product_name', 'dyn_renewconfirm_custom_service_name', 'jsontext.users.customsellvolume.title'], true)) {
         return $text;
     }
-    return rxSubscriptionCopy($text);
+    $text = rxSubscriptionCopy($text);
+    if ($key === 'text_service_detail') {
+        return preg_replace('~شناسه[ٔ\h‌]*اشتراک(?=[\h‌]*:[\h‌]*(?:<code>)?\{username\})~u', 'نام اشتراک', $text) ?? $text;
+    }
+    return match ($key) {
+        'jsontext.users.page.notusernameme' => str_replace('نام کاربری من در لیست نیست', 'اشتراک من در لیست نیست', $text),
+        'jsontext.users.stateus.notUsernameget' => str_replace('نام کاربری وجود ندارد', '❌ اشتراک موردنظر پیدا نشد.', $text),
+        'jsontext.users.stateus.username' => str_replace('نام کاربری', 'نام اشتراک', $text),
+        'jsontext.Admin.Status.statususernamebtn' => str_replace('دکمه نام کاربری', 'دکمهٔ اشتراک من در لیست نیست', $text),
+        default => $text,
+    };
 }
 
 function languagechange($path_dir)
@@ -1766,7 +1776,7 @@ function languagechange($path_dir)
                         continue;
                     }
                     $rx_overlay_text = rxSubscriptionTemplate($rx_overlay_id, (string) ($rx_overlay_row['text'] ?? ''));
-                    if (in_array($rx_overlay_id, ['jsontext.users.search.usernamgeget', 'jsontext.Admin.order.vieworderusername'], true)
+                    if (in_array($rx_overlay_id, ['jsontext.users.search.usernamgeget', 'jsontext.users.stateus.SendUsername', 'jsontext.Admin.order.vieworderusername'], true)
                         && (stripos($rx_overlay_text, 'uuid') !== false || !str_contains($rx_overlay_text, 'نام اشتراک')
                             || !str_contains($rx_overlay_text, 'شناسهٔ اشتراک') || !str_contains($rx_overlay_text, 'لینک اشتراک'))) {
                         continue;

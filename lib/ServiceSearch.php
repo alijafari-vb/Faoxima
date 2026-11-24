@@ -97,39 +97,15 @@ final class ServiceSearch
         }
 
         if ($isUrl || $number !== null || $uuid !== null) {
-            $links = [$url ?? null];
-            if ($isUrl && in_array(str_replace('_', '-', strtolower(rawurldecode(basename($url[1])))), self::REBECCA_CLIENT_FORMATS, true)) {
-                $basePath = dirname($url[1]);
-                if ($basePath !== '/' && $basePath !== '.') {
-                    array_unshift($links, [$url[0], $basePath]);
-                }
-            }
             $panels = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE ($scope)
                 AND Service_location IN (SELECT name_panel FROM marzban_panel WHERE type = 'rebecca')");
             $panels->execute($scopeParams);
             foreach ($panels->fetchAll(PDO::FETCH_COLUMN) as $panel) {
-                foreach ($links as $link) {
-                    $needle = $link === null ? ($number ?? $query) : rawurldecode(basename($link[1]));
-                    if ($needle === '') {
-                        continue;
-                    }
-                    $matchesBefore = count($exact);
-                    foreach (rebeccaListUsers($panel, search: $needle, links: $uuid !== null) as $user) {
-                        $username = (string) ($user['username'] ?? '');
-                        if ($username === '' || !self::matchesRebecca($panel, $user, $link, $number, $uuid)) {
-                            continue;
-                        }
-                        $index = count($exact);
-                        $exact[] = "(Service_location = :svc_panel_$index AND BINARY username = :svc_user_$index)";
-                        $exactParams[":svc_panel_$index"] = $panel;
-                        $exactParams[":svc_user_$index"] = $username;
-                        if ($number !== null) {
-                            break;
-                        }
-                    }
-                    if (count($exact) > $matchesBefore) {
-                        break;
-                    }
+                foreach (self::rebeccaMatchingUsernames($panel, $query, $url ?? null, $number, $uuid) as $username) {
+                    $index = count($exact);
+                    $exact[] = "(Service_location = :svc_panel_$index AND BINARY username = :svc_user_$index)";
+                    $exactParams[":svc_panel_$index"] = $panel;
+                    $exactParams[":svc_user_$index"] = $username;
                 }
             }
         }
@@ -149,6 +125,83 @@ final class ServiceSearch
             }
         }
         return ['(' . implode(' OR ', $text) . ')', $textParams];
+    }
+
+    /** Resolve a reference on a configured panel for the optional lookup outside the invoice list. */
+    public static function externalPanelUsername(array $panel, string $query): ?string
+    {
+        $uuid = self::uuid($query);
+        $number = $uuid === null ? self::numericId($query) : null;
+        $url = self::url($query);
+        if ($url !== null && self::localSubscriptionId($query) !== null) {
+            return null;
+        }
+        if ($panel['type'] === 'rebecca' && ($url !== null || $number !== null || $uuid !== null)) {
+            $usernames = array_unique(iterator_to_array(self::rebeccaMatchingUsernames($panel['name_panel'], $query, $url, $number, $uuid), false));
+            return count($usernames) === 1 ? reset($usernames) : null;
+        }
+        if ($url === null) {
+            return null;
+        }
+
+        $panelUrl = rtrim((string) ($panel['url_panel'] ?? ''), '/');
+        $subscriptionUrl = rtrim((string) ($panel['linksubx'] ?? ''), '/');
+        $token = basename($url[1]);
+        if (!preg_match('/^[A-Za-z0-9_-][A-Za-z0-9_.-]{0,1023}$/D', $token)) {
+            return null;
+        }
+        foreach ([$subscriptionUrl !== $panelUrl ? $subscriptionUrl : '', $panelUrl . '/sub'] as $baseUrl) {
+            $base = self::url($baseUrl);
+            if ($base !== [$url[0], dirname($url[1])] || parse_url($baseUrl, PHP_URL_SCHEME) !== parse_url($query, PHP_URL_SCHEME)) {
+                continue;
+            }
+            $request = new CurlRequest($baseUrl . '/' . $token . '/info');
+            $request->setTimeout(2);
+            $request->redactUrl();
+            $request->setHeaders(['Accept: application/json']);
+            $response = $request->get();
+            if (($response['status'] ?? 0) !== 200) {
+                continue;
+            }
+            $info = json_decode((string) ($response['body'] ?? ''), true);
+            $username = $info['username'] ?? null;
+            if (is_string($username) && $username !== '') {
+                return $username;
+            }
+        }
+        return null;
+    }
+
+    private static function rebeccaMatchingUsernames(string $panel, string $query, ?array $url, ?string $number, ?string $uuid): iterable
+    {
+        $links = [$url];
+        if ($url !== null && in_array(str_replace('_', '-', strtolower(rawurldecode(basename($url[1])))), self::REBECCA_CLIENT_FORMATS, true)) {
+            $basePath = dirname($url[1]);
+            if ($basePath !== '/' && $basePath !== '.') {
+                array_unshift($links, [$url[0], $basePath]);
+            }
+        }
+        foreach ($links as $link) {
+            $needle = $link === null ? ($number ?? $query) : rawurldecode(basename($link[1]));
+            if ($needle === '') {
+                continue;
+            }
+            $matched = false;
+            foreach (rebeccaListUsers($panel, search: $needle, links: $uuid !== null) as $user) {
+                $username = (string) ($user['username'] ?? '');
+                if ($username === '' || !self::matchesRebecca($panel, $user, $link, $number, $uuid)) {
+                    continue;
+                }
+                $matched = true;
+                yield $username;
+                if ($number !== null) {
+                    return;
+                }
+            }
+            if ($matched) {
+                return;
+            }
+        }
     }
 
     private static function url(string $url, string $panelUrl = ''): ?array
