@@ -606,7 +606,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
 🗜 حجم اشتراک:  {volume} مگابایت
@@ -616,7 +616,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
 🗜 حجم اشتراک:  {volume} مگابایت
@@ -1324,7 +1324,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
     $textafterpay = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
 🗜 حجم اشتراک:  {volume} گیگابایت
@@ -1334,7 +1334,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
     $textmanual = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 🇺🇳 لوکیشن: {location}
 
  اطلاعات اشتراک :
@@ -1347,7 +1347,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
         $datatextbot['textafterpay'] = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
 🗜 حجم اشتراک:  {volume} گیگابایت
@@ -2153,7 +2153,7 @@ $textonebuy
     $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : {$nameloc['username']}
-▫️نام محصول : {$datafactor['name_product']}
+▫️نام پلن : {$datafactor['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
     sendmessage($from_id, $textextend, $keyboardextendfnished, 'HTML');
@@ -2168,7 +2168,7 @@ $textonebuy
 ▫️نام اشتراک :{$nameloc['username']}
 ▫️نام کاربر : $first_name
 ▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}
-▫️نام محصول : {$datafactor['name_product']}
+▫️نام پلن : {$datafactor['name_product']}
 ▫️حجم محصول : {$datafactor['Volume_constraint']}
 ▫️زمان محصول : {$datafactor['Service_time']}
 ▫️مبلغ تمدید : {$datafactor['price_product']} تومان

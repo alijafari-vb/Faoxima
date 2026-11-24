@@ -906,7 +906,7 @@ img, svg { display: block; max-width: 100%; }
     color: var(--text-muted);
     overflow-wrap: anywhere;
 }
-.service-summary-plan { color: var(--gold-bright); }
+.service-summary-plan { color: var(--text-muted); }
 .service-summary-badges { display: grid; justify-items: end; gap: 5px; flex-shrink: 0; }
 .service-summary-badges .badge { white-space: nowrap; padding: 3px 7px; }
 .service-summary-metrics {

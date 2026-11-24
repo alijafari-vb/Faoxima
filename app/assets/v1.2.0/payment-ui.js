@@ -2,7 +2,7 @@ import { escapeHtml, copyToClipboard, toast, blobToDataUrl, rialCopyValue } from
 import { hapticImpact, hapticNotify, isDesktopPlatform } from './telegram.js?v=0.0.52';
 import { icon } from './icons.js?v=0.0.52';
 import { getToken } from './state.js';
-import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.5';
+import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.6';
 
 export function iconForMethod(m) {
     const id = String(m.id || '').toLowerCase();
@@ -403,13 +403,13 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./pages/service-success.js', import.meta.url);
-        url.searchParams.set('v', `${ver}-subscriptions`);
+        url.searchParams.set('v', `${ver}-plan-label`);
         _successModulePromise = import(url.href).catch(() => {
             _successModulePromise = null;
-            return import('./pages/service-success.js?v=0.0.1');
+            return import('./pages/service-success.js?v=0.0.2');
         });
     } catch (e) {
-        _successModulePromise = import('./pages/service-success.js?v=0.0.1');
+        _successModulePromise = import('./pages/service-success.js?v=0.0.2');
     }
     return _successModulePromise;
 }
@@ -538,7 +538,7 @@ function renderGatewayTimeout(view, opts) {
 let _tonpayCustomModulePromise = null;
 function loadTonpayCustom() {
     if (_tonpayCustomModulePromise) return _tonpayCustomModulePromise;
-    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.8');
+    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.9');
     return _tonpayCustomModulePromise;
 }
 
@@ -563,7 +563,7 @@ export function startTonpayCustomFlow(rootView, obj, opts = {}) {
 let _atlaspayCustomModulePromise = null;
 function loadAtlaspayCustom() {
     if (_atlaspayCustomModulePromise) return _atlaspayCustomModulePromise;
-    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.2');
+    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.3');
     return _atlaspayCustomModulePromise;
 }
 

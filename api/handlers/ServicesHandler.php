@@ -72,6 +72,7 @@ final class ServicesHandler extends BaseHandler
             $list[] = [
                 'id'             => $row['code_product'],
                 'name'           => $row['name_product'],
+                'plan_label'     => rxPlanLabel($row),
                 'description'    => $row['note'] ?? '',
                 'price'          => $price,
                 'base_price'     => (float) $basePrice,

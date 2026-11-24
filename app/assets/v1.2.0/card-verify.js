@@ -163,13 +163,13 @@ function loadServiceSuccess() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./pages/service-success.js', import.meta.url);
-        url.searchParams.set('v', `${ver}-subscriptions`);
+        url.searchParams.set('v', `${ver}-plan-label`);
         _successModulePromise = import(url.href).catch(() => {
             _successModulePromise = null;
-            return import('./pages/service-success.js?v=0.0.1');
+            return import('./pages/service-success.js?v=0.0.2');
         });
     } catch (e) {
-        _successModulePromise = import('./pages/service-success.js?v=0.0.1');
+        _successModulePromise = import('./pages/service-success.js?v=0.0.2');
     }
     return _successModulePromise;
 }

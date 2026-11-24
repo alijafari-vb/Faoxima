@@ -4,8 +4,8 @@ import { setUser } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { mountHomeBell } from '../notifications.js?v=0.0.52';
-import { methodLabel } from '../payment-ui.js?v=0.0.68';
-import { cancelVerifyPayment } from '../card-verify.js?v=0.0.5';
+import { methodLabel } from '../payment-ui.js?v=0.0.69';
+import { cancelVerifyPayment } from '../card-verify.js?v=0.0.6';
 
 function greetingName() {
     try {
@@ -236,7 +236,7 @@ function renderServiceItem(it) {
         <a href="#/services/${encodeURIComponent(username)}/${encodeURIComponent(it.id_invoice)}" class="list-item" data-username="${escapeHtml(username)}">
             <div class="li-main">
                 ${serviceListIdentity(it.display_username || username, it.panel_user_id)}
-                ${it.name_product ? `<div class="li-sub">${escapeHtml(subscriptionProductLabel(it.name_product))}</div>` : ''}
+                ${(it.plan_label || it.name_product) ? `<div class="li-sub">${escapeHtml(it.plan_label || subscriptionProductLabel(it.name_product))}</div>` : ''}
             </div>
             <span class="badge ${status.badge}">${icon(status.icon, 'class="ico"')} ${escapeHtml(status.text)}</span>
             <span class="li-action" aria-hidden="true">

@@ -640,7 +640,7 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
     $setting['channel'] = $text;
     update("botsaz", "setting", json_encode($setting), "bot_token", $ApiToken);
     step("home", $from_id);
-} elseif ($text == "✏️ تنظیم نام محصول") {
+} elseif (in_array($text, ["✏️ تنظیم نام پلن", "✏️ تنظیم نام محصول"], true)) {
     if (!is_file('product_name.json')) {
         file_put_contents('product_name.json', "{}");
     }

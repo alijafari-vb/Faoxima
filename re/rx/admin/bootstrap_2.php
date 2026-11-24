@@ -1955,7 +1955,7 @@ $paycount
     savedata("save", "url_panel", $guardBaseUrl);
     nm_adminInstantReply(
         $from_id,
-        "✅ اتصال به گارد برقرار شد.\n\n⚠️ توجه: اشتراک‌های قابل ساخت روی این پنل هنوز تنظیم نشده‌اند. پیش از فروش، از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم اشتراک‌ها» آن‌ها را مشخص کنید؛ در غیر این صورت ساخت اشتراک روی این پنل با خطا مواجه می‌شود.\n\n"
+        "✅ اتصال به گارد برقرار شد.\n\n⚠️ توجه: سرویس‌های مجاز برای ساخت اشتراک روی این پنل هنوز تنظیم نشده‌اند. پیش از فروش، از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم سرویس‌ها» آن‌ها را مشخص کنید؛ در غیر این صورت ساخت اشتراک روی این پنل با خطا مواجه می‌شود.\n\n"
             . $textbotlang['Admin']['managepanel']['getlimitedpanel'],
         $backadmin,
         'HTML'
@@ -2070,7 +2070,7 @@ $paycount
         if (isset($matches[1]) && $matches[1] === 't') {
             $id = intval($matches[2]);
             if (!in_array($id, $availableIds, true)) {
-                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'شناسهٔ اشتراک نامعتبر است.', 'show_alert' => true, 'cache_time' => 0]);
+                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'شناسهٔ سرویس Guard نامعتبر است.', 'show_alert' => true, 'cache_time' => 0]);
                 return;
             }
             if (in_array($id, $selected, true)) {
@@ -2094,7 +2094,7 @@ $paycount
             return;
         } elseif (($matches[3] ?? '') === 's') {
             if (empty($selected)) {
-                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '⚠️ حداقل یک اشتراک را انتخاب کنید', 'show_alert' => true, 'cache_time' => 0]);
+                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '⚠️ حداقل یک سرویس را انتخاب کنید', 'show_alert' => true, 'cache_time' => 0]);
                 return;
             }
             $storageValue = (count($selected) === count($availableIds)) ? '0' : json_encode(array_values($selected));
@@ -2336,7 +2336,7 @@ $paycount
     } elseif ($userdata['type'] == "remnawave") {
         nm_adminInstantReply($from_id, "✅ پنل رمن‌ویو با موفقیت ثبت شد. لطفاً شناسه Squad خود را حتماً تنظیم کرده و سپس دکمه تست اتصال را بزنید.", null, 'HTML');
     } elseif ($userdata['type'] == "rebecca") {
-        nm_adminInstantReply($from_id, "✅ پنل Rebecca با موفقیت ثبت شد. در صورت نیاز اشتراک پیش‌فرض را از منوی مدیریت پنل تغییر دهید.", null, 'HTML');
+        nm_adminInstantReply($from_id, "✅ پنل Rebecca با موفقیت ثبت شد. در صورت نیاز سرویس پیش‌فرض را از منوی مدیریت پنل تغییر دهید.", null, 'HTML');
     } elseif ($userdata['type'] == "pasarguard") {
         nm_adminInstantReply($from_id, "❌ نکته :
 برای فعالسازی پنل باید به منوی مدیریت پنل  رفته و گزینه های
@@ -4880,7 +4880,7 @@ $caption";
     step('home', $from_id);
 } elseif ($user['step'] == "get_limit") {
     if (strlen($text) > 150) {
-        nm_adminInstantReply($from_id, "❌ نام محصول باید کمتر از 150 کاراکتر باشد", $backadmin, 'HTML');
+        nm_adminInstantReply($from_id, "❌ نام پلن باید کمتر از 150 کاراکتر باشد", $backadmin, 'HTML');
         return;
     }
     if (in_array($text, $name_product)) {
@@ -5617,7 +5617,7 @@ $caption";
     $count_invoice = select("invoice", "*", "name_product", $info_product['name_product'], "count");
     $infoproduct = "
 📌 اطلاعات محصول در حال ویرایش:
-نام محصول :  {$info_product['name_product']}
+نام پلن :  {$info_product['name_product']}
 قیمت محصول : " . rxFormatToman($info_product['price_product']) . "
 حجم محصول : {$info_product['Volume_constraint']}
 موقعیت محصول : {$info_product['Location']}
@@ -5681,13 +5681,13 @@ $caption";
     $stmt->execute();
     nm_adminInstantReply($from_id, "✅ دسته بندی محصول بروزرسانی شد", $shopkeyboard, 'HTML');
     step('home', $from_id);
-} elseif ($text == "نام محصول" && $adminrulecheck['rule'] == "administrator") {
+} elseif (in_array($text, ["نام پلن", "نام محصول"], true) && $adminrulecheck['rule'] == "administrator") {
     nm_adminInstantReply($from_id, "نام جدید را ارسال کنید", $backadmin, 'HTML');
     step('change_name', $from_id);
 } elseif ($user['step'] == "change_name") {
     if (!isset($update['message']) && empty($text)) { return; }
     if (strlen($text) > 150) {
-        nm_adminInstantReply($from_id, "❌ نام محصول باید کمتر از 150 کاراکتر باشد", $backadmin, 'HTML');
+        nm_adminInstantReply($from_id, "❌ نام پلن باید کمتر از 150 کاراکتر باشد", $backadmin, 'HTML');
         return;
     }
     if (in_array($text, $name_product)) {
@@ -5701,7 +5701,7 @@ $caption";
     $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
-    nm_adminInstantReply($from_id, "✅نام محصول بروزرسانی شد", $change_product, 'HTML');
+    nm_adminInstantReply($from_id, "✅نام پلن بروزرسانی شد", $change_product, 'HTML');
     step('home', $from_id);
 } elseif ($text == "نوع کاربری" && $adminrulecheck['rule'] == "administrator") {
     nm_adminInstantReply($from_id, "نوع کاربری جدید را ارسال کنید :
@@ -5722,7 +5722,7 @@ $caption";
     $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
-    nm_adminInstantReply($from_id, "✅نام محصول بروزرسانی شد", $shopkeyboard, 'HTML');
+    nm_adminInstantReply($from_id, "✅نام پلن بروزرسانی شد", $shopkeyboard, 'HTML');
     step('home', $from_id);
 } elseif ($text == "نوع ریست حجم" && $adminrulecheck['rule'] == "administrator") {
     nm_adminInstantReply($from_id, "نوع ریست حجم را ارسال کنید", $keyboardtimereset, 'HTML');
@@ -5736,7 +5736,7 @@ $caption";
     $stmt->bindParam(':Location', $panel['name_panel']);
     $stmt->bindParam(':agent', $user['Processing_value_tow']);
     $stmt->execute();
-    nm_adminInstantReply($from_id, "✅نام محصول بروزرسانی شد", $shopkeyboard, 'HTML');
+    nm_adminInstantReply($from_id, "✅نام پلن بروزرسانی شد", $shopkeyboard, 'HTML');
     step('home', $from_id);
 } elseif ($text == "موقعیت محصول" && $adminrulecheck['rule'] == "administrator") {
     nm_adminInstantReply($from_id, "📌 موقعیت جدید محصول را انتخاب کنید", $json_list_marzban_panel, 'HTML');
@@ -7234,7 +7234,7 @@ $rx_sales_metrics
 
 ⛔ غیرفعال: {$rebeccaDisabledUsers}
 
-⚙️ اشتراک پیش‌فرض: {$rebeccaServiceLine}
+⚙️ سرویس پیش‌فرض: {$rebeccaServiceLine}
 
 {$rx_sales_metrics}";
                 nm_adminInstantReply($from_id, $text_rebecca, $optionRebecca, 'HTML');

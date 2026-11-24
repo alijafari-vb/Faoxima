@@ -40,11 +40,12 @@ if ($product == false) {
     $infomesssage  = "محصول مورد نظر یافت نشد!";
 } else {
     if (isset($_GET['action']) && $_GET['action'] == "save") {
-        $name_product = htmlspecialchars($_POST['name_product'], ENT_QUOTES, 'UTF-8');
+        $submittedName = trim((string) ($_POST['name_product'] ?? ''));
+        $name_product = $submittedName === '' ? $product['name_product'] : htmlspecialchars($submittedName, ENT_QUOTES, 'UTF-8');
         $prodcutcheck = select("product", "*", "name_product", $name_product, "count");
         if ($product['name_product'] != $name_product && $prodcutcheck != 0) {
             $statusmessage = true;
-            $infomesssage  = "نام محصول تکراری است.";
+            $infomesssage  = "نام پلن تکراری است.";
         } else {
             if ($product['name_product'] != $name_product) {
                 update("product", "name_product", $name_product, "id", $id_product);
@@ -200,8 +201,8 @@ if ($product == false) {
                 <form action="productedit.php?action=save&id=<?php echo $id_product; ?>" method="POST">
 
                     <div class="form-group">
-                        <label class="form-label">نام محصول</label>
-                        <input type="text" name="name_product" class="form-control" value="<?php echo htmlspecialchars($product['name_product'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                        <label class="form-label">نام پلن</label>
+                        <input type="text" name="name_product" class="form-control" value="<?php echo htmlspecialchars($product['name_product'], ENT_QUOTES, 'UTF-8'); ?>">
                     </div>
 
                     <div class="form-row">

@@ -30,7 +30,7 @@ function renderService(it) {
                 <h2><a href="${href}"><bdi>${escapeHtml(it.display_username || username)}</bdi>${icon('chevronLeft', 'class="service-open-icon" aria-hidden="true"')}</a></h2>
                 <div class="service-summary-meta">
                     <span>شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(it.panel_user_id || '—')}</bdi></span>
-                    ${it.name_product ? `<span class="service-summary-plan">${escapeHtml(subscriptionProductLabel(it.name_product))}</span>` : ''}
+                    ${(it.plan_label || it.name_product) ? `<span class="service-summary-plan">${escapeHtml(it.plan_label || subscriptionProductLabel(it.name_product))}</span>` : ''}
                 </div>
             </div>
             <div class="service-summary-badges">

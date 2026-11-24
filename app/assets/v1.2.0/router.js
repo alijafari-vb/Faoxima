@@ -1,13 +1,13 @@
-import { home } from './pages/home.js?v=0.0.68';
-import { services as servicesPage } from './pages/services.js?v=0.0.59';
+import { home } from './pages/home.js?v=0.0.69';
+import { services as servicesPage } from './pages/services.js?v=0.0.60';
 
-import { buy as buyPage } from './pages/buy.js?v=0.0.63';
+import { buy as buyPage } from './pages/buy.js?v=0.0.64';
 import { account as accountPage } from './pages/account.js?v=0.0.53';
 import { settings as settingsPage } from './pages/settings.js?v=0.0.52';
-import { recharge as rechargePage } from './pages/recharge.js?v=0.0.65';
+import { recharge as rechargePage } from './pages/recharge.js?v=0.0.66';
 import { icon } from './icons.js?v=0.0.52';
-import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.68';
-import { startVerifyTracker } from './card-verify.js?v=0.0.5';
+import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.69';
+import { startVerifyTracker } from './card-verify.js?v=0.0.6';
 
 
 let _watchModulePromise = null;
@@ -61,14 +61,14 @@ async function watchResumePage(view, encodedOrderId) {
         }
     } catch (_) {  }
     if (statusObj.tonpay_custom) {
-        const customMod = await import('./pages/tonpay-custom.js?v=0.0.8');
+        const customMod = await import('./pages/tonpay-custom.js?v=0.0.9');
         return customMod.startTonpayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.tonpay_custom,
         });
     }
     if (statusObj.atlaspay_custom) {
-        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.2');
+        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.3');
         return atlasMod.startAtlaspayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.atlaspay_custom,
@@ -206,13 +206,13 @@ function loadServicePage() {
 
 
     const url = new URL('./pages/service.js', import.meta.url);
-    url.searchParams.set('v', `${ver}-0.0.67`);
+    url.searchParams.set('v', `${ver}-0.0.68`);
     _serviceModulePromise = import(url.href).catch((err) => {
 
 
         console.warn('[router] dynamic import of service.js with cache-bust failed, retrying plain', err);
         _serviceModulePromise = null;
-        return import('./pages/service.js?v=0.0.1');
+        return import('./pages/service.js?v=0.0.2');
     });
     return _serviceModulePromise;
 }
@@ -226,7 +226,7 @@ async function serviceDetailPage(view, ...params) {
 let _usertestModulePromise = null;
 function loadUsertestPage() {
     if (_usertestModulePromise) return _usertestModulePromise;
-    _usertestModulePromise = import('./pages/usertest.js?v=0.0.1');
+    _usertestModulePromise = import('./pages/usertest.js?v=0.0.2');
     return _usertestModulePromise;
 }
 async function usertestPage(view) {

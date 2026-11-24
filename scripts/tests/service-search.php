@@ -141,6 +141,15 @@ same('🔎 نام اشتراک، شناسهٔ اشتراک یا لینک اشت�
 same('⚙️ سرویس دلخواه', $lang['users']['customsellvolume']['title'], 'custom product identity remains compatible with invoice lookups');
 same('سرویس تست', faoxima_textbot_get('dyn_testaccount_product_name'), 'the legacy test product name is preserved for storage');
 same('🛍 اشتراک‌های من', rxSubscriptionCopy('🛍 سرویس های من'), 'a reply keyboard saved before updating keeps working');
+same('نام پلن: {name_service} · نام اشتراک: {username}', rxSubscriptionCopy('نام اشتراک:  {name_service} · نام اشتراک: {username}'), 'old templates distinguish a plan from its subscription username');
+same('سرویس پیش‌فرض ربکا', rxSubscriptionCopy('سرویس پیش‌فرض ربکا'), 'a provider service is distinct from a customer subscription');
+same('پیش‌فرض 20 گیگ 60 روز', rxPlanLabel(['Volume_constraint' => '20', 'Service_time' => '60']), 'standard plans are named from their limits');
+same('پیش‌فرض 20 گیگ نامحدود', rxPlanLabel(['Volume' => 20, 'Service_time' => 0]), 'unlimited time stays explicit');
+same('پیش‌فرض نامحدود 30 روز', rxPlanLabel(['Volume' => 0, 'Service_time' => 30]), 'unlimited traffic stays explicit');
+same('دلخواه نامحدود', rxPlanLabel(['Volume' => 0, 'Service_time' => 0, 'name_product' => '⚙️ سرویس دلخواه']), 'custom plans keep their prefix with a single unlimited label');
+same('دلخواه 20 گیگ 30 روز', rxPlanLabel(['Volume' => 20, 'Service_time' => 30, 'pricing_snapshot' => '{"product":"customvolume"}']), 'the stored product code also identifies custom invoices');
+same('تست 250 مگ 4 ساعت', rxPlanLabel(['Volume' => 250, 'Service_time' => 4, 'name_product' => 'سرویس تست']), 'test invoices use the original hours and MB units');
+same(null, rxPlanLabel(['Service_time' => '60']), 'incomplete legacy plans keep their existing label');
 same(['e123'], search($pdo, '۹۱', '100'), 'Persian numeric ID / buyer');
 same(['w123'], search($pdo, '#٩١', '200'), 'Arabic digits / second owner');
 same(['e123', 'w123'], search($pdo, '91', null), 'same numeric ID on two panels / administrator');

@@ -30,6 +30,7 @@ final class ServiceHandler extends BaseHandler
 
         [$invoice] = ServiceSearch::addPanelIds(FaoximaDb::pdo(), [$invoice]);
         $payload['panel_user_id'] = $invoice['panel_user_id'] ?? null;
+        $payload['plan_label'] = rxPlanLabel($invoice);
         $payload['ambiguous_username'] = FaoximaDb::fetchScalar(
             'SELECT 1 FROM invoice WHERE id_user = :user_id AND username = :username AND id_invoice <> :order_id LIMIT 1',
             [':user_id' => $this->user['id'], ':username' => $invoice['username'], ':order_id' => $invoice['id_invoice']]

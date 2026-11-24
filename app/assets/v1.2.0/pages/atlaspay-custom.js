@@ -340,7 +340,7 @@ export function startAtlaspayCustom(view, orderId, opts = {}) {
         }
         if (statusObj.is_service_ready && statusObj.service) {
             try {
-                const mod = await import('./service-success.js?v=0.0.1');
+                const mod = await import('./service-success.js?v=0.0.2');
                 if (mod && typeof mod.renderServiceSuccess === 'function') {
                     mod.renderServiceSuccess(view, { order_id: statusObj.order_id, service: statusObj.service }, {
                         productName: statusObj.service.product_name || '',

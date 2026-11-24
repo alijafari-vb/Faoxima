@@ -203,7 +203,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
 🗜 حجم اشتراک:  {volume} مگابایت
@@ -2043,7 +2043,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
     if (intval($info_product['Volume_constraint']) == 0)
         $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
     $textcreatuser = str_replace('{username}', "<code>" . guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $datatextbot['textafterpay']);
-    $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
+    $textcreatuser = str_replace('{name_service}', htmlspecialchars(rxPlanLabel($info_product) ?? (string) ($info_product['name_product'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $textcreatuser);
     $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
     $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);
     $textcreatuser = str_replace('{volume}', $info_product['Volume_constraint'], $textcreatuser);
@@ -2191,7 +2191,7 @@ $textonebuy
 <blockquote>▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
 <blockquote>▫️موقعیت اشتراک اشتراک : {$userdate['name_panel']}</blockquote>
-<blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
+<blockquote>▫️نام پلن :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>
 <blockquote>▫️موجودی قبل خرید : $balanceformatsellbefore تومان</blockquote>
@@ -2332,7 +2332,7 @@ $textonebuy
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>{$user['Processing_value_tow']}</code>
-🔐 نام اشتراک: {$info_product['name_product']}
+🔐 نام پلن: {$info_product['name_product']}
 📆 مدت اعتبار: {$info_product['Service_time']} روز
 💶 قیمت اصلی : <del>{$rxFmtInfoProductmain} تومان</del>
 💶 قیمت با تخفیف: {$rxFmtInfoProductPriceDiscounted}  تومان
@@ -2580,7 +2580,7 @@ $textonebuy
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>" . guardDisplayUsername($username_ac, $marzban_list_get) . "</code>
-🔐 نام اشتراک: {$info_product['name_product']}
+🔐 نام پلن: {$info_product['name_product']}
 📆 مدت اعتبار: {$info_product['Service_time']} روز
 💶 قیمت: $price_product_format  تومان
 👥 حجم اکانت: {$info_product['Volume_constraint']} گیگ
@@ -2831,7 +2831,7 @@ $textonebuy
             $datatextbot['textafterpay'] = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
 🗜 حجم اشتراک:  {volume} گیگابایت
@@ -2839,7 +2839,7 @@ $textonebuy
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
         }
         $textcreatuser = str_replace('{username}', "<code>" . guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $datatextbot['textafterpay']);
-        $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
+        $textcreatuser = str_replace('{name_service}', htmlspecialchars(rxPlanLabel($info_product) ?? (string) ($info_product['name_product'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $textcreatuser);
         $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
         $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);
         $textcreatuser = str_replace('{volume}', $info_product['Volume_constraint'], $textcreatuser);
@@ -2870,7 +2870,7 @@ $textonebuy
 <blockquote>▫️نام اشتراک :{$username_ac}_0-$count_service</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
 <blockquote>▫️موقعیت اشتراک اشتراک : {$user['Processing_value']}</blockquote>
-<blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
+<blockquote>▫️نام پلن :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>
 <blockquote>▫️موجودی قبل خرید : $balanceformatsellbefore تومان</blockquote>

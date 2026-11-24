@@ -1216,7 +1216,7 @@ if ($text == "version") {
     } else {
         $tableText .= "\nعنوان ستون را برای مرتب‌سازی بزنید.";
         $headings = [];
-        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم', 'days_remaining' => 'روز'] as $field => $label) {
+        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
             $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
             $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
             $headings[] = ['text' => $label . $arrow, 'callback_data' => "svctable:$field:$nextDirection:1"];
@@ -1544,6 +1544,7 @@ if ($text == "version") {
     }
     [$nameloc] = ServiceSearch::addPanelIds($pdo, [$nameloc]);
     $panelIdLine = rxServicePanelIdLine($nameloc);
+    $planLabel = htmlspecialchars(rxPlanLabel($nameloc) ?? rxSubscriptionCopy((string) $nameloc['name_product']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username'], 'links', (string) $nameloc['id_invoice']);
     if (is_array($DataUserOut) && isset($DataUserOut['status']) && $DataUserOut['status'] !== 'Unsuccessful') {
         try {
@@ -1787,7 +1788,7 @@ if ($text == "version") {
         $textinfo = "وضعیت اشتراک : <b>$status_var</b>
 👤 نام اشتراک : <code>{$serviceUsernameHtml}</code>{$panelIdLine}
 🌍 موقعیت اشتراک :{$nameloc['Service_location']}
-نام محصول :{$nameloc['name_product']}
+نام پلن : $planLabel
 
 📶 اخرین زمان اتصال شما : $lastonline
 
@@ -1823,9 +1824,9 @@ $nameconfig";
     } else {
         $marzbancount = select("marzban_panel", "*", "status", "active", "count");
         if ($DataUserOut['status'] == "active") {
-            $namestatus = '❌ خاموش کردن اکانت';
+            $namestatus = '❌ غیرفعال کردن اشتراک';
         } else {
-            $namestatus = '💡 روشن کردن اکانت';
+            $namestatus = '💡 فعال کردن اشتراک';
         }
         $keyboarddate = array(
             'updateinfo' => array(
@@ -1992,7 +1993,7 @@ $nameconfig";
             $textconnect = "📶 اخرین زمان اتصال شما : $lastonline";
         }
         $rwChangelinkHint = (($marzban['type'] ?? '') != "remnawave") ? "💡 برای قطع دسترسی دیگران کافیست روی گزینه \"تغییر لینک\" کلیک کنید." : "";
-        $textinfo_tpl = ($datatextbot['text_service_detail'] ?? '') ?: "🗂 نام محصول : {product}
+        $textinfo_tpl = ($datatextbot['text_service_detail'] ?? '') ?: "🗂 نام پلن : {product}
 📊وضعیت اشتراک : {status}
 🌍 موقعیت اشتراک :{location}
 👤 نام اشتراک: <code>{username}</code>
@@ -2009,7 +2010,7 @@ $nameconfig";
             $usernameField => '<code>' . $serviceUsernameHtml . '</code>' . $panelIdLine,
             '👤 شناسهٔ اشتراک : ' => '👤 نام اشتراک: ',
             '{location}' => $nameloc['Service_location'],
-            '{product}' => rxSubscriptionCopy((string) $nameloc['name_product']),
+            '{product}' => $planLabel,
             '{traffic}' => $LastTraffic,
             '{used}' => $usedTrafficGb,
             '{remaining}' => $RemainingVolume,
@@ -2794,28 +2795,28 @@ $nameconfig";
         $confirmdisableaccount = json_encode([
             'inline_keyboard' => [
                 [
-                    ['text' => '✅ تایید و غیرفعال کانفیگ', 'callback_data' => "confirmaccountdisable_" . $id_invoice],
+                    ['text' => '✅ غیرفعال کردن اشتراک', 'callback_data' => "confirmaccountdisable_" . $id_invoice],
                 ],
                 [
                     ['text' => $textbotlang['users']['stateus']['backinfo'], 'callback_data' => "product_" . $nameloc['id_invoice']],
                 ]
             ]
         ]);
-        Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.
-⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت اشتراک دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
+        Editmessagetext($from_id, $message_id, "📌 با تأیید، اشتراک غیرفعال می‌شود و اتصال قطع خواهد شد.
+برای فعال کردن مجدد، از دکمهٔ «فعال کردن اشتراک» استفاده کنید.", $confirmdisableaccount);
     } else {
         $confirmdisableaccount = json_encode([
             'inline_keyboard' => [
                 [
-                    ['text' => '✅ تایید و فعال کانفیگ', 'callback_data' => "confirmaccountdisable_" . $id_invoice],
+                    ['text' => '✅ فعال کردن اشتراک', 'callback_data' => "confirmaccountdisable_" . $id_invoice],
                 ],
                 [
                     ['text' => $textbotlang['users']['stateus']['backinfo'], 'callback_data' => "product_" . $nameloc['id_invoice']],
                 ]
             ]
         ]);
-        Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید
-⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت اشتراک دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
+        Editmessagetext($from_id, $message_id, "📌 با تأیید، اشتراک فعال می‌شود و دوباره می‌توانید متصل شوید.
+برای غیرفعال کردن مجدد، از دکمهٔ «غیرفعال کردن اشتراک» استفاده کنید.", $confirmdisableaccount);
     }
 } elseif (preg_match('/confirmaccountdisable_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
@@ -3159,7 +3160,7 @@ $nameconfig";
     }
     $textextend = "📜 فاکتور تمدید شما برای نام کاربری {$nameloc['username']} ایجاد شد.
 
-🛍 نام محصول :{$product['name_product']}
+🛍 نام پلن :{$product['name_product']}
 💸 مبلغ تمدید : $pricelastextend تومان
 ⏱ مدت زمان تمدید :{$product['Service_time']} روز
 🔋 حجم تمدید :$volumeextend
@@ -3257,7 +3258,7 @@ $nameconfig";
     $rxFmtExtendUserBalance = rxFormatToman($user['Balance']);
     $textextend = "📜 فاکتور تمدید شما برای نام کاربری {$nameloc['username']} ایجاد شد.
 
-🛍 نام محصول :{$info_product['name_product']}
+🛍 نام پلن :{$info_product['name_product']}
 💸 مبلغ تمدید :{$rxFmtExtendInfoProductPrice}
 ⏱ مدت زمان تمدید :{$info_product['Service_time']} روز
 🔋 حجم تمدید :{$info_product['Volume_constraint']} گیگ
@@ -3587,14 +3588,14 @@ $nameconfig";
         $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : {$nameloc['username']}
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
     } else {
         $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : {$nameloc['username']}
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
         $textextend = rxRenewalDecorateSuccess($textextend, $extend, (string) $nameloc['username'], (string) ($marzban_list_get['name_panel'] ?? ''));
@@ -3615,7 +3616,7 @@ $nameconfig";
 <blockquote>▫️نام اشتراک :{$nameloc['username']}</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
 <blockquote>▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}</blockquote>
-<blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
+<blockquote>▫️نام پلن : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>
 <blockquote>▫️مبلغ تمدید : {$rxFmtProdcutPriceExtend} تومان</blockquote>

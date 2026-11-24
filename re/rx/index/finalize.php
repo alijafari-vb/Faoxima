@@ -152,7 +152,7 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
     if (!empty($rxRenewPreview['blocked'])) {
         $keyboardextend = null;
     }
-    $rxRenewInvoiceText = sprintf($textbotlang['users']['extend']['renewalinvoice'], $username, $prodcut['name_product'], $prodcut['price_product'], $prodcut['Service_time'], $prodcutVolumeLabel, $prodcut['note'], $user['Balance']);
+    $rxRenewInvoiceText = sprintf($textbotlang['users']['extend']['renewalinvoice'], $username, rxPlanLabel($prodcut) ?? $prodcut['name_product'], $prodcut['price_product'], $prodcut['Service_time'], $prodcutVolumeLabel, $prodcut['note'], $user['Balance']);
     if ($rxRenewPreview['text'] !== '') {
         $rxRenewInvoiceText .= "\n\n" . $rxRenewPreview['text'];
     }
@@ -386,14 +386,14 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
         $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : $usernamePanelExtends
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";
     } else {
         $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : $usernamePanelExtends
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";
         $textextend = rxRenewalDecorateSuccess($textextend, $extend, (string) $usernamePanelExtends, (string) ($marzban_list_get['name_panel'] ?? ''));

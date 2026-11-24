@@ -98,23 +98,28 @@ $catQuery->execute();
 $listcategory = $catQuery->fetchAll(PDO::FETCH_COLUMN);
 
 
-$nameProduct = $_POST['nameproduct'] ?? null;
-if (!empty($nameProduct)) {
-    $randomString = bin2hex(random_bytes(2));
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists('nameproduct', $_POST)) {
+    $nameProduct = is_string($_POST['nameproduct']) ? trim($_POST['nameproduct']) : '';
+    $randomString = bin2hex(random_bytes($nameProduct === '' ? 8 : 2));
     $userdata['data_limit_reset'] = "no_reset";
-
-    $product_count = select("product", "*", "name_product", $nameProduct, "count");
-    if ($product_count != 0) {
-        echo "<script>
-alert('محصول از قبل وجود دارد'); window.location.href='product.php';
-</script>";
-        return;
-    }
 
     $hidepanel       = "{}";
     $priceProduct    = $_POST['price_product']    ?? '';
     $volumeProduct   = $_POST['volume_product']   ?? '';
     $serviceTime     = $_POST['time_product']     ?? '';
+    $planLabel = rxPlanLabel(['Volume_constraint' => $volumeProduct, 'Service_time' => $serviceTime]);
+    if ($planLabel === null) {
+        echo "<script>alert('حجم یا مدت پلن نامعتبر است'); window.location.href='product.php';</script>";
+        return;
+    }
+    if ($nameProduct === '') {
+        // Invoice lookups still use the stored product name. Distinguish plans with identical limits.
+        $nameProduct = "$planLabel [$randomString]";
+    }
+    if (select('product', '*', 'name_product', $nameProduct, 'count') != 0) {
+        echo "<script>alert('نام پلن از قبل وجود دارد'); window.location.href='product.php';</script>";
+        return;
+    }
     $agentProduct    = $_POST['agent_product']    ?? '';
     $agentProduct    = strtolower(trim((string)$agentProduct));
     if (!in_array($agentProduct, ['f', 'n', 'n2', 'all'], true)) {
@@ -246,7 +251,7 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
 
             <?php echo fx_bulk_delete_flash_html(); ?>
 
-            <?php echo fx_search_ui('product.php', $prodQ, [], 'جستجو در شناسه، نام محصول، لوکیشن یا دسته‌بندی…'); ?>
+            <?php echo fx_search_ui('product.php', $prodQ, [], 'جستجو در شناسه، نام پلن، لوکیشن یا دسته‌بندی…'); ?>
 
             <div class="card">
                 <form method="POST" action="product.php" id="bulk-form">
@@ -258,7 +263,7 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
                             <tr>
                                 <th><input type="checkbox" id="check-all" onclick="faoximaToggleAll(this)"></th>
                                 <th>شناسه</th>
-                                <th>نام محصول</th>
+                                <th>نام پلن</th>
                                 <th>قیمت</th>
                                 <th>حجم (GB)</th>
                                 <th>زمان (روز)</th>
@@ -270,16 +275,20 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
                         </thead>
                         <tbody>
                         <?php foreach ($listinvoice as $list):
+                            $planName = (string) $list['name_product'];
+                            if (str_ends_with($planName, ' [' . $list['code_product'] . ']')) {
+                                $planName = rxPlanLabel($list) ?? $planName;
+                            }
                             $categoryItems = array_values(array_filter(array_map('trim', explode(',', (string)($list['category'] ?? '')))));
                             $locationItems = array_values(array_filter(array_map('trim', explode(',', (string)($list['Location'] ?? '')))));
                             $agent_type = 'عادی'; $agent_badge = 'badge-gray';
                             if ($list['agent'] == 'n')  { $agent_type = 'نماینده';      $agent_badge = 'badge-purple';  }
                             if ($list['agent'] == 'n2') { $agent_type = 'نماینده ویژه';  $agent_badge = 'badge-warning'; }
                         ?>
-                            <tr data-detail-row data-detail-title="<?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <tr data-detail-row data-detail-title="<?php echo htmlspecialchars($planName, ENT_QUOTES, 'UTF-8'); ?>">
                                 <td><label class="fx-check-row"><input type="checkbox" name="ids[]" value="<?php echo $list['id']; ?>"></label></td>
                                 <td data-label="شناسه" data-summary="1"><?php echo $list['id']; ?></td>
-                                <td data-label="نام محصول" data-summary="1"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="نام پلن" data-summary="1"><?php echo htmlspecialchars($planName, ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="قیمت" data-summary="1"><span class="badge badge-success"><?php echo number_format($list['price_product']); ?></span></td>
                                 <td data-label="حجم (GB)"><span class="badge badge-info"><?php echo ((int)$list['Volume_constraint'] === 0) ? 'نامحدود' : (int)$list['Volume_constraint']; ?></span></td>
                                 <td data-label="زمان (روز)"><span class="badge badge-warning"><?php echo (int)$list['Service_time']; ?></span></td>
@@ -356,8 +365,8 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
         <form action="product.php" method="POST">
             <?php echo fx_csrf_field(); ?>
             <div class="form-group">
-                <label class="form-label">نام محصول</label>
-                <input type="text" name="nameproduct" class="form-control" placeholder="نام محصول را وارد کنید" required>
+                <label class="form-label">نام پلن</label>
+                <input type="text" name="nameproduct" class="form-control" placeholder="خالی بگذارید تا خودکار ساخته شود">
             </div>
 
             <div class="form-group">
@@ -456,8 +465,8 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
         <form action="product.php" method="POST">
             <?php echo fx_csrf_field(); ?>
             <div class="form-group">
-                <label class="form-label">نام محصول</label>
-                <input type="text" name="nameproduct" id="clone_name" class="form-control" placeholder="نام محصول را وارد کنید" required>
+                <label class="form-label">نام پلن</label>
+                <input type="text" name="nameproduct" id="clone_name" class="form-control" placeholder="خالی بگذارید تا خودکار ساخته شود">
             </div>
 
             <div class="form-group">
@@ -616,7 +625,7 @@ if (isset($_GET['removeid']) && $_GET['removeid'] !== '') {
   faoximaBindChipPicker('[data-panel-picker]', '.chip[data-panel-chip]', faoximaPanelPickerSync);
 
   function faoximaOpenClone(p) {
-    document.getElementById('clone_name').value = p.name;
+    document.getElementById('clone_name').value = '';
     document.getElementById('clone_price').value = window.FaoximaMoneyInput ? window.FaoximaMoneyInput.format(p.price) : p.price;
     document.getElementById('clone_volume').value = p.volume;
     document.getElementById('clone_time').value = p.time;

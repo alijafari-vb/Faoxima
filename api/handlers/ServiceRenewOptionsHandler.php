@@ -64,6 +64,7 @@ final class ServiceRenewOptionsHandler extends BaseHandler
             $list[] = [
                 'code'         => (string)$product['code_product'],
                 'name'         => (string)$product['name_product'],
+                'plan_label'     => rxPlanLabel($product),
                 'volume_gb'    => (int)($product['Volume_constraint'] ?? 0),
                 'time_days'    => (int)($product['Service_time'] ?? 0),
                 'price'        => $price,

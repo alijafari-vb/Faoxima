@@ -36,7 +36,7 @@ if (isset($update["inline_query"])) {
 🙍‍♂️ شناسه کاربر : {$OrderUser['id_user']}
 👤 نام اشتراک :  {$OrderUser['username']}
 📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
-🛍 نام محصول :  {$OrderUser['name_product']}
+🛍 نام پلن :  {$OrderUser['name_product']}
 💰 قیمت پرداختی اشتراک : {$rxFmtOrderUserPrice} تومان
 ⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
 ⏳ زمان اشتراک خریداری شده : {$OrderUser['Service_time']}

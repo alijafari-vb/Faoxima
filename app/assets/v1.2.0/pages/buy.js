@@ -5,10 +5,10 @@ import {
 import { hapticImpact, hapticNotify, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { getBuyDraft, setBuyDraft, clearBuyDraft } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.5';
+import { showVerifyPending } from '../card-verify.js?v=0.0.6';
 import {
     fmtNum, renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml,
-} from '../payment-ui.js?v=0.0.68';
+} from '../payment-ui.js?v=0.0.69';
 
 
 let _successModulePromise = null;
@@ -18,14 +18,14 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./service-success.js', import.meta.url);
-        url.searchParams.set('v', `${ver}-subscriptions`);
+        url.searchParams.set('v', `${ver}-plan-label`);
         _successModulePromise = import(url.href).catch((err) => {
             console.warn('[buy] dynamic import of service-success.js with cache-bust failed, retrying plain', err);
             _successModulePromise = null;
-            return import('./service-success.js?v=0.0.1');
+            return import('./service-success.js?v=0.0.2');
         });
     } catch (e) {
-        _successModulePromise = import('./service-success.js?v=0.0.1');
+        _successModulePromise = import('./service-success.js?v=0.0.2');
     }
     return _successModulePromise;
 }
@@ -165,9 +165,9 @@ export async function buy(view) {
                 return;
             }
             $list.innerHTML = list.map((p) => `
-                <button class="plan" data-id="${escapeHtml(p.id)}" data-custom="${p.is_custom ? '1' : '0'}" data-username="${p.is_username ? '1' : '0'}" data-username-required="${p.is_username_required ? '1' : '0'}" data-username-random="${p.is_username_random ? '1' : '0'}" data-note="${p.is_note ? '1' : '0'}" data-name="${escapeHtml(p.name)}">
+                <button class="plan" data-id="${escapeHtml(p.id)}" data-custom="${p.is_custom ? '1' : '0'}" data-username="${p.is_username ? '1' : '0'}" data-username-required="${p.is_username_required ? '1' : '0'}" data-username-random="${p.is_username_random ? '1' : '0'}" data-note="${p.is_note ? '1' : '0'}" data-name="${escapeHtml(p.plan_label || p.name)}">
                     <div class="plan-info">
-                        <div class="plan-title">${escapeHtml(p.name)}</div>
+                        <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
                         <div class="plan-meta">
                             ${p.is_custom ? `<span><span class="mono gold">~</span> حجم سفارشی</span>` : ''}
                             ${p.is_username ? `<span><span class="mono gold">@</span> نام کاربری دلخواه${p.is_username_required ? ' (ضروری)' : ''}</span>` : ''}
@@ -330,9 +330,9 @@ export async function buy(view) {
                 target.innerHTML = `
                     <div class="list mt-sm">
                         ${list.map((p) => `
-                            <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
+                            <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.plan_label || p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
-                                    <div class="plan-title">${escapeHtml(p.name)}</div>
+                                    <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
                                     <div class="plan-meta">
                                         <span>${icon('box')} ${escapeHtml(fmtGb(p.traffic_gb))}</span>
                                         <span>${icon('calendar')} ${escapeHtml(fmtDays(p.time_days))}</span>
@@ -479,7 +479,7 @@ export async function buy(view) {
 
             <div class="card" style="padding:16px">
                 <div class="kv"><span class="kv-label">${icon('pin')} موقعیت</span><span class="kv-value">${escapeHtml(draft.panel.name)}</span></div>
-                <div class="kv"><span class="kv-label">${icon('fileText')} اشتراک</span><span class="kv-value">${escapeHtml(p.name)}</span></div>
+                <div class="kv"><span class="kv-label">${icon('fileText')} نام پلن</span><span class="kv-value">${escapeHtml(p.plan_label || p.name)}</span></div>
                 <div class="kv"><span class="kv-label">${icon('box')} حجم</span><span class="kv-value">${escapeHtml(fmtGb(p.traffic_gb))}</span></div>
                 <div class="kv"><span class="kv-label">${icon('calendar')} مدت زمان</span><span class="kv-value">${escapeHtml(fmtDays(p.time_days))}</span></div>
                 ${fmtSymbolicLimit(p) ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtSymbolicLimit(p))}</span></div>` : (p.ip_limit_guard_active ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtIpLimit(p.ip_limit))}</span></div>` : '')}
@@ -770,7 +770,7 @@ export async function buy(view) {
             const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
             if (method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) {
                 try {
-                    const mod = await import( './crypto-offline.js?v=0.0.1');
+                    const mod = await import( './crypto-offline.js?v=0.0.2');
                     if (mod && typeof mod.renderCryptoOffline === 'function') {
                         mod.renderCryptoOffline(view, {
                             amount: amountDue,

@@ -1,7 +1,7 @@
 import { escapeHtml, subscriptionProductLabel, fmtBytes, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.53';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact } from '../telegram.js?v=0.0.52';
-import { renderServiceOutputs } from './service.js?v=0.0.57';
+import { renderServiceOutputs } from './service.js?v=0.0.58';
 
 
 function gaugeSvg(percent, opts = {}) {
@@ -141,13 +141,13 @@ export function renderServiceSuccess(view, res, opts = {}) {
             <div class="service-detail-list">
                 <div class="service-detail-row">
                     ${icon('user', 'class="ico ico-leading"')}
-                    <span class="service-detail-label">نام کاربری</span>
+                    <span class="service-detail-label">نام اشتراک</span>
                     <span class="service-detail-value mono">${escapeHtml(displayUsernameAc)}</span>
                 </div>
                 <div class="service-detail-row">
                     ${icon('fileText', 'class="ico ico-leading"')}
-                    <span class="service-detail-label">نام اشتراک</span>
-                    <span class="service-detail-value">${escapeHtml(subscriptionProductLabel(productName))}</span>
+                    <span class="service-detail-label">نام پلن</span>
+                    <span class="service-detail-value">${escapeHtml(service.plan_label || subscriptionProductLabel(productName))}</span>
                 </div>
                 <div class="service-detail-row">
                     ${icon('pin', 'class="ico ico-leading"')}

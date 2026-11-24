@@ -1591,7 +1591,7 @@ try {
 
 📆 {date_now} → ⏰ {time_now}
                     ";
-    $text_service_detail = "🗂 نام اشتراک : {product}
+    $text_service_detail = "🗂 نام پلن : {product}
 📊وضعیت اشتراک : {status}
 🌍 موقعیت اشتراک :{location}
 👤 شناسهٔ اشتراک : <code>{username}</code>
@@ -1601,7 +1601,7 @@ try {
 💢 حجم باقی مانده : {remaining} ({percent}%)
 
 📅 تاریخ اتمام : {expire_date} ({days_left})";
-    $text_service_detail_previous = "🗂 نام اشتراک : {product}
+    $text_service_detail_previous = "🗂 نام پلن : {product}
 📊وضعیت اشتراک : {status}
 🌍 موقعیت اشتراک :{location}
 
@@ -1614,7 +1614,7 @@ try {
     $text_service_detail_legacy = "📊وضعیت اشتراک : {status}
 👤 نام اشتراک : <code>{username}</code>
 🌍 موقعیت اشتراک :{location}
-🗂 نام محصول :{product}
+🗂 نام پلن :{product}
 
 🔋 ترافیک : {traffic}
 📥 حجم مصرفی : {used}
@@ -1624,7 +1624,7 @@ try {
     $textafterpay = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
 🗜 حجم اشتراک:  {volume} گیگابایت
@@ -1634,7 +1634,7 @@ try {
     $text_wgdashboard = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
 🗜 حجم اشتراک:  {volume} گیگابایت
@@ -1643,7 +1643,7 @@ try {
     $textmanual = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 
  اطلاعات اشتراک :
@@ -1652,7 +1652,7 @@ try {
     $textaftertext = "✅ اشتراک با موفقیت ایجاد شد
 
 👤 نام اشتراک : {username}
-🌿 نام اشتراک:  {name_service}
+🌿 نام پلن:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
 🗜 حجم اشتراک:  {volume} مگابایت
@@ -1882,13 +1882,13 @@ try {
         ['dyn_errors_purchase_or_payment_restart', '❌ خطایی رخ داده است لطفا مراحل خرید یا پرداخت  را مجدد انجام دهید'],
         ['dyn_errors_data_fetch_restart', '❌ خطایی در هنگام دریافت اطلاعات رخ داده است لطفا مراحل را از اول انجام دهید'],
         ['dyn_errors_single_photo_only', '❌  فقط مجاز به ارسال یک تصویر هستید'],
-        ['dyn_admin_notify_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\n\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام محصول : {product_name}</blockquote>\n<blockquote>حجم محصول : {volume} گیگ</blockquote>\n<blockquote>زمان محصول : {service_time} روز</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
-        ['dyn_admin_notify_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام محصول : {product_name}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
+        ['dyn_admin_notify_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\n\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام پلن : {product_name}</blockquote>\n<blockquote>حجم محصول : {volume} گیگ</blockquote>\n<blockquote>زمان محصول : {service_time} روز</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
+        ['dyn_admin_notify_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام پلن : {product_name}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>حجم خریداری شده  : {volumes}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>تعداد روز خریداری شده  : {days}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_wallet_topup_tpl', "⭕️ یک پرداخت جدید انجام شده است .\nافزایش موجودی\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💵 تعداد کل پرداختی های کاربر : {payment_count} عدد</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
-        ['dyn_admin_notify_cart_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\n<blockquote>نام اشتراک  : {service_username}</blockquote>\n<blockquote>نام محصول : {product_name}</blockquote>\n<blockquote>حجم محصول : {volume} گیگ</blockquote>\n<blockquote>زمان محصول : {service_time} روز</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
-        ['dyn_admin_notify_cart_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام محصول : {product_name}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
+        ['dyn_admin_notify_cart_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\n<blockquote>نام اشتراک  : {service_username}</blockquote>\n<blockquote>نام پلن : {product_name}</blockquote>\n<blockquote>حجم محصول : {volume} گیگ</blockquote>\n<blockquote>زمان محصول : {service_time} روز</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
+        ['dyn_admin_notify_cart_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>نام پلن : {product_name}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_cart_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>حجم خریداری شده  : {volumes}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_cart_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\n<blockquote>نام اشتراک : {service_username}</blockquote>\n<blockquote>تعداد روز خریداری شده  : {days}</blockquote>\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
         ['dyn_admin_notify_cart_wallet_topup_tpl', "⭕️ یک پرداخت جدید انجام شده است .\nافزایش موجودی\n<blockquote>👤 نام اکانت کاربر : {first_name}</blockquote>\n<blockquote>👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a></blockquote>\n<blockquote>💸 موجودی فعلی کاربر : {format_balance} تومان</blockquote>\n<blockquote>🛒 کد پیگیری پرداخت: {order_id}</blockquote>\n<blockquote>⚜️ نام کاربری: @{username}</blockquote>\n<blockquote>💸 مبلغ پرداختی: {format_price_cart} تومان</blockquote>\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."],
@@ -1922,7 +1922,7 @@ try {
         ['dyn_purchase_affiliate_commission_user_tpl', "🎁  پرداخت پورسانت\n\nمبلغ {amount} تومان به حساب شما از طرف زیر مجموعه تان به کیف پول شما واریز گردید"],
         ['dyn_purchase_affiliate_commission_report_tpl', "\nمبلغ {amount} به کاربر {affiliate_id} برای پورسانت از کاربر {user_id} واریز گردید\nتایم : {when}"],
         ['dyn_purchase_first_buy_flag', '📌 خرید اول کاربر'],
-        ['dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n▫️آیدی عددی کاربر : <code>{user_id}</code>\n▫️نام کاربری کاربر :@{username}\n▫️نام اشتراک :{config_username}\n▫️موقعیت اشتراک : {panel_name}\n▫️نام محصول :{product_name}\n▫️زمان خریداری شده :{service_time} روز\n▫️حجم خریداری شده : {volume} GB\n▫️موجودی قبل خرید : {balance_before} تومان\n▫️موجودی بعد خرید : {balance_after} تومان\n▫️کد پیگیری: {order_id}\n▫️نوع کاربر : {agent}\n▫️شماره تلفن کاربر : {phone}\n▫️قیمت محصول : {price} تومان\n▫️زمان خرید : {when}"],
+        ['dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n▫️آیدی عددی کاربر : <code>{user_id}</code>\n▫️نام کاربری کاربر :@{username}\n▫️نام اشتراک :{config_username}\n▫️موقعیت اشتراک : {panel_name}\n▫️نام پلن :{product_name}\n▫️زمان خریداری شده :{service_time} روز\n▫️حجم خریداری شده : {volume} GB\n▫️موجودی قبل خرید : {balance_before} تومان\n▫️موجودی بعد خرید : {balance_after} تومان\n▫️کد پیگیری: {order_id}\n▫️نوع کاربر : {agent}\n▫️شماره تلفن کاربر : {phone}\n▫️قیمت محصول : {price} تومان\n▫️زمان خرید : {when}"],
         ['dyn_paymentinit_amount_out_of_range', '❌ مبلغ باید بین {min} و {max} تومان باشد'],
         ['dyn_paymentinit_pending_request_exists', '⏳ یک درخواست پرداخت در انتظار بررسی دارید. لطفاً ابتدا آن را تکمیل یا لغو کنید.'],
         ['dyn_paymentinit_renew_service_not_found', '❌ اشتراکی برای تمدید با این نام کاربری پیدا نشد.'],
@@ -2040,7 +2040,7 @@ try {
         ['dyn_testaccount_manualsale_stock_depleted', '❌ موجودی این اشتراک به پایان رسیده.'],
         ['dyn_testaccount_create_failed_report_tpl', "⭕️ یک کاربر قصد دریافت اکانت تست از مینی‌اپ داشت که ساخت کانفیگ با خطا مواجه شده\n<blockquote>✍️ دلیل خطا :</blockquote>\n<blockquote>{reason}</blockquote>\n<blockquote>آیدی کابر : {user_id}</blockquote>\n<blockquote>نام کاربری کاربر : @{username}</blockquote>\n<blockquote>نام پنل : {panel_name}</blockquote>"],
         ['dyn_testaccount_create_failed_customer', '❌ خطایی در ساخت اکانت تست رخ داد. با پشتیبانی تماس بگیرید.'],
-        ['dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام اشتراک : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}"],
+        ['dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام پلن : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}"],
         ['dyn_testaccount_product_name', 'سرویس تست'],
         ['dyn_testaccount_minimal_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : <code>{username}</code>"],
         ['dyn_testaccount_delivery_failed', '❌ اکانت تست ساخته شد اما ارسال آن به تلگرام ناموفق بود. لطفاً ربات را استارت کنید و دوباره تلاش کنید.'],

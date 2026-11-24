@@ -1840,7 +1840,7 @@ if (!function_exists('rx_getKeyboardDefaultStyles')) {
                     'قیمت'                  => 'success',
                     'حجم'                   => 'success',
                     'زمان'                  => 'success',
-                    'نام محصول'             => 'primary',
+                    'نام پلن'             => 'primary',
                     'نوع کاربری'            => 'primary',
                     'نوع ریست حجم'          => 'primary',
                     'یادداشت'               => 'primary',

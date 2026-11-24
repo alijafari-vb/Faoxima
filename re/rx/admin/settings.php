@@ -944,7 +944,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     if (intval($info_product['Volume_constraint']) == 0)
         $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
     $textcreatuser = str_replace('{username}', "<code>{$DataUserOut['username']}</code>", $datatextbot['textafterpay']);
-    $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
+    $textcreatuser = str_replace('{name_service}', htmlspecialchars(rxPlanLabel($info_product) ?? (string) ($info_product['name_product'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $textcreatuser);
     $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
     $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);
     $textcreatuser = str_replace('{volume}', $info_product['Volume_constraint'], $textcreatuser);
@@ -3335,7 +3335,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         ];
     }
     $json_list_product_list_admin = json_encode($list_product);
-    nm_adminInstantReply($from_id, "📌 نام محصول خود را ارسال نمایید در صورتی که میخواهید  برای اکانت تست تنظیم کنید متن تست را ارسال کنید.", $json_list_product_list_admin, 'HTML');
+    nm_adminInstantReply($from_id, "📌 نام پلن خود را ارسال نمایید در صورتی که میخواهید  برای اکانت تست تنظیم کنید متن تست را ارسال کنید.", $json_list_product_list_admin, 'HTML');
     step('getnameproduct', $from_id);
     savedata("save", "namerecord", $text);
 } elseif ($user['step'] == "getnameproduct") {

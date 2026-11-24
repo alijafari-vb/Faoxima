@@ -1640,17 +1640,23 @@ function publickey()
 }
 function rxSubscriptionCopy(string $text): string
 {
-    if (!str_contains($text, 'سرویس')) {
-        return $text;
-    }
     $text = strtr($text, [
+        'نام محصول' => 'نام پلن',
+        'نام اشتراک : {product}' => 'نام پلن : {product}',
+        'نام اشتراک: {product}' => 'نام پلن: {product}',
+        'خاموش کردن اکانت' => 'غیرفعال کردن اشتراک',
+        'روشن کردن اکانت' => 'فعال کردن اشتراک',
         'نام کاربری سرویس' => 'نام اشتراک',
         'یوزرنیم سرویس' => 'نام اشتراک',
         'شناسهٔ سرویس' => 'شناسهٔ اشتراک',
         'شناسه سرویس' => 'شناسهٔ اشتراک',
     ]);
+    $text = preg_replace('~نام اشتراک\s*:\s*(\{(?:name_service|product|product_name)\})~u', 'نام پلن: $1', $text) ?? $text;
+    if (!str_contains($text, 'سرویس')) {
+        return $text;
+    }
     return preg_replace(
-        ['~سرویس[ ‌]*ها[ ‌]*ی(?=[\W‌]|$)~u', '~سرویس[ ‌]*ها~u', '~سرویس(?![ ‌]*(?:دهنده|دهی))~u'],
+        ['~سرویس[ ‌]*ها[ ‌]*ی(?=[\W‌]|$)~u', '~سرویس[ ‌]*ها~u', '~سرویس(?![ ‌]*(?:دهنده|دهی|پیش[ ‌-]*فرض))~u'],
         ['اشتراک‌های', 'اشتراک‌ها', 'اشتراک'],
         $text
     ) ?? $text;
@@ -1749,6 +1755,14 @@ function languagechange($path_dir)
                 foreach ($rx_overlay_rows as $rx_overlay_row) {
                     $rx_overlay_id = (string) ($rx_overlay_row['id_text'] ?? '');
                     if (strpos($rx_overlay_id, 'jsontext.') !== 0) {
+                        continue;
+                    }
+                    if (in_array($rx_overlay_id, [
+                        'jsontext.users.sell.grid_header_name',
+                        'jsontext.Admin.Product.AddProductStepOne',
+                        'jsontext.Admin.managepanel.getguardservice',
+                        'jsontext.Admin.managepanel.invalidserviceid',
+                    ], true) || preg_match('/^jsontext\.Admin\.managepanel\.guard\.service_/', $rx_overlay_id)) {
                         continue;
                     }
                     $rx_overlay_text = rxSubscriptionTemplate($rx_overlay_id, (string) ($rx_overlay_row['text'] ?? ''));

@@ -432,6 +432,7 @@ final class PurchaseHandler extends BaseHandler
                     'active'            => true,
                     'expire'            => $expireTs,
                     'product_name'      => (string)($product['name_product'] ?? ''),
+                    'plan_label'        => rxPlanLabel($product),
                     'panel_name'        => (string)($panel['name_panel'] ?? ''),
                     'panel_type'        => 'stock',
                     'service_time_days' => (int)$serviceTime,
@@ -550,7 +551,7 @@ final class PurchaseHandler extends BaseHandler
 
         $template = $this->resolveTemplate($panel['type'] ?? '');
         $template = str_replace('{username}', "<code>" . guardDisplayUsername($remote['username'], $panel) . "</code>", $template);
-        $template = str_replace('{name_service}', $product['name_product'] ?? '', $template);
+        $template = str_replace('{name_service}', htmlspecialchars(rxPlanLabel($product) ?? (string) ($product['name_product'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $template);
         $template = str_replace('{location}', $panel['name_panel'] ?? '', $template);
 
         $displayDays   = $serviceTime === 0 ? ($textbotlang['users']['stateus']['Unlimited'] ?? '∞') : $serviceTime;
@@ -698,6 +699,7 @@ final class PurchaseHandler extends BaseHandler
                 'active'            => true,
                 'expire'            => $expireTs,
                 'product_name'      => (string)($product['name_product'] ?? ''),
+                'plan_label'        => rxPlanLabel($product),
                 'panel_name'        => (string)($panel['name_panel'] ?? ''),
                 'panel_type'        => (string)($panel['type'] ?? ''),
                 'service_time_days' => $serviceTimeInt,
@@ -939,7 +941,7 @@ final class PurchaseHandler extends BaseHandler
         $firstBuy = $invoiceCount === 1 ? faoxima_textbot_get('dyn_purchase_first_buy_flag', '📌 خرید اول کاربر') : '';
         $when = jdate('Y/m/d H:i:s');
 
-        $text = faoxima_render_text(faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>\n<blockquote>▫️نام محصول :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
+        $text = faoxima_render_text(faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>\n<blockquote>▫️نام پلن :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
             'first_buy' => $firstBuy,
             'user_id' => $this->user['id'],
             'username' => $this->user['username'],

@@ -5,8 +5,8 @@ import {
 } from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify, showConfirm, openLink, supportsNativeDownload, downloadFileNative } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.5';
-import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.68';
+import { showVerifyPending } from '../card-verify.js?v=0.0.6';
+import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.69';
 
 const ALL_ACTIONS = [
     { id: 'renew',           label: 'تمدید اشتراک',            ico: 'rotate',     cls: '', inline: true  },
@@ -14,7 +14,7 @@ const ALL_ACTIONS = [
     { id: 'extra_volume',    label: 'خرید حجم اضافه',          ico: 'box',        cls: '', inline: true  },
     { id: 'changelink',      label: 'تغییر لینک',              ico: 'link',       cls: '', inline: false },
     { id: 'refund',          label: 'بازگشت وجه',              ico: 'diamond',    cls: 'is-danger', inline: false },
-    { id: 'toggle_status',   label: 'خاموش / روشن کردن اکانت', ico: 'power',      cls: 'is-danger', inline: true  },
+    { id: 'toggle_status',   label: 'تغییر وضعیت اشتراک', ico: 'power',      cls: 'is-danger', inline: true  },
     { id: 'transfer',        label: 'انتقال به کاربر دیگر',    ico: 'transfer',   cls: '', inline: false },
     { id: 'change_location', label: 'تغییر موقعیت',            ico: 'pin',        cls: '', inline: false },
     { id: 'report_problem',  label: 'گزارش اختلال',            ico: 'alert',      cls: '', inline: true  },
@@ -774,8 +774,9 @@ function renderBody($body, info, username, reload) {
     $body.innerHTML = `
         <div class="row-spread">
             <div>
-                <div class="muted mono" style="font-size:12px"><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi>${info.panel_user_id ? ` · شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(info.panel_user_id)}</bdi>` : ''}</div>
-                <h2 style="margin:4px 0 0;font-size:20px;font-weight:700">${escapeHtml(subscriptionProductLabel(info.product_name || '—'))}</h2>
+                <h2 style="margin:4px 0 0;font-size:20px;font-weight:700"><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi></h2>
+                ${info.panel_user_id ? `<div class="muted" style="font-size:12px">شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(info.panel_user_id)}</bdi></div>` : ''}
+                <div class="muted" style="font-size:12px">نام پلن: ${escapeHtml(info.plan_label || subscriptionProductLabel(info.product_name || '—'))}</div>
             </div>
             <span class="badge ${statusBadge}">
                 ${icon(statusIcon, 'class="ico"')}
@@ -1278,7 +1279,7 @@ function renderNotePanel($panel, info, username, reload) {
 function renderToggleStatusPanel($panel, info, username, reload) {
     const isActive = String(info.status || '').toLowerCase() === 'active';
     const willBecome = isActive ? 'غیرفعال' : 'فعال';
-    const cta = isActive ? 'تایید و خاموش کردن' : 'تایید و روشن کردن';
+    const cta = isActive ? 'غیرفعال کردن اشتراک' : 'فعال کردن اشتراک';
     const ico = isActive ? 'power' : 'online';
 
     $panel.innerHTML = `
@@ -1417,11 +1418,11 @@ async function renderRenewPanel($panel, info, username, reload) {
         return `
             <button class="plan ${cls}" data-code="${escapeHtml(p.code)}"
                     data-price="${escapeHtml(String(p.price))}"
-                    data-name="${escapeHtml(p.name)}"
+                    data-name="${escapeHtml(p.plan_label || p.name)}"
                     data-volume="${escapeHtml(String(p.volume_gb))}"
                     data-time="${escapeHtml(String(p.time_days))}">
                 <div class="plan-info">
-                    <div class="plan-title">${escapeHtml(p.name)}</div>
+                    <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
                     <div class="plan-meta">${meta.join('')}</div>
                 </div>
                 <div class="plan-price">${priceTag}</div>
@@ -1823,7 +1824,7 @@ async function renderRenewInlinePayment($panel, pay, reload) {
         const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
         if (method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) {
             try {
-                const mod = await import('./crypto-offline.js?v=0.0.1');
+                const mod = await import('./crypto-offline.js?v=0.0.2');
                 if (mod && typeof mod.renderCryptoOffline === 'function') {
                     mod.renderCryptoOffline($panel, {
                         amount: amountDue,
@@ -2131,7 +2132,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
         const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
         if ((method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) && $panel) {
             try {
-                const mod = await import('./crypto-offline.js?v=0.0.1');
+                const mod = await import('./crypto-offline.js?v=0.0.2');
                 if (mod && typeof mod.renderCryptoOffline === 'function') {
                     mod.renderCryptoOffline($panel, {
                         amount: amountDue,
@@ -2200,8 +2201,8 @@ async function renderChangeLocationPanel($panel, username, reload) {
 
     const isFree = !!data.is_free;
     $list.innerHTML = panels.map((p) => `
-        <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}">
-            <div class="plan-info"><div class="plan-title">${escapeHtml(p.name)}</div></div>
+        <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.plan_label || p.name)}">
+            <div class="plan-info"><div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div></div>
             <div class="plan-price"><span class="amt">${isFree ? 'رایگان' : escapeHtml(fmtPrice(p.price))}</span></div>
         </button>
     `).join('');

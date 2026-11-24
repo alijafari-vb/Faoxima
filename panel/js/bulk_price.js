@@ -793,7 +793,7 @@
             ui.listHead = make('div', 'bp-listhead');
             ui.listHead.setAttribute('aria-hidden', 'true');
             ui.listHead.hidden = true;
-            ['', 'شناسه', 'نام محصول', 'پنل / دسته‌بندی', 'قیمت فعلی', 'قیمت جدید'].forEach(function (t) {
+            ['', 'شناسه', 'نام پلن', 'پنل / دسته‌بندی', 'قیمت فعلی', 'قیمت جدید'].forEach(function (t) {
                 ui.listHead.appendChild(make('span', '', t));
             });
             ui.state = make('div', 'bp-state');

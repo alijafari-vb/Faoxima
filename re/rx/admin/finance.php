@@ -784,7 +784,7 @@ if (false) {
     $capabilityReport = rx_panel_capability_report($typepanel);
     outtypepanel($typepanel['type'], rx_cap_render($capabilityReport));
     step('PanelMenu', $from_id);
-} elseif (rxSubscriptionCopy($text) == "⚙️ اشتراک پیش‌فرض" && $adminrulecheck['rule'] == "administrator") {
+} elseif (in_array($text, ["⚙️ سرویس پیش‌فرض", "⚙️ اشتراک پیش‌فرض"], true) && $adminrulecheck['rule'] == "administrator") {
     $panelName = guardResolveUserPanelName($user);
     $panel = $panelName ? select("marzban_panel", "*", "name_panel", $panelName, "select") : null;
     if (!is_array($panel) || ($panel['type'] ?? null) != "rebecca") {
@@ -793,19 +793,19 @@ if (false) {
     }
     $servicesResponse = rebeccaGetServices($panel['name_panel']);
     if ($servicesResponse['status'] === false || empty($servicesResponse['services'])) {
-        $errorMsg = $servicesResponse['msg'] ?? 'لیست اشتراک‌ها خالی است.';
-        outtypepanel("rebecca", "❌ دریافت اشتراک‌ها از Rebecca ناموفق بود: {$errorMsg}");
+        $errorMsg = $servicesResponse['msg'] ?? 'لیست سرویس‌ها خالی است.';
+        outtypepanel("rebecca", "❌ دریافت سرویس‌ها از Rebecca ناموفق بود: {$errorMsg}");
         step('PanelMenu', $from_id);
         return;
     }
     $currentServiceId = trim((string) ($panel['rebecca_service_id'] ?? ''));
     $rebeccaServiceView = rebeccaBuildServiceKeyboard($servicesResponse['services'], $currentServiceId, 1);
     if ($rebeccaServiceView === null) {
-        outtypepanel("rebecca", "❌ دریافت اشتراک‌ها از Rebecca ناموفق بود: لیست اشتراک‌ها خالی است.");
+        outtypepanel("rebecca", "❌ دریافت سرویس‌ها از Rebecca ناموفق بود: لیست سرویس‌ها خالی است.");
         step('PanelMenu', $from_id);
         return;
     }
-    nm_adminInstantReply($from_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+    nm_adminInstantReply($from_id, "⚙️ سرویس پیش‌فرض ربکا را انتخاب کنید.", $rebeccaServiceView['keyboard'], 'HTML');
 } elseif ($datain === 'rebeccaservicenoop') {
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
@@ -830,14 +830,14 @@ if (false) {
     if ($rebeccaServiceView === null) {
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'دریافت لیست اشتراک‌ها ناموفق بود. دوباره تلاش کنید.',
+            'text' => 'دریافت لیست سرویس‌ها ناموفق بود. دوباره تلاش کنید.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
         return;
     }
     if (!empty($message_id)) {
-        Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+        Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض ربکا را انتخاب کنید.", $rebeccaServiceView['keyboard'], 'HTML');
     }
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
@@ -864,7 +864,7 @@ if (false) {
     if ($rebeccaServiceView === null) {
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'دریافت لیست اشتراک‌ها ناموفق بود؛ اشتراک پیش‌فرض تغییر نکرد.',
+            'text' => 'دریافت لیست سرویس‌ها ناموفق بود؛ سرویس پیش‌فرض تغییر نکرد.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
@@ -873,11 +873,11 @@ if (false) {
     if (!in_array($chosenServiceId, $rebeccaServiceView['ids'], true)) {
         $rebeccaServiceView = rebeccaBuildServiceKeyboard($servicesResponse['services'], $panel['rebecca_service_id'] ?? '', $rebeccaServicePage);
         if (!empty($message_id)) {
-            Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+            Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض ربکا را انتخاب کنید.", $rebeccaServiceView['keyboard'], 'HTML');
         }
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'این اشتراک دیگر وجود ندارد؛ فهرست به‌روزرسانی شد.',
+            'text' => 'این سرویس دیگر وجود ندارد؛ فهرست به‌روزرسانی شد.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
@@ -885,15 +885,15 @@ if (false) {
     }
     update("marzban_panel", "rebecca_service_id", $chosenServiceId, "name_panel", $panel['name_panel']);
     if (!empty($message_id)) {
-        Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+        Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض ربکا را انتخاب کنید.", $rebeccaServiceView['keyboard'], 'HTML');
     }
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
-        'text' => 'اشتراک پیش‌فرض ذخیره شد.',
+        'text' => 'سرویس پیش‌فرض ذخیره شد.',
         'show_alert' => false,
         'cache_time' => 0,
     ]);
-} elseif (rxSubscriptionCopy($text) == "⚙️ تنظیم اشتراک‌ها" && $adminrulecheck['rule'] == "administrator") {
+} elseif (in_array($text, ["⚙️ تنظیم سرویس‌ها", "⚙️ تنظیم سرویس ها", "⚙️ تنظیم اشتراک‌ها"], true) && $adminrulecheck['rule'] == "administrator") {
     $panelName = guardResolveUserPanelName($user);
     $panel = $panelName ? select("marzban_panel", "*", "name_panel", $panelName, "select") : null;
     if (!is_array($panel) || ($panel['type'] ?? null) != "guard") {
@@ -902,16 +902,16 @@ if (false) {
     }
     $servicesResponse = guardGetServices($panel['name_panel']);
     if ($servicesResponse['status'] === false || empty($servicesResponse['services'])) {
-        $errorMsg = $servicesResponse['msg'] ?? 'لیست اشتراک Guard خالی است.';
-        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت اشتراک‌ها از Guard ناموفق بود: %s";
+        $errorMsg = $servicesResponse['msg'] ?? 'لیست سرویس Guard خالی است.';
+        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت سرویس‌ها از Guard ناموفق بود: %s";
         outtypepanel("guard", sprintf($failTextTemplate, $errorMsg));
         return;
     }
     $services = $servicesResponse['services'];
     $availableIds = guardExtractServiceIdsFromList($services);
     if (empty($availableIds)) {
-        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت اشتراک‌ها از Guard ناموفق بود: %s";
-        outtypepanel("guard", sprintf($failTextTemplate, 'شناسه معتبر برای اشتراک‌ها یافت نشد.'));
+        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت سرویس‌ها از Guard ناموفق بود: %s";
+        outtypepanel("guard", sprintf($failTextTemplate, 'شناسه معتبر برای سرویس‌ها یافت نشد.'));
         return;
     }
     $storedIds = guardParseServiceIds($panel['guard_service_ids'] ?? null);
@@ -2684,14 +2684,14 @@ $iduser  در ربات  رفع مسدود گردید
     }
     [$OrderUser] = ServiceSearch::addPanelIds($pdo, [$OrderUser]);
     $panelIdLine = rxServicePanelIdLine($OrderUser);
-    $productLabel = rxSubscriptionCopy((string) $OrderUser['name_product']);
+    $productLabel = htmlspecialchars(rxPlanLabel($OrderUser) ?? rxSubscriptionCopy((string) $OrderUser['name_product']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     $text_order = "
 🛒 شماره سفارش  :  <code>{$OrderUser['id_invoice']}</code>
 🛒  وضعیت سفارش در ربات : <code>{$OrderUser['Status']}</code>
 🙍‍♂️ شناسهٔ تلگرام کاربر: <code>{$OrderUser['id_user']}</code>
 👤 نام اشتراک: <code>{$OrderUser['username']}</code>{$panelIdLine}
 📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
-🛍 نام محصول :  {$productLabel}
+🛍 نام پلن :  {$productLabel}
 💰 قیمت پرداختی اشتراک : " . rxFormatToman($OrderUser['price_product']) . " تومان
 ⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
 ⏳ زمان اشتراک خریداری شده : {$OrderUser['Service_time']}
@@ -2761,9 +2761,9 @@ $iduser  در ربات  رفع مسدود گردید
 🔄 اخرین زمان آپدیت لینک اشتراک  : $lastupdate
 #️⃣ کلاینت متصل شده :<code>{$DataUserOut['sub_last_user_agent']}</code>";
     if ($DataUserOut['status'] == "active") {
-        $namestatus = '❌ خاموش کردن اکانت';
+        $namestatus = '❌ غیرفعال کردن اشتراک';
     } else {
-        $namestatus = '💡 روشن کردن اکانت';
+        $namestatus = '💡 فعال کردن اشتراک';
     }
     $keyboardlists['inline_keyboard'][] = [
         ['text' => $textbotlang['users']['extend']['title'], 'callback_data' => 'extendadmin_' . $OrderUser['id_invoice']],

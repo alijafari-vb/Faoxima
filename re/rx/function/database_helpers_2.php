@@ -2757,6 +2757,31 @@ function formatInvoiceVolume(array $invoice, $precision = 2): string
     }
     return formatBytes(rxVolumeToBytes($value, rxInvoiceVolumeUnit($invoice)), $precision);
 }
+function rxPlanLabel(array $row): ?string
+{
+    $volume = $row['Volume_constraint'] ?? $row['Volume'] ?? null;
+    $duration = $row['Service_time'] ?? null;
+    if (!is_numeric($volume) || !is_numeric($duration) || $volume < 0 || $duration < 0) {
+        return null;
+    }
+
+    $name = (string) ($row['name_product'] ?? '');
+    $isTest = $name === 'سرویس تست';
+    $code = $row['code_product'] ?? '';
+    if ($code === '' && !empty($row['pricing_snapshot'])) {
+        $snapshot = json_decode((string) $row['pricing_snapshot'], true);
+        $code = $snapshot['product'] ?? '';
+    }
+    $isCustom = in_array($code, ['customvolume', 'custom_volume'], true)
+        || in_array($name, ['⚙️ سرویس دلخواه', '🛍 حجم دلخواه', 'سرویس سفارشی'], true);
+    $prefix = $isTest ? 'تست' : ($isCustom ? 'دلخواه' : 'پیش‌فرض');
+    $unit = rxInvoiceVolumeUnit($row) === 'MB' ? 'مگ' : 'گیگ';
+    $size = rtrim(rtrim(number_format((float) $volume, 2, '.', ''), '0'), '.');
+    $traffic = $volume > 0 ? "$size $unit" : 'نامحدود';
+    $time = $duration > 0 ? (int) $duration . ($isTest ? ' ساعت' : ' روز') : 'نامحدود';
+    return $prefix . ' ' . ($traffic === $time ? $traffic : "$traffic $time");
+}
+
 function rxServiceTableTraffic(?int $bytes): string
 {
     if ($bytes === null || $bytes === -1 || $bytes === 0) {
@@ -2793,7 +2818,7 @@ function rxServiceListButtons(PDO $pdo, array $invoices, string $callbackPrefix,
     $buttons = [];
     foreach (ServiceSearch::addPanelIds($pdo, $invoices) as $invoice) {
         $label = rxServiceListLabel($invoice);
-        $product = rxSubscriptionCopy(trim((string) ($invoice['name_product'] ?? '')));
+        $product = rxPlanLabel($invoice) ?? rxSubscriptionCopy(trim((string) ($invoice['name_product'] ?? '')));
         $note = $withNote ? trim((string) ($invoice['note'] ?? '')) : '';
         foreach ([$product, $note] as $detail) {
             if ($detail !== '' && $detail !== ($invoice['username'] ?? '')) {
@@ -3525,7 +3550,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
         if (intval($get_invoice['Volume']) == 0)
             $get_invoice['Volume'] = $textbotlang['users']['stateus']['Unlimited'];
         $textcreatuser = str_replace('{username}', "<code>" . guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $rxAfterPayTpl);
-        $textcreatuser = str_replace('{name_service}', $get_invoice['name_product'], $textcreatuser);
+        $textcreatuser = str_replace('{name_service}', htmlspecialchars(rxPlanLabel($get_invoice) ?? (string) ($get_invoice['name_product'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $textcreatuser);
         $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
         $textcreatuser = str_replace('{day}', $get_invoice['Service_time'], $textcreatuser);
         $textcreatuser = str_replace('{volume}', $get_invoice['Volume'], $textcreatuser);
@@ -3615,7 +3640,7 @@ $textonebuy
 <blockquote>▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️لوکیشن اشتراک : {$get_invoice['Service_location']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$get_invoice['Service_time']} روز</blockquote>
-<blockquote>▫️نام محصول خریداری شده :{$get_invoice['name_product']}</blockquote>
+<blockquote>▫️نام پلن خریداری شده :{$get_invoice['name_product']}</blockquote>
 <blockquote>▫️حجم خریداری شده : {$get_invoice['Volume']} GB</blockquote>
 <blockquote>▫️موجودی قبل خرید : $balancebefore تومان</blockquote>
 <blockquote>▫️موجودی بعد خرید : $balanceformatsell تومان</blockquote>
@@ -3983,14 +4008,14 @@ $textonebuy
             $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : $usernamepanel
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
         } else {
             $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : $usernamepanel
-▫️نام محصول : {$prodcut['name_product']}
+▫️نام پلن : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
             if (is_array($rxBeforeState ?? null) && is_array($rxAfterState ?? null)) {
@@ -4016,7 +4041,7 @@ $textonebuy
 <blockquote>▫️نام کاربری کاربر : @{$Balance_id['username']}</blockquote>
 <blockquote>▫️نام اشتراک :$usernamepanel</blockquote>
 <blockquote>▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}</blockquote>
-<blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
+<blockquote>▫️نام پلن : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>
 <blockquote>▫️مبلغ تمدید : $priceproductformat تومان</blockquote>
@@ -4048,7 +4073,7 @@ $textonebuy
             $textconfrom = "✅ پرداخت تایید شده
 🔋 تمدید اشتراک
 🪪 نام اشتراک : $usernamepanel
-🛍 نام محصول : {$prodcut['name_product']}
+🛍 نام پلن : {$prodcut['name_product']}
 🌏 نام لوکیشن : {$nameloc['Service_location']}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}

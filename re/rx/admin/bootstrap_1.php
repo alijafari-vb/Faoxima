@@ -116,8 +116,8 @@ function guardResolveUserPanelName(array $user)
 function guardSvcRenderText(array $services, array $selectedIds)
 {
     $lines = [
-        "⚙️ اشتراک‌های قابل فروش روی این پنل",
-        "روی هر اشتراک بزنید تا انتخاب/لغو شود. حداقل یک اشتراک باید انتخاب باشد.",
+        "⚙️ سرویس‌های Guard برای ساخت اشتراک",
+        "روی هر سرویس بزنید تا انتخاب/لغو شود. حداقل یک سرویس باید انتخاب باشد.",
         "",
     ];
     foreach ($services as $service) {
@@ -129,7 +129,7 @@ function guardSvcRenderText(array $services, array $selectedIds)
         $lines[] = "{$mark} " . guardBuildServiceSummaryLabel($service);
     }
     $lines[] = "";
-    $lines[] = count($selectedIds) . ' از ' . count($services) . ' اشتراک انتخاب شده';
+    $lines[] = count($selectedIds) . ' از ' . count($services) . ' سرویس انتخاب شده';
     return implode("\n", $lines);
 }
 

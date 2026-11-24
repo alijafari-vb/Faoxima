@@ -627,7 +627,7 @@ $change_product = json_encode([
             rx_kb_style(['text' => "زمان"], 'زمان', $_rx_pedit_styles),
         ],
         [
-            rx_kb_style(['text' => "نام محصول"], 'نام محصول', $_rx_pedit_styles),
+            rx_kb_style(['text' => "نام پلن"], 'نام پلن', $_rx_pedit_styles),
             rx_kb_style(['text' => "نوع کاربری"], 'نوع کاربری', $_rx_pedit_styles),
         ],
         [

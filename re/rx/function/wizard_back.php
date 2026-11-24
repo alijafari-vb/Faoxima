@@ -318,7 +318,7 @@ if (!function_exists('rxRenderWizardStep')) {
                     ];
                 }
                 $json_list_product_list_admin = json_encode($list_product);
-                nm_adminInstantReply($from_id, "📌 نام محصول خود را ارسال نمایید در صورتی که میخواهید  برای اکانت تست تنظیم کنید متن تست را ارسال کنید.", $json_list_product_list_admin, 'HTML');
+                nm_adminInstantReply($from_id, "📌 نام پلن خود را ارسال نمایید در صورتی که میخواهید  برای اکانت تست تنظیم کنید متن تست را ارسال کنید.", $json_list_product_list_admin, 'HTML');
                 return true;
             case 'getconfigtext':
                 nm_adminInstantReply($from_id, "📌 کانفیگ یا متن دیگر خود را ارسال نمایید", $backadmin, 'HTML');

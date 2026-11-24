@@ -443,7 +443,7 @@ function guardResolveServiceIds($namePanel, $serviceValue = null)
     if ($serviceValue === null || $serviceValue === '') {
         return [
             'status' => false,
-            'msg' => 'اشتراک‌های قابل ساخت روی این پنل Guard هنوز تنظیم نشده‌اند. از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم اشتراک‌ها» ابتدا اشتراک‌ها را مشخص کنید.'
+            'msg' => 'سرویس‌های مجاز برای ساخت اشتراک روی این پنل Guard هنوز تنظیم نشده‌اند. از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم سرویس‌ها» ابتدا سرویس‌ها را مشخص کنید.'
         ];
     }
     $parsedServices = guardParseServiceIds($serviceValue);
@@ -825,7 +825,7 @@ function guardCapabilityReport(array $panel, array &$report)
         if (!in_array('all', $stored, true) && !in_array(0, $stored, true)) {
             $missing = array_values(array_diff(array_map('intval', $stored), $available));
         }
-        $note = count($available) . ' اشتراک قابل مشاهده.' . (empty($missing) ? '' : ' اشتراک‌های تنظیم‌شده ناموجود: ' . implode(', ', $missing));
+        $note = count($available) . ' سرویس قابل مشاهده.' . (empty($missing) ? '' : ' سرویس‌های تنظیم‌شده ناموجود: ' . implode(', ', $missing));
         rx_cap_set($report, 'resources', empty($missing) ? 'verified' : 'failed', $note);
     }
 }
