@@ -25,7 +25,7 @@ final class ServiceHandler extends BaseHandler
 
         $payload = $this->buildPayloadFromInvoice($invoice);
         if ($payload === null) {
-            FaoximaResponse::fail(200, 'اطلاعات سرویس در حال حاضر از پنل در دسترس نیست؛ لطفاً چند لحظه دیگر دوباره تلاش کنید.');
+            FaoximaResponse::fail(200, 'اطلاعات اشتراک در حال حاضر از پنل در دسترس نیست؛ لطفاً چند لحظه دیگر دوباره تلاش کنید.');
         }
 
         [$invoice] = ServiceSearch::addPanelIds(FaoximaDb::pdo(), [$invoice]);
@@ -114,7 +114,7 @@ final class ServiceHandler extends BaseHandler
         }
 
         if (($panel['national_net_status'] ?? '') === 'on_national_net') {
-            FaoximaResponse::fail(200, '🌐 وضعیت نت ملی این پنل روشن است؛ این سرویس فعلاً نمایش داده نمی‌شود. وقتی نت ملی خاموش شود، سرویس‌های قبلی دوباره در دسترس قرار می‌گیرند.');
+            FaoximaResponse::fail(200, '🌐 وضعیت نت ملی این پنل روشن است؛ این اشتراک فعلاً نمایش داده نمی‌شود. وقتی نت ملی خاموش شود، اشتراک‌های قبلی دوباره در دسترس قرار می‌گیرند.');
         }
 
         if (($panel['type'] ?? '') !== 'pasarguard') {

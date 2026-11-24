@@ -1,19 +1,19 @@
-import { home } from './pages/home.js?v=0.0.67';
-import { services as servicesPage } from './pages/services.js?v=0.0.58';
+import { home } from './pages/home.js?v=0.0.68';
+import { services as servicesPage } from './pages/services.js?v=0.0.59';
 
-import { buy as buyPage } from './pages/buy.js?v=0.0.62';
-import { account as accountPage } from './pages/account.js?v=0.0.52';
+import { buy as buyPage } from './pages/buy.js?v=0.0.63';
+import { account as accountPage } from './pages/account.js?v=0.0.53';
 import { settings as settingsPage } from './pages/settings.js?v=0.0.52';
-import { recharge as rechargePage } from './pages/recharge.js?v=0.0.64';
+import { recharge as rechargePage } from './pages/recharge.js?v=0.0.65';
 import { icon } from './icons.js?v=0.0.52';
-import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.67';
-import { startVerifyTracker } from './card-verify.js?v=0.0.4';
+import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.68';
+import { startVerifyTracker } from './card-verify.js?v=0.0.5';
 
 
 let _watchModulePromise = null;
 function loadWatchPage() {
     if (_watchModulePromise) return _watchModulePromise;
-    _watchModulePromise = import('./pages/gateway-watch.js');
+    _watchModulePromise = import('./pages/gateway-watch.js?v=0.0.1');
     return _watchModulePromise;
 }
 
@@ -61,14 +61,14 @@ async function watchResumePage(view, encodedOrderId) {
         }
     } catch (_) {  }
     if (statusObj.tonpay_custom) {
-        const customMod = await import('./pages/tonpay-custom.js?v=0.0.7');
+        const customMod = await import('./pages/tonpay-custom.js?v=0.0.8');
         return customMod.startTonpayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.tonpay_custom,
         });
     }
     if (statusObj.atlaspay_custom) {
-        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.1');
+        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.2');
         return atlasMod.startAtlaspayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.atlaspay_custom,
@@ -133,7 +133,7 @@ async function watchResumePage(view, encodedOrderId) {
                     <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${orderId}</span></div>
                     <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                         <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                        <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                        <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                     </div>
                 </div>
             </article>`;
@@ -172,7 +172,7 @@ async function watchResumePage(view, encodedOrderId) {
                         <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${st.order_id || '—'}</span></div>
                         <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                             <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                            <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                            <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                         </div>
                     </div>
                 </article>`;
@@ -206,13 +206,13 @@ function loadServicePage() {
 
 
     const url = new URL('./pages/service.js', import.meta.url);
-    url.searchParams.set('v', `${ver}-0.0.66`);
+    url.searchParams.set('v', `${ver}-0.0.67`);
     _serviceModulePromise = import(url.href).catch((err) => {
 
 
         console.warn('[router] dynamic import of service.js with cache-bust failed, retrying plain', err);
         _serviceModulePromise = null;
-        return import('./pages/service.js');
+        return import('./pages/service.js?v=0.0.1');
     });
     return _serviceModulePromise;
 }
@@ -226,7 +226,7 @@ async function serviceDetailPage(view, ...params) {
 let _usertestModulePromise = null;
 function loadUsertestPage() {
     if (_usertestModulePromise) return _usertestModulePromise;
-    _usertestModulePromise = import('./pages/usertest.js');
+    _usertestModulePromise = import('./pages/usertest.js?v=0.0.1');
     return _usertestModulePromise;
 }
 async function usertestPage(view) {

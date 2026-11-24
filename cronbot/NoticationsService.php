@@ -144,13 +144,13 @@ class ServiceMonitor
 
         if ($isVolumeWarning) {
             $formattedVolume = formatBytes($remainingVolume);
-            $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_volume_warning_tpl', "با سلام خدمت شما کاربر گرامی 👋\n🚨 از حجم سرویس «{plan}» شما تنها {volume} باقی مانده است (شناسه سرویس: {username}). لطفاً در صورت تمایل برای خرید حجم اضافه و یا تمدید سرویستون از طریق بخش «{purchased_services}» اقدام بفرمایین"), [
+            $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_volume_warning_tpl', "با سلام خدمت شما کاربر گرامی 👋\n🚨 از حجم اشتراک «{plan}» شما تنها {volume} باقی مانده است (شناسهٔ اشتراک: {username}). لطفاً در صورت تمایل برای خرید حجم اضافه و یا تمدید اشتراکتون از طریق بخش «{purchased_services}» اقدام بفرمایین"), [
                 'username' => $username,
                 'plan' => $this->getServiceLabel($invoice, $username),
                 'volume' => $formattedVolume,
                 'purchased_services' => $this->text_Purchased_services,
             ]);
-            $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_volume_warning_report_tpl', "📌 اطلاعیه کرون حجم\n\n<blockquote>نام کاربری سرویس :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت سرویس : {status}</blockquote>\n<blockquote>حجم باقی مانده : {volume}</blockquote>"), [
+            $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_volume_warning_report_tpl', "📌 اطلاعیه کرون حجم\n\n<blockquote>نام اشتراک :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت اشتراک : {status}</blockquote>\n<blockquote>حجم باقی مانده : {volume}</blockquote>"), [
                 'username' => $username,
                 'status' => $userData['status'],
                 'volume' => $formattedVolume,
@@ -190,10 +190,10 @@ class ServiceMonitor
             $removeRes = $this->Panel->RemoveUser($invoice['Service_location'], $username);
             if (!empty($removeRes['status']) && $removeRes['status'] === 'successful') {
                 update("invoice", "status", "removeTime", "id_invoice", $invoice['id_invoice']);
-                $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_notice_tpl', "📌 کاربر گرامی بدلیل عدم تمدید، سرویس {username} از لیست سرویس های شما حذف گردید\n\n🌟 جهت تهیه سرویس جدید از بخش خرید سرویس اقدام فرمایید"), [
+                $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_notice_tpl', "📌 کاربر گرامی بدلیل عدم تمدید، اشتراک {username} از لیست اشتراک‌های شما حذف گردید\n\n🌟 جهت تهیه اشتراک جدید از بخش خرید اشتراک اقدام فرمایید"), [
                     'username' => $invoice['username'],
                 ]);
-                $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_report_tpl', "📌 اطلاعیه کرون حذف\n\n<blockquote>نام کاربری سرویس :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت سرویس : {status}</blockquote>\n<blockquote>تعداد روز باقی مانده ‌:‌{days}</blockquote>\n<blockquote>حجم باقی مانده : {volume}</blockquote>"), [
+                $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_report_tpl', "📌 اطلاعیه کرون حذف\n\n<blockquote>نام اشتراک :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت اشتراک : {status}</blockquote>\n<blockquote>تعداد روز باقی مانده ‌:‌{days}</blockquote>\n<blockquote>حجم باقی مانده : {volume}</blockquote>"), [
                     'username' => $invoice['username'],
                     'status' => $statusText,
                     'days' => $daysRemaining,
@@ -204,7 +204,7 @@ class ServiceMonitor
                 $this->sendReportNotification($reportMessage);
             } else {
                 $errMsg = is_array($removeRes['msg'] ?? null) ? json_encode($removeRes['msg']) : ($removeRes['msg'] ?? 'unknown');
-                $errReport = "⚠️ خطای حذف سرویس در کرون زمان\n<blockquote>نام کاربری: <code>{$username}</code></blockquote>\n<blockquote>لوکیشن: {$invoice['Service_location']}</blockquote>\n<blockquote>خطا: {$errMsg}</blockquote>";
+                $errReport = "⚠️ خطای حذف اشتراک در کرون زمان\n<blockquote>نام کاربری: <code>{$username}</code></blockquote>\n<blockquote>لوکیشن: {$invoice['Service_location']}</blockquote>\n<blockquote>خطا: {$errMsg}</blockquote>";
                 $this->sendReportNotification($errReport);
             }
         }
@@ -242,10 +242,10 @@ class ServiceMonitor
             $removeRes = $this->Panel->RemoveUser($invoice['Service_location'], $username);
             if (!empty($removeRes['status']) && $removeRes['status'] === 'successful') {
                 update("invoice", "status", "removevolume", "id_invoice", $invoice['id_invoice']);
-                $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_volume_notice_tpl', "📌 کاربر گرامی بدلیل عدم تمدید، سرویس {username} از لیست سرویس های شما حذف گردید\n\n🌟 جهت تهیه سرویس جدید از بخش خرید سرویس اقدام فرمایید"), [
+                $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_volume_notice_tpl', "📌 کاربر گرامی بدلیل عدم تمدید، اشتراک {username} از لیست اشتراک‌های شما حذف گردید\n\n🌟 جهت تهیه اشتراک جدید از بخش خرید اشتراک اقدام فرمایید"), [
                     'username' => $username,
                 ]);
-                $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_volume_report_tpl', "📌  اطلاعیه کرون حذف حجم \n<blockquote>نام کاربری سرویس : {username} </blockquote>\n<blockquote> وضعیت سرویس : {status} </blockquote>\n<blockquote>تعداد روز باقی مانده :{days} </blockquote>\n<blockquote> حجم باقی مانده : {volume}</blockquote>\n<blockquote>آخرین اتصال کاربر : {last_online}</blockquote>"), [
+                $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_removal_volume_report_tpl', "📌  اطلاعیه کرون حذف حجم \n<blockquote>نام اشتراک : {username} </blockquote>\n<blockquote> وضعیت اشتراک : {status} </blockquote>\n<blockquote>تعداد روز باقی مانده :{days} </blockquote>\n<blockquote> حجم باقی مانده : {volume}</blockquote>\n<blockquote>آخرین اتصال کاربر : {last_online}</blockquote>"), [
                     'username' => $username,
                     'status' => $statusText,
                     'days' => $daysRemaining,
@@ -257,7 +257,7 @@ class ServiceMonitor
                 $this->sendReportNotification($reportMessage);
             } else {
                 $errMsg = is_array($removeRes['msg'] ?? null) ? json_encode($removeRes['msg']) : ($removeRes['msg'] ?? 'unknown');
-                $errReport = "⚠️ خطای حذف سرویس در کرون حجم\n<blockquote>نام کاربری: <code>{$username}</code></blockquote>\n<blockquote>لوکیشن: {$invoice['Service_location']}</blockquote>\n<blockquote>خطا: {$errMsg}</blockquote>";
+                $errReport = "⚠️ خطای حذف اشتراک در کرون حجم\n<blockquote>نام کاربری: <code>{$username}</code></blockquote>\n<blockquote>لوکیشن: {$invoice['Service_location']}</blockquote>\n<blockquote>خطا: {$errMsg}</blockquote>";
                 $this->sendReportNotification($errReport);
             }
         }
@@ -294,14 +294,14 @@ class ServiceMonitor
         $isTimeWarning = $timeRemaining <= $warningThreshold && $timeRemaining > 0;
 
         if ($isTimeWarning) {
-            $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_time_warning_tpl', "با سلام خدمت شما کاربر گرامی 👋\n📌 از مهلت زمانی سرویس «{plan}» شما فقط {days_display} روز باقی مانده است (شناسه سرویس: {username}). لطفاً در صورت تمایل برای تمدید این سرویس، از طریق بخش «{purchased_services}» اقدام بفرمایین. با تشکر از همراهی شما"), [
+            $message = faoxima_render_text(faoxima_textbot_get('dyn_cron_time_warning_tpl', "با سلام خدمت شما کاربر گرامی 👋\n📌 از مهلت زمانی اشتراک «{plan}» شما فقط {days_display} روز باقی مانده است (شناسهٔ اشتراک: {username}). لطفاً در صورت تمایل برای تمدید این اشتراک، از طریق بخش «{purchased_services}» اقدام بفرمایین. با تشکر از همراهی شما"), [
                 'username' => $username,
                 'plan' => $this->getServiceLabel($invoice, $username),
                 'days' => $daysRemaining,
                 'days_display' => $daysRemaining < 1 ? 'کمتر از ۱' : $daysRemaining,
                 'purchased_services' => $this->text_Purchased_services,
             ]);
-            $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_time_warning_report_tpl', "📌 اطلاعیه کرون زمان\n\n<blockquote>نام کاربری سرویس :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت سرویس : {status}</blockquote>\n<blockquote>تعداد روز باقی مانده ‌:‌{days}</blockquote>"), [
+            $reportMessage = faoxima_render_text(faoxima_textbot_get('dyn_cron_time_warning_report_tpl', "📌 اطلاعیه کرون زمان\n\n<blockquote>نام اشتراک :‌ <code>{username}</code></blockquote>\n<blockquote>وضعیت اشتراک : {status}</blockquote>\n<blockquote>تعداد روز باقی مانده ‌:‌{days}</blockquote>"), [
                 'username' => $invoice['username'],
                 'status' => $userData['status'],
                 'days' => $daysRemaining,
@@ -329,7 +329,7 @@ class ServiceMonitor
         return json_encode([
             'inline_keyboard' => [
                 [
-                    rx_cron_btn('cron_extend', ['text' => faoxima_textbot_get('dyn_cron_extend_service_btn', "💊 تمدید سرویس"), 'callback_data' => 'extend_' . $invoiceId]),
+                    rx_cron_btn('cron_extend', ['text' => faoxima_textbot_get('dyn_cron_extend_service_btn', "💊 تمدید اشتراک"), 'callback_data' => 'extend_' . $invoiceId]),
                 ],
             ]
         ]);

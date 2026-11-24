@@ -48,8 +48,8 @@ function fx_req_type($idOrder, $method): string {
     if (in_array($m, ['plisio','nowpayment','digitaltron','arze digital offline'], true)) return 'ارز دیجیتال';
     if ($m === 'star telegram') return 'استارز تلگرام';
     if (strpos($io,'Add_Balance')!==false) return 'افزایش موجودی';
-    if (strpos($io,'getconfigafterpay')!==false) return 'خرید سرویس';
-    if (strpos($io,'getextenduser')!==false) return 'تمدید سرویس';
+    if (strpos($io,'getconfigafterpay')!==false) return 'خرید اشتراک';
+    if (strpos($io,'getextenduser')!==false) return 'تمدید اشتراک';
     if (strpos($io,'getextravolumeuser')!==false) return 'حجم اضافه';
     if (strpos($io,'getextratimeuser')!==false) return 'زمان اضافه';
     if ($m !== '') return 'پرداخت (' . htmlspecialchars($method, ENT_QUOTES, 'UTF-8') . ')';
@@ -58,8 +58,8 @@ function fx_req_type($idOrder, $method): string {
 function fx_purpose($idOrder): string {
     $io = (string)$idOrder;
     if (strpos($io,'Add_Balance')!==false) return 'افزایش موجودی کیف پول';
-    if (strpos($io,'getconfigafterpay')!==false) return 'خرید سرویس';
-    if (strpos($io,'getextenduser')!==false) return 'تمدید سرویس';
+    if (strpos($io,'getconfigafterpay')!==false) return 'خرید اشتراک';
+    if (strpos($io,'getextenduser')!==false) return 'تمدید اشتراک';
     if (strpos($io,'getextravolumeuser')!==false) return 'حجم اضافه';
     if (strpos($io,'getextratimeuser')!==false) return 'زمان اضافه';
     return '';
@@ -178,7 +178,7 @@ try {
         $details = [];
         if ($method !== '') $details[] = 'روش: ' . fx_method_label($method);
         if ($purpose !== '') $details[] = $purpose;
-        if ($svcUser !== '') $details[] = 'سرویس: ' . $svcUser;
+        if ($svcUser !== '') $details[] = 'اشتراک: ' . $svcUser;
         if ($stKey === 'reject' && !empty($r['dec_not_confirmed'])) $details[] = (string)$r['dec_not_confirmed'];
         $rows[] = [
             'sortid'  => 2000000000 + (int)($r['id'] ?? 0),
@@ -212,10 +212,10 @@ try {
             'sortid'  => 1000000000 + (int)($r['id'] ?? 0),
             'sortts'  => 0,
             'idlabel' => 'C' . (int)($r['id'] ?? 0),
-            'type'    => 'لغو سرویس',
+            'type'    => 'لغو اشتراک',
             'source'  => 'ربات',
             'user'    => (string)($r['id_user'] ?? ''),
-            'details' => 'سرویس: ' . (string)($r['username'] ?? '') . (trim((string)($r['description'] ?? '')) !== '' ? ' — ' . (string)$r['description'] : ''),
+            'details' => 'اشتراک: ' . (string)($r['username'] ?? '') . (trim((string)($r['description'] ?? '')) !== '' ? ' — ' . (string)$r['description'] : ''),
             'amount'  => 0,
             'date'    => '',
             'stLabel' => $stLabel, 'stClass' => $stClass, 'stKey' => $stKey,
@@ -243,7 +243,7 @@ try {
             'type'    => 'بازگشت وجه (نت ملی)',
             'source'  => 'ربات',
             'user'    => (string)($r['id_user'] ?? ''),
-            'details' => 'سرویس: ' . (string)($r['username'] ?? '') . ' — ' . (string)($r['name_product'] ?? ''),
+            'details' => 'اشتراک: ' . (string)($r['username'] ?? '') . ' — ' . (string)($r['name_product'] ?? ''),
             'amount'  => (int)($r['price_product'] ?? 0),
             'date'    => $refundTs > 0 ? date('Y/m/d H:i:s', $refundTs) : '',
             'stLabel' => 'در انتظار', 'stClass' => 'badge-warning', 'stKey' => 'wait',
@@ -336,7 +336,7 @@ $rows = array_slice($rows, ($reqPage - 1) * $reqPerPage, $reqPerPage);
                         <svg class="svg-icon svg-lg" viewBox="0 -4.5 31 31" aria-hidden="true"><g fill="currentColor" stroke="none"><g transform="translate(-206,-626)" fill="currentColor"><path d="M235,643 L216,643 C214.896,643 214,643.896 214,645 C214,646.104 214.896,647 216,647 L235,647 C236.104,647 237,646.104 237,645 C237,643.896 236.104,643 235,643 L235,643 Z M235,635 L216,635 C214.896,635 214,635.896 214,637 C214,638.104 214.896,639 216,639 L235,639 C236.104,639 237,638.104 237,637 C237,635.896 236.104,635 235,635 L235,635 Z M216,631 L235,631 C236.104,631 237,630.104 237,629 C237,627.896 236.104,627 235,627 L216,627 C214.896,627 214,627.896 214,629 C214,630.104 214.896,631 216,631 L216,631 Z M209,642 C207.343,642 206,643.343 206,645 C206,646.657 207.343,648 209,648 C210.657,648 212,646.657 212,645 C212,643.343 210.657,642 209,642 L209,642 Z M209,634 C207.343,634 206,635.343 206,637 C206,638.657 207.343,640 209,640 C210.657,640 212,638.657 212,637 C212,635.343 210.657,634 209,634 L209,634 Z M209,626 C207.343,626 206,627.343 206,629 C206,630.657 207.343,632 209,632 C210.657,632 212,630.657 212,629 C212,627.343 210.657,626 209,626 L209,626 Z"/></g></g></svg>
                         لیست درخواست‌ها
                     </div>
-                    <div class="page-head__sub">همه‌ی درخواست‌های کاربران (رسید بانکی، افزایش موجودی، ارز دیجیتال، تمدید، حجم/زمان اضافه، لغو سرویس و بازگشت وجه) از ربات و مینی‌اپ</div>
+                    <div class="page-head__sub">همه‌ی درخواست‌های کاربران (رسید بانکی، افزایش موجودی، ارز دیجیتال، تمدید، حجم/زمان اضافه، لغو اشتراک و بازگشت وجه) از ربات و مینی‌اپ</div>
                 </div>
             </div>
 

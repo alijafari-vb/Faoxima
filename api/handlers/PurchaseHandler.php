@@ -350,7 +350,7 @@ final class PurchaseHandler extends BaseHandler
 
             $this->user['Balance'] = $charge['new_balance'];
             if (function_exists('wallet_ledger_record')) {
-                wallet_ledger_record($this->user['id'], 'debit', $priceToCharge, 'purchase', 'خرید سرویس', $orderId, 'invoice', $orderId);
+                wallet_ledger_record($this->user['id'], 'debit', $priceToCharge, 'purchase', 'خرید اشتراک', $orderId, 'invoice', $orderId);
             }
         }
 
@@ -493,7 +493,7 @@ final class PurchaseHandler extends BaseHandler
                         'price'    => $priceToCharge,
                     ]);
                 } elseif (function_exists('wallet_ledger_record')) {
-                    wallet_ledger_record($this->user['id'], 'credit', $priceToCharge, 'refund', 'بازگشت وجه به دلیل خطای ساخت سرویس', $orderId, 'invoice', $orderId);
+                    wallet_ledger_record($this->user['id'], 'credit', $priceToCharge, 'refund', 'بازگشت وجه به دلیل خطای ساخت اشتراک', $orderId, 'invoice', $orderId);
                 }
             }
             try { FaoximaDb::execute('DELETE FROM invoice WHERE id_invoice = :o AND id_user = :u', [':o' => $orderId, ':u' => $this->user['id']]); } catch (Throwable $_) {}
@@ -939,7 +939,7 @@ final class PurchaseHandler extends BaseHandler
         $firstBuy = $invoiceCount === 1 ? faoxima_textbot_get('dyn_purchase_first_buy_flag', '📌 خرید اول کاربر') : '';
         $when = jdate('Y/m/d H:i:s');
 
-        $text = faoxima_render_text(faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ :{config_username}</blockquote>\n<blockquote>▫️موقعیت سرویس : {panel_name}</blockquote>\n<blockquote>▫️نام محصول :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
+        $text = faoxima_render_text(faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>\n<blockquote>▫️نام محصول :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
             'first_buy' => $firstBuy,
             'user_id' => $this->user['id'],
             'username' => $this->user['username'],

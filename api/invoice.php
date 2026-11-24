@@ -236,7 +236,7 @@ switch ($action) {
                 [':inv' => (string) $data['id_invoice']],
                 $invoice['id_user'],
                 (int) $data['amount'],
-                'بازگشت وجه لغو سرویس'
+                'بازگشت وجه لغو اشتراک'
             );
             if ($rxApiRefund === 'claimed') {
                 sendJsonResponse(false, "service already removed", []);
@@ -409,11 +409,11 @@ switch ($action) {
         if ($extend['status'] == false) {
             $extend['msg'] = rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
             $textreports = "
-        خطای تمدید سرویس
+        خطای تمدید اشتراک
 <blockquote>نام پنل : {$panel['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$invoice['username']}</blockquote>
+<blockquote>نام اشتراک : {$invoice['username']}</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
-            sendmessage($invoice['id_user'], (($extend['code'] ?? '') === 'manual_stock_empty') ? "❌ موجودی انبار برای این محصول تمام شده است." : rxRenewalFailureText($extend, "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($invoice['id_user'], (($extend['code'] ?? '') === 'manual_stock_empty') ? "❌ موجودی انبار برای این محصول تمام شده است." : rxRenewalFailureText($extend, "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],

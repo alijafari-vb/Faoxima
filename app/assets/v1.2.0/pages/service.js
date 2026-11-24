@@ -1,15 +1,15 @@
 import { call, ApiError, configFileUrl } from '../api.js?v=0.0.53';
 import { downloadFromUrl, downloadBlob, dataUriToBlob, decodeDataUriText, isTelegramApp, tgPlatform } from '../download.js?v=0.0.52';
 import {
-    escapeHtml, fmtPrice, fmtGb, fmtBytes, fmtIpLimit, skeletonList, copyToClipboard, toast, trafficPercent, serviceStatusBadge, blobToDataUrl,
-} from '../utils.js?v=0.0.52';
+    escapeHtml, subscriptionProductLabel, fmtPrice, fmtGb, fmtBytes, fmtIpLimit, skeletonList, copyToClipboard, toast, trafficPercent, serviceStatusBadge, blobToDataUrl,
+} from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify, showConfirm, openLink, supportsNativeDownload, downloadFileNative } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.4';
-import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.67';
+import { showVerifyPending } from '../card-verify.js?v=0.0.5';
+import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.68';
 
 const ALL_ACTIONS = [
-    { id: 'renew',           label: 'تمدید سرویس',            ico: 'rotate',     cls: '', inline: true  },
+    { id: 'renew',           label: 'تمدید اشتراک',            ico: 'rotate',     cls: '', inline: true  },
     { id: 'extra_time',      label: 'خرید زمان اضافه',         ico: 'hourglass',  cls: '', inline: true  },
     { id: 'extra_volume',    label: 'خرید حجم اضافه',          ico: 'box',        cls: '', inline: true  },
     { id: 'changelink',      label: 'تغییر لینک',              ico: 'link',       cls: '', inline: false },
@@ -774,8 +774,8 @@ function renderBody($body, info, username, reload) {
     $body.innerHTML = `
         <div class="row-spread">
             <div>
-                <div class="muted mono" style="font-size:12px"><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi>${info.panel_user_id ? ` · شناسهٔ سرویس <bdi dir="ltr">${escapeHtml(info.panel_user_id)}</bdi>` : ''}</div>
-                <h2 style="margin:4px 0 0;font-size:20px;font-weight:700">${escapeHtml(info.product_name || '—')}</h2>
+                <div class="muted mono" style="font-size:12px"><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi>${info.panel_user_id ? ` · شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(info.panel_user_id)}</bdi>` : ''}</div>
+                <h2 style="margin:4px 0 0;font-size:20px;font-weight:700">${escapeHtml(subscriptionProductLabel(info.product_name || '—'))}</h2>
             </div>
             <span class="badge ${statusBadge}">
                 ${icon(statusIcon, 'class="ico"')}
@@ -786,7 +786,7 @@ function renderBody($body, info, username, reload) {
         ${info.has_queued_renewal ? `
         <div class="queued-renewal-notice">
             <span class="dot"></span>
-            <span style="white-space:pre-line">${escapeHtml(info.queued_renewal && info.queued_renewal.text ? info.queued_renewal.text : 'شما یک سرویس رزرو دارید که پس از پایان سرویس فعلی شما فعال می‌گردد.')}</span>
+            <span style="white-space:pre-line">${escapeHtml(info.queued_renewal && info.queued_renewal.text ? info.queued_renewal.text : 'شما یک اشتراک رزرو دارید که پس از پایان اشتراک فعلی شما فعال می‌گردد.')}</span>
         </div>
         ` : ''}
 
@@ -794,7 +794,7 @@ function renderBody($body, info, username, reload) {
         <div class="card-section">
             <p class="muted center" style="font-size:13px">
                 ${icon('box', 'class="ico ico-leading"')}
-                این سرویس از انبار کانفیگ ارسال شده است و امکان مشاهده حجم به صورت آنی وجود دارد
+                این اشتراک از انبار کانفیگ ارسال شده است و امکان مشاهده حجم به صورت آنی وجود دارد
             </p>
         </div>
         ` : `
@@ -864,7 +864,7 @@ function renderBody($body, info, username, reload) {
 
         ${visibleActions.length > 0 ? `
         <div class="card-section">
-            <p class="section-title">${icon('settings')} مدیریت سرویس</p>
+            <p class="section-title">${icon('settings')} مدیریت اشتراک</p>
             <div class="action-grid" id="action-grid">
                 ${visibleActions.map((a) => `
                     <button type="button" class="action-tile ${a.cls}" data-action="${a.id}">
@@ -875,7 +875,7 @@ function renderBody($body, info, username, reload) {
             </div>
         </div>` : ''}
 
-        ${info.ambiguous_username ? `<p class="muted">برای مدیریت سرویس‌های هم‌نام، از «سرویس‌های من» در ربات استفاده کنید.</p>` : ''}
+        ${info.ambiguous_username ? `<p class="muted">برای مدیریت اشتراک‌های هم‌نام، از «اشتراک‌های من» در ربات استفاده کنید.</p>` : ''}
         <div id="action-panel-host"></div>
     `;
 
@@ -1097,7 +1097,7 @@ function scrollToSubscription($body, info) {
 
     scrollToConfig($body);
     if (!info.subscription_url) {
-        toast('لینک اشتراک برای این سرویس موجود نیست', 'warn', 3000);
+        toast('لینک اشتراک برای این اشتراک موجود نیست', 'warn', 3000);
     }
 }
 
@@ -1218,8 +1218,8 @@ async function showConfigSection($body, info, username) {
 function renderNotePanel($panel, info, username, reload) {
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon('note')} یادداشت سرویس</p>
-            <p class="muted" style="font-size:13px">می‌توانید یک یادداشت کوتاه برای این سرویس ذخیره کنید (حداکثر ۲۰۰ کاراکتر).</p>
+            <p class="section-title">${icon('note')} یادداشت اشتراک</p>
+            <p class="muted" style="font-size:13px">می‌توانید یک یادداشت کوتاه برای این اشتراک ذخیره کنید (حداکثر ۲۰۰ کاراکتر).</p>
             <div class="form-row mt-sm">
                 <input id="note-input" type="text" maxlength="200"
                        placeholder="مثلاً: گوشی همسر"
@@ -1283,9 +1283,9 @@ function renderToggleStatusPanel($panel, info, username, reload) {
 
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon(ico)} تغییر وضعیت سرویس</p>
-            <p>وضعیت فعلی سرویس: <span class="accent mono">${escapeHtml(isActive ? 'فعال' : 'غیرفعال')}</span></p>
-            <p class="muted" style="font-size:13px">با تایید این عملیات، سرویس به وضعیت <b>${willBecome}</b> تغییر می‌کند.</p>
+            <p class="section-title">${icon(ico)} تغییر وضعیت اشتراک</p>
+            <p>وضعیت فعلی اشتراک: <span class="accent mono">${escapeHtml(isActive ? 'فعال' : 'غیرفعال')}</span></p>
+            <p class="muted" style="font-size:13px">با تایید این عملیات، اشتراک به وضعیت <b>${willBecome}</b> تغییر می‌کند.</p>
             <button id="toggle-confirm" type="button" class="btn btn-primary btn-block mt-md">
                 ${icon('check', 'class="ico ico-leading"')}
                 <span class="toggle-label">${escapeHtml(cta)}</span>
@@ -1325,7 +1325,7 @@ function renderReportProblemPanel($panel, info, username) {
             <p class="muted" style="font-size:13px">یک پیام کوتاه (اختیاری) برای ادمین بنویسید. ادمین پس از بررسی با شما در تماس خواهد بود.</p>
             <div class="form-row mt-sm">
                 <textarea id="report-text" rows="3" maxlength="500"
-                          placeholder="مثلاً: سرعت سرویس از ساعت ۲۰ پایین آمده."></textarea>
+                          placeholder="مثلاً: سرعت اشتراک از ساعت ۲۰ پایین آمده."></textarea>
             </div>
             <button id="report-submit" type="button" class="btn btn-primary btn-block mt-md">
                 ${icon('send', 'class="ico ico-leading"')}
@@ -1369,7 +1369,7 @@ function renderReportProblemPanel($panel, info, username) {
 async function renderRenewPanel($panel, info, username, reload) {
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon('rotate')} تمدید سرویس</p>
+            <p class="section-title">${icon('rotate')} تمدید اشتراک</p>
             <div id="renew-list">${skeletonList(3)}</div>
             <div id="renew-confirm-host"></div>
             <div id="renew-pay-host"></div>
@@ -1542,7 +1542,7 @@ function renderRenewCustomForm($panel, opts, username, reload) {
         const price = fxRound((v * Number(c.price_per_gb || 0)) + (d * Number(c.price_per_day || 0)));
         const choice = {
             code: '__custom__',
-            name: '⚙️ سرویس دلخواه',
+            name: '⚙️ اشتراک دلخواه',
             price,
             volume_gb: v,
             time_days: d,
@@ -1656,7 +1656,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
             $btn.disabled = !!pobj.blocked;
         } catch (err) {
             if (seq !== previewSeq) return;
-            if ($preview) $preview.textContent = 'پیش‌نمایش تمدید موقتاً دریافت نشد؛ هنگام تأیید، وضعیت سرویس دوباره از پنل بررسی می‌شود.';
+            if ($preview) $preview.textContent = 'پیش‌نمایش تمدید موقتاً دریافت نشد؛ هنگام تأیید، وضعیت اشتراک دوباره از پنل بررسی می‌شود.';
             $btn.disabled = false;
         }
     };
@@ -1664,7 +1664,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
 
     $btn.addEventListener('click', async () => {
         const shownAmount = $host.querySelector('#rc-amount')?.textContent || `${fmtNum(basePrice)} تومان`;
-        const sure = await showConfirm(`آیا از تمدید سرویس «${choice.name}» با مبلغ ${shownAmount} مطمئن هستید؟`);
+        const sure = await showConfirm(`آیا از تمدید اشتراک «${choice.name}» با مبلغ ${shownAmount} مطمئن هستید؟`);
         if (!sure) return;
         const old = $label.textContent;
         $btn.disabled = true;
@@ -1686,7 +1686,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
             const obj = res?.obj || {};
             if (obj.kind === 'done') {
                 hapticNotify('success');
-                const doneTitle = obj.state === 'pending_verification' ? 'در انتظار تأیید نهایی' : (obj.state === 'reserved' ? 'رزرو ثبت شد' : 'سرویس تمدید شد');
+                const doneTitle = obj.state === 'pending_verification' ? 'در انتظار تأیید نهایی' : (obj.state === 'reserved' ? 'رزرو ثبت شد' : 'اشتراک تمدید شد');
                 $host.innerHTML = `
                     <div class="card-section mt-md">
                         <div class="empty">
@@ -1731,7 +1731,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
                 renderRenewConfirm($panel, opts, choice, username, reload);
                 return;
             }
-            const msg = err.message || 'خطا در تمدید سرویس';
+            const msg = err.message || 'خطا در تمدید اشتراک';
             toast(msg, 'error', 5000);
             $btn.disabled = false;
             $label.textContent = old;
@@ -1823,7 +1823,7 @@ async function renderRenewInlinePayment($panel, pay, reload) {
         const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
         if (method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) {
             try {
-                const mod = await import('./crypto-offline.js');
+                const mod = await import('./crypto-offline.js?v=0.0.1');
                 if (mod && typeof mod.renderCryptoOffline === 'function') {
                     mod.renderCryptoOffline($panel, {
                         amount: amountDue,
@@ -1853,8 +1853,8 @@ async function renderRenewInlinePayment($panel, pay, reload) {
             });
             const obj = r?.obj || {};
             handleInitResult($host, method.id, obj, {
-                successText: 'پس از تأیید ادمین، سرویس شما به‌صورت خودکار تمدید خواهد شد.',
-                successCta:  { href: '#/services', label: 'بازگشت به سرویس‌ها' },
+                successText: 'پس از تأیید ادمین، اشتراک شما به‌صورت خودکار تمدید خواهد شد.',
+                successCta:  { href: '#/services', label: 'بازگشت به اشتراک‌ها' },
             });
         } catch (err) {
             if (showVerifyPending($host, err)) return;
@@ -2131,7 +2131,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
         const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
         if ((method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) && $panel) {
             try {
-                const mod = await import('./crypto-offline.js');
+                const mod = await import('./crypto-offline.js?v=0.0.1');
                 if (mod && typeof mod.renderCryptoOffline === 'function') {
                     mod.renderCryptoOffline($panel, {
                         amount: amountDue,
@@ -2162,7 +2162,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
             const obj = r?.obj || {};
             handleInitResult($host, method.id, obj, {
                 successText: 'پس از تأیید ادمین، خرید شما به‌صورت خودکار اعمال خواهد شد.',
-                successCta:  { href: '#/services', label: 'بازگشت به سرویس‌ها' },
+                successCta:  { href: '#/services', label: 'بازگشت به اشتراک‌ها' },
             });
         } catch (err) {
             if (showVerifyPending($host, err)) return;
@@ -2176,7 +2176,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
 async function renderChangeLocationPanel($panel, username, reload) {
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon('pin')} تغییر موقعیت سرویس</p>
+            <p class="section-title">${icon('pin')} تغییر موقعیت اشتراک</p>
             <p class="muted" style="font-size:13px">موقعیت جدید را انتخاب کنید. این عملیات بلافاصله انجام می‌شود.</p>
             <div id="cl-list" class="list mt-md">${skeletonList(3)}</div>
         </div>
@@ -2210,7 +2210,7 @@ async function renderChangeLocationPanel($panel, username, reload) {
         btn.addEventListener('click', async () => {
             hapticImpact('light');
             const targetName = btn.dataset.name;
-            const ok = await showConfirm(`موقعیت سرویس به «${targetName}» تغییر کند؟`);
+            const ok = await showConfirm(`موقعیت اشتراک به «${targetName}» تغییر کند؟`);
             if (!ok) return;
 
             $list.querySelectorAll('.plan').forEach((b) => { b.disabled = true; });
@@ -2223,7 +2223,7 @@ async function renderChangeLocationPanel($panel, username, reload) {
                 });
                 const obj = res?.obj || {};
                 hapticNotify('success');
-                toast(obj.message || 'موقعیت سرویس تغییر کرد', 'success', 3500);
+                toast(obj.message || 'موقعیت اشتراک تغییر کرد', 'success', 3500);
                 reload();
             } catch (err) {
                 hapticNotify('error');
@@ -2250,8 +2250,8 @@ function requestAdminAction($panel, actionId, username) {
 
 const ACTION_REQUEST_META = {
     transfer: {
-        title:   '↪️ انتقال سرویس به کاربر دیگر',
-        intro:   'شناسهٔ عددی کاربری که می‌خواهید سرویس به او منتقل شود را وارد کنید. ادمین درخواست را بررسی خواهد کرد.',
+        title:   '↪️ انتقال اشتراک به کاربر دیگر',
+        intro:   'شناسهٔ عددی کاربری که می‌خواهید اشتراک به او منتقل شود را وارد کنید. ادمین درخواست را بررسی خواهد کرد.',
         ico:     'transfer',
         fields: [
             { id: 'target_user_id', label: 'شناسهٔ عددی کاربر مقصد', type: 'tel', placeholder: 'مثلاً 123456789', required: true,
@@ -2260,10 +2260,10 @@ const ACTION_REQUEST_META = {
     },
     refund: {
         title:   'درخواست بازگشت وجه',
-        intro:   'با ارسال این درخواست، ادمین وضعیت سرویس و امکان بازگشت وجه را بررسی می‌کند. در صورت نیاز، توضیحات کوتاهی اضافه کنید.',
+        intro:   'با ارسال این درخواست، ادمین وضعیت اشتراک و امکان بازگشت وجه را بررسی می‌کند. در صورت نیاز، توضیحات کوتاهی اضافه کنید.',
         ico:     'diamond',
         fields: [
-            { id: 'reason', label: 'توضیحات (اختیاری)', type: 'textarea', placeholder: 'مثلاً: سرویس در دو روز اخیر کار نمی‌کند', required: false, maxlength: 500 },
+            { id: 'reason', label: 'توضیحات (اختیاری)', type: 'textarea', placeholder: 'مثلاً: اشتراک در دو روز اخیر کار نمی‌کند', required: false, maxlength: 500 },
         ],
     },
     changelink: {
@@ -2374,7 +2374,7 @@ async function submitAdminRequest($panel, actionId, username, payload) {
                 <div class="card-section">
                     <div class="empty">
                         ${icon('checkCircle', 'class="ico ico-xxl ico-success"')}
-                        <h3>لینک سرویس با موفقیت تغییر کرد</h3>
+                        <h3>لینک اشتراک با موفقیت تغییر کرد</h3>
                         <p class="muted">${escapeHtml(obj.message || 'لینک قبلی دیگر معتبر نیست.')}</p>
                     </div>
                     ${newLink ? `
@@ -2389,7 +2389,7 @@ async function submitAdminRequest($panel, actionId, username, payload) {
                     ` : ''}
                     <button type="button" class="btn btn-ghost btn-block mt-sm" onclick="location.reload()">
                         ${icon('refresh', 'class="ico ico-leading"')}
-                        <span>بازنشانی سرویس</span>
+                        <span>بازنشانی اشتراک</span>
                     </button>
                 </div>`;
             const $copyBtn = $panel.querySelector('#copy-new-link');

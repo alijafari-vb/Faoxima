@@ -537,7 +537,7 @@ $datatextbot = array(
 );
 foreach ($datatxtbot as $item) {
     if (array_key_exists($item['id_text'], $datatextbot) || (is_string($item['text']) && trim($item['text']) !== '')) {
-        $datatextbot[$item['id_text']] = $item['text'];
+        $datatextbot[$item['id_text']] = rxSubscriptionTemplate((string) $item['id_text'], (string) $item['text']);
     }
 }
 foreach ($datatextbot as $rxTbKey => $rxTbVal) {
@@ -1179,7 +1179,7 @@ if ($text == "version") {
         update("user", "verify", "1", "id", $from_id);
     }
     step('home', $from_id);
-} elseif (($text !== '' && $text == $datatextbot['text_Purchased_services']) || $text === '/services'
+} elseif (($text !== '' && rxSubscriptionCopy($text) === $datatextbot['text_Purchased_services']) || $text === '/services'
     || in_array($datain, ['backorder', 'myservicesbtn', 'next_page', 'previous_page'], true)
     || preg_match('/^svctable:([a-z_]+):([ad]):([0-9]{1,9})(?::(?:days_remaining|remaining_bytes|expires_at))?$/D', $datain, $serviceTable)) {
     $sort = $serviceTable[1] ?? 'recent';
@@ -1189,6 +1189,8 @@ if ($text == "version") {
     }
     if ($sort === 'expires_at') {
         $sort = 'days_remaining';
+    } elseif ($sort === 'panel_user_id') {
+        $sort = 'username';
     }
     $limit = 6;
     $scope = 'id_user = :owner AND ' . ServiceSearch::VISIBLE_STATUS;
@@ -1208,13 +1210,13 @@ if ($text == "version") {
 
     rx_section_media_enter('services', $from_id, $datain, $message_id, ['myservicesbtn'], ['myservicesbtn']);
     $buttons = [];
-    $tableText = "🛍 <b>سرویس‌های من</b>";
+    $tableText = "🛍 <b>اشتراک‌های من</b>";
     if ($rows === []) {
         $tableText .= "\n\n" . $textbotlang['users']['sell']['service_not_available'];
     } else {
         $tableText .= "\nعنوان ستون را برای مرتب‌سازی بزنید.";
         $headings = [];
-        foreach (['username' => 'نام کاربری', 'panel_user_id' => 'شناسه', 'remaining_bytes' => 'حجم', 'days_remaining' => 'روز'] as $field => $label) {
+        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم', 'days_remaining' => 'روز'] as $field => $label) {
             $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
             $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
             $headings[] = ['text' => $label . $arrow, 'callback_data' => "svctable:$field:$nextDirection:1"];
@@ -1231,14 +1233,16 @@ if ($text == "version") {
                 default => '⚪',
             };
             $username = trim((string) $row['username']);
-            $id = $row['panel_user_id'] ?? '—';
+            $id = $row['panel_user_id'] ?? null;
+            if ($id !== null) {
+                $username .= ' (' . (strlen($id) > 5 ? '…' . substr($id, -5) : $id) . ')';
+            }
             $days = match ($row['days_remaining']) {
                 null => '—', -1 => '∞', default => $row['days_remaining'] > 999 ? '999+' : (string) $row['days_remaining'],
             };
             $details = 'quickview_' . $row['id_invoice'];
             $buttons[] = [
                 ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details],
-                ['text' => strlen($id) > 5 ? '…' . substr($id, -5) : $id, 'callback_data' => $details],
                 ['text' => rxServiceTableTraffic($row['remaining_bytes']), 'callback_data' => $details],
                 ['text' => $days, 'callback_data' => $details],
             ];
@@ -1414,7 +1418,7 @@ if ($text == "version") {
         $nameloc_qv = $stmtQv->fetch(PDO::FETCH_ASSOC);
         if (!is_array($nameloc_qv)) {
             if (isset($callback_query_id)) {
-                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '❌ سرویس پیدا نشد', 'show_alert' => true]);
+                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '❌ اشتراک پیدا نشد', 'show_alert' => true]);
             }
             return;
         }
@@ -1438,7 +1442,7 @@ if ($text == "version") {
             $note_qv = isset($nameloc_qv['note']) && $nameloc_qv['note'] !== '' ? ' | ' . $nameloc_qv['note'] : '';
             $caption_qv = '✨ <b>' . htmlspecialchars((string)$nameloc_qv['username'], ENT_QUOTES, 'UTF-8') . '</b>'
                         . htmlspecialchars($note_qv, ENT_QUOTES, 'UTF-8') . rxServicePanelIdLine($nameloc_qv);
-            $__qvRow = [['text' => '🔧 مدیریت سرویس', 'callback_data' => 'product_' . $nameloc_qv['id_invoice']]];
+            $__qvRow = [['text' => '🔧 مدیریت اشتراک', 'callback_data' => 'product_' . $nameloc_qv['id_invoice']]];
             if (!(function_exists('isQrDisabled') && isQrDisabled())) {
                 $__qvRow[] = ['text' => faoxima_textbot_get('dyn_purchase_qr_code_btn', '📷 دریافت QR Code'), 'callback_data' => 'infocard_qr_' . $nameloc_qv['id_invoice']];
             }
@@ -1511,9 +1515,9 @@ if ($text == "version") {
                 ['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchservice'],
                 ['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder'],
             ];
-            $foundTemplate = ($datatextbot['dyn_errors_service_found_count'] ?? '') ?: '🛍 %s سرویس پیدا شد. سرویس موردنظر را انتخاب کنید.';
+            $foundTemplate = ($datatextbot['dyn_errors_service_found_count'] ?? '') ?: '🛍 %s اشتراک پیدا شد. اشتراک موردنظر را انتخاب کنید.';
             $resultText = count($rows) > 50
-                ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ سرویس را بفرستید.'
+                ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ اشتراک را بفرستید.'
                 : sprintf($foundTemplate, count($rows));
             sendmessage($from_id, $resultText, json_encode($keyboardlists), 'html');
             step('home', $from_id);
@@ -1524,13 +1528,13 @@ if ($text == "version") {
         $nameloc = $stmt->fetch(PDO::FETCH_ASSOC);
     }
     if (!is_array($nameloc)) {
-        sendmessage($from_id, ($datatextbot['dyn_errors_service_not_found'] ?? '') ?: '❌ سرویس موردنظر پیدا نشد.', $keyboard, 'html');
+        sendmessage($from_id, ($datatextbot['dyn_errors_service_not_found'] ?? '') ?: '❌ اشتراک موردنظر پیدا نشد.', $keyboard, 'html');
         step('home', $from_id);
         return;
     }
     $username = $nameloc['id_invoice'];
     if (!in_array($nameloc['Status'], ['active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabled', 'disablebyadmin'])) {
-        sendmessage($from_id, ($datatextbot['dyn_errors_view_account_unavailable'] ?? '') ?: '❌ اطلاعات این سرویس فعلاً در دسترس نیست.', $keyboard, 'html');
+        sendmessage($from_id, ($datatextbot['dyn_errors_view_account_unavailable'] ?? '') ?: '❌ اطلاعات این اشتراک فعلاً در دسترس نیست.', $keyboard, 'html');
         step('home', $from_id);
         return;
     }
@@ -1710,9 +1714,9 @@ if ($text == "version") {
             }
         }
         $manualHasSub = trim((string) $manualDelivery['sub']) !== '';
-        $textinfo = "وضعیت سرویس : <b>$status_var</b>
-نام کاربری سرویس : <code>{$serviceUsernameHtml}</code>{$panelIdLine}
-📎 کد پیگیری سرویس : {$nameloc['id_invoice']}
+        $textinfo = "وضعیت اشتراک : <b>$status_var</b>
+نام اشتراک : <code>{$serviceUsernameHtml}</code>{$panelIdLine}
+📎 کد پیگیری اشتراک : {$nameloc['id_invoice']}
 
 📅 تاریخ اتمام : $expirationDate ($day)";
         $manualStatusExtend  = ($marzban['status_extend'] ?? 'on_extend') != "off_extend";
@@ -1780,9 +1784,9 @@ if ($text == "version") {
     $statusshowconfig = panel_feature_enabled($nameloc['Service_location'], 'configbtn') ? "onconfig" : "offconfig";
     $statusremoveserveice = panel_feature_enabled($nameloc['Service_location'], 'refund') ? "on" : "off";
     if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
-        $textinfo = "وضعیت سرویس : <b>$status_var</b>
-👤 نام کاربری سرویس : <code>{$serviceUsernameHtml}</code>{$panelIdLine}
-🌍 موقعیت سرویس :{$nameloc['Service_location']}
+        $textinfo = "وضعیت اشتراک : <b>$status_var</b>
+👤 نام اشتراک : <code>{$serviceUsernameHtml}</code>{$panelIdLine}
+🌍 موقعیت اشتراک :{$nameloc['Service_location']}
 نام محصول :{$nameloc['name_product']}
 
 📶 اخرین زمان اتصال شما : $lastonline
@@ -1802,7 +1806,7 @@ $nameconfig";
                     ['text' => $textbotlang['users']['Extra_volume']['sellextra'], 'callback_data' => 'Extra_volume_' . $username],
                 ],
                 [
-                    ['text' => "❌ حذف سرویس", 'callback_data' => 'removeauto-' . $username],
+                    ['text' => "❌ حذف اشتراک", 'callback_data' => 'removeauto-' . $username],
                     ['text' => $textbotlang['users']['Extra_time']['title'], 'callback_data' => 'Extra_time_' . $username],
                 ],
                 [
@@ -1988,10 +1992,10 @@ $nameconfig";
             $textconnect = "📶 اخرین زمان اتصال شما : $lastonline";
         }
         $rwChangelinkHint = (($marzban['type'] ?? '') != "remnawave") ? "💡 برای قطع دسترسی دیگران کافیست روی گزینه \"تغییر لینک\" کلیک کنید." : "";
-        $textinfo_tpl = ($datatextbot['text_service_detail'] ?? '') ?: "🗂 نام سرویس : {product}
-📊وضعیت سرویس : {status}
-🌍 موقعیت سرویس :{location}
-👤 نام کاربری سرویس: <code>{username}</code>
+        $textinfo_tpl = ($datatextbot['text_service_detail'] ?? '') ?: "🗂 نام محصول : {product}
+📊وضعیت اشتراک : {status}
+🌍 موقعیت اشتراک :{location}
+👤 نام اشتراک: <code>{username}</code>
 
 🔋 ترافیک : {traffic}
 📥 حجم مصرفی : {used}
@@ -2003,9 +2007,9 @@ $nameconfig";
             '{status}' => $status_var,
             '{username}' => $serviceUsernameHtml,
             $usernameField => '<code>' . $serviceUsernameHtml . '</code>' . $panelIdLine,
-            '👤 شناسه سرویس : ' => '👤 نام کاربری سرویس: ',
+            '👤 شناسهٔ اشتراک : ' => '👤 نام اشتراک: ',
             '{location}' => $nameloc['Service_location'],
-            '{product}' => $nameloc['name_product'],
+            '{product}' => rxSubscriptionCopy((string) $nameloc['name_product']),
             '{traffic}' => $LastTraffic,
             '{used}' => $usedTrafficGb,
             '{remaining}' => $RemainingVolume,
@@ -2280,10 +2284,10 @@ $nameconfig";
     if ($DataUserOut['status'] == "Unsuccessful") {
         $offlinePanel = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
         $offlineKeyboard = json_encode(['inline_keyboard' => [
-            [['text' => '♻️ تمدید سرویس', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید سرویس جدید', 'callback_data' => 'buy_service']],
+            [['text' => '♻️ تمدید اشتراک', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید اشتراک جدید', 'callback_data' => 'buy_service']],
             [['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder']]
         ]]);
-        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام سرویس مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام اشتراک مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
         return;
     }
     $subscriptionurl = $DataUserOut['subscription_url'];
@@ -2358,7 +2362,7 @@ $nameconfig";
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
     $ManagePanel->RemoveUser($nameloc['Service_location'], $nameloc['username']);
     update('invoice', 'status', 'removebyuser', 'id_invoice', $id_invoice);
-    $tetremove = "ادمین عزیز یک کاربر سرویس خود را پس از پایان حجم یا زمان حدف کرده است
+    $tetremove = "ادمین عزیز یک کاربر اشتراک خود را پس از پایان حجم یا زمان حدف کرده است
 نام کاربری کانفیک : {$nameloc['username']}";
     if (strlen($setting['Channel_Report'] ?? '') > 0) {
         telegram('sendmessage', [
@@ -2368,7 +2372,7 @@ $nameconfig";
             'parse_mode' => "HTML"
         ]);
     }
-    sendmessage($from_id, $datatextbot['dyn_errors_service_deleted'] ?? "📌 سرویس با موفقیت حذف شد", null, 'html');
+    sendmessage($from_id, $datatextbot['dyn_errors_service_deleted'] ?? "📌 اشتراک با موفقیت حذف شد", null, 'html');
 } elseif (preg_match('/^configpage_(.*)_(\d+)$/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
     $page = (int) $dataget[2];
@@ -2469,10 +2473,10 @@ $nameconfig";
     if ($DataUserOut['status'] == "Unsuccessful") {
         $offlinePanel = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
         $offlineKeyboard = json_encode(['inline_keyboard' => [
-            [['text' => '♻️ تمدید سرویس', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید سرویس جدید', 'callback_data' => 'buy_service']],
+            [['text' => '♻️ تمدید اشتراک', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید اشتراک جدید', 'callback_data' => 'buy_service']],
             [['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder']]
         ]]);
-        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام سرویس مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام اشتراک مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
         return;
     }
     if (!is_array($DataUserOut['links'])) {
@@ -2780,10 +2784,10 @@ $nameconfig";
     if ($DataUserOut['status'] == "Unsuccessful") {
         $offlinePanel = select("marzban_panel", "*", "name_panel", $nameloc['Service_location'], "select");
         $offlineKeyboard = json_encode(['inline_keyboard' => [
-            [['text' => '♻️ تمدید سرویس', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید سرویس جدید', 'callback_data' => 'buy_service']],
+            [['text' => '♻️ تمدید اشتراک', 'callback_data' => 'extend_' . $nameloc['id_invoice']], ['text' => '🛒 خرید اشتراک جدید', 'callback_data' => 'buy_service']],
             [['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder']]
         ]]);
-        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام سرویس مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام اشتراک مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
         return;
     }
     if ($DataUserOut['status'] == "active") {
@@ -2798,7 +2802,7 @@ $nameconfig";
             ]
         ]);
         Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.
-⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت سرویس دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت اشتراک دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
     } else {
         $confirmdisableaccount = json_encode([
             'inline_keyboard' => [
@@ -2811,7 +2815,7 @@ $nameconfig";
             ]
         ]);
         Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید
-⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت سرویس دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت اشتراک دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
     }
 } elseif (preg_match('/confirmaccountdisable_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
@@ -2882,14 +2886,14 @@ $nameconfig";
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "Unsuccessful") {
         $offlineKeyboard = json_encode(['inline_keyboard' => [
-            [['text' => '🛒 خرید سرویس جدید', 'callback_data' => 'buy_service']],
+            [['text' => '🛒 خرید اشتراک جدید', 'callback_data' => 'buy_service']],
             [['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder']]
         ]]);
-        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام سرویس مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام اشتراک مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
         return;
     }
     if ($DataUserOut['status'] == "on_hold") {
-        sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید سرویس ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به اشتراک متصل نشده اید برای تمدید اشتراک ابتدا به اشتراک متصل شوید سپس اقدام به تمدید کنید", null, 'html');
         return;
     }
     $eextraprice = json_decode($marzban_list_get['pricecustomvolume'], true);
@@ -2956,7 +2960,7 @@ $nameconfig";
             ['text' => "♻️ تمدید پلن فعلی", 'callback_data' => "exntedagei"]
         ];
         $productextend['inline_keyboard'][] = [
-            ['text' => "🏠 بازگشت به اطلاعات سرویس", 'callback_data' => "product_" . $nameloc['id_invoice']]
+            ['text' => "🏠 بازگشت به اطلاعات اشتراک", 'callback_data' => "product_" . $nameloc['id_invoice']]
         ];
 
         $json_list_product_lists = json_encode($productextend);
@@ -2992,7 +2996,7 @@ $nameconfig";
     $eextraprice = json_decode($marzban_list_get['pricecustomtime'], true);
     $customtimevalueprice = fx_adjust_base_toman($eextraprice[$user['agent']], $marzban_list_get, 'custom_time');
     savedata("save", "volume", $text);
-    $textcustom = "⌛️ زمان سرویس خود را انتخاب نمایید
+    $textcustom = "⌛️ زمان اشتراک خود را انتخاب نمایید
 📌 تعرفه هر روز  : " . rxFormatToman($customtimevalueprice) . "  تومان
 ⚠️ حداقل زمان $maintime روز  و حداکثر $maxtime روز  می توانید تهیه کنید";
     sendmessage($from_id, $textcustom, $backuser, 'html');
@@ -3029,11 +3033,11 @@ $nameconfig";
     }
     if ($nameloc['name_product'] == "🛍 حجم دلخواه" || $nameloc['name_product'] == "⚙️ سرویس دلخواه") {
         $productextend['inline_keyboard'][] = [
-            ['text' => "📍 انتخاب سرویس فعلی", 'callback_data' => "serviceextendselect_pre"]
+            ['text' => "📍 انتخاب اشتراک فعلی", 'callback_data' => "serviceextendselect_pre"]
         ];
     }
     $productextend['inline_keyboard'][] = [
-        ['text' => "🏠 بازگشت به اطلاعات سرویس", 'callback_data' => "product_" . $nameloc['id_invoice']]
+        ['text' => "🏠 بازگشت به اطلاعات اشتراک", 'callback_data' => "product_" . $nameloc['id_invoice']]
     ];
 
     $json_list_product_lists = json_encode($productextend);
@@ -3161,7 +3165,7 @@ $nameconfig";
 🔋 حجم تمدید :$volumeextend
 ✍️ توضیحات : {$product['note']}
 💸 موجودی کیف پول : " . rxFormatToman($user['Balance']) . "
-" . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n\n" : '') . (empty($rxRenewPreview['blocked']) ? "✅ برای تایید و تمدید سرویس روی دکمه زیر کلیک کنید" : '');
+" . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n\n" : '') . (empty($rxRenewPreview['blocked']) ? "✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید" : '');
     if ($user['step'] == "getvolumecustomuserforextend") {
         sendmessage($from_id, $textextend, $keyboardextend, 'HTML');
     } else {
@@ -3259,7 +3263,7 @@ $nameconfig";
 🔋 حجم تمدید :{$info_product['Volume_constraint']} گیگ
 ✍️ توضیحات : {$info_product['note']}
 💸 موجودی کیف پول : {$rxFmtExtendUserBalance}
-" . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n" : '') . (empty($rxRenewPreview['blocked']) ? "\n✅ برای تایید و تمدید سرویس روی دکمه زیر کلیک کنید" : '');
+" . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n" : '') . (empty($rxRenewPreview['blocked']) ? "\n✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید" : '');
     $keyboardextend = json_encode([
         'inline_keyboard' => [
             [
@@ -3470,7 +3474,7 @@ $nameconfig";
         $Balance_Low_user = $__chargeEx['new_balance'];
         $__chargedExUser = true;
         if (function_exists('wallet_ledger_record')) {
-            wallet_ledger_record($from_id, 'debit', $pricelastextend, 'service_action', 'تمدید سرویس', $randomString, 'invoice', (string)$id_invoice);
+            wallet_ledger_record($from_id, 'debit', $pricelastextend, 'service_action', 'تمدید اشتراک', $randomString, 'invoice', (string)$id_invoice);
         }
     } else {
         $Balance_Low_user = $user['Balance'];
@@ -3488,23 +3492,23 @@ $nameconfig";
         if ($__chargedExUser && function_exists('balance_atomic_credit')) {
             $__refundedEx = balance_atomic_credit($from_id, $pricelastextend);
             if ($__refundedEx && function_exists('wallet_ledger_record')) {
-                wallet_ledger_record($from_id, 'credit', $pricelastextend, 'refund', 'بازگشت وجه تمدید سرویس', $randomString, 'invoice', (string)$id_invoice);
+                wallet_ledger_record($from_id, 'credit', $pricelastextend, 'refund', 'بازگشت وجه تمدید اشتراک', $randomString, 'invoice', (string)$id_invoice);
             }
         }
         $rxStockEmpty = ($extend['code'] ?? '') === 'manual_stock_empty';
         $rxQueuedExists = ($extend['code'] ?? '') === 'queued_renewal_exists';
         $extend['msg'] = rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
-        $textreports = "خطای تمدید سرویس
+        $textreports = "خطای تمدید اشتراک
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>کد خطا : " . htmlspecialchars((string) ($extend['code'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
         if ($rxStockEmpty) {
             sendmessage($from_id, $datatextbot['dyn_errors_renewal_stock_empty'] ?? "❌ موجودی انبار برای این محصول تمام شده است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
         } elseif ($rxQueuedExists) {
-            sendmessage($from_id, $datatextbot['dyn_errors_queued_renewal_exists'] ?? "❌ یک رزرو اشتراک برای این سرویس در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
+            sendmessage($from_id, $datatextbot['dyn_errors_queued_renewal_exists'] ?? "❌ یک رزرو اشتراک برای این اشتراک در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
         } else {
-            sendmessage($from_id, rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($from_id, rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
         }
         if (strlen($setting['Channel_Report'] ?? '') > 0) {
             telegram('sendmessage', [
@@ -3582,14 +3586,14 @@ $nameconfig";
         $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
         $textextend = "$rxQueuedSuccessTpl
 
-▫️نام سرویس : {$nameloc['username']}
+▫️نام اشتراک : {$nameloc['username']}
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
     } else {
-        $textextend = "✅ تمدید برای سرویس شما با موفقیت صورت گرفت
+        $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : {$nameloc['username']}
+▫️نام اشتراک : {$nameloc['username']}
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
@@ -3608,9 +3612,9 @@ $nameconfig";
 
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$nameloc['username']}</blockquote>
+<blockquote>▫️نام اشتراک :{$nameloc['username']}</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$nameloc['Service_location']}</blockquote>
+<blockquote>▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}</blockquote>
 <blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>
@@ -3655,7 +3659,7 @@ $nameconfig";
         return;
     }
     if ($DataUserOut['status'] == "disabled" || $DataUserOut['status'] == "on_hold") {
-        sendmessage($from_id, $datatextbot['dyn_errors_link_change_service_disabled'] ?? "❌ سرویس غیرفعال است و امکان تعویض لینک برای سرویس وجود ندارد.", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_link_change_service_disabled'] ?? "❌ اشتراک غیرفعال است و امکان تعویض لینک برای اشتراک وجود ندارد.", null, 'html');
         return;
     }
     $keyboardextend = json_encode([
@@ -3708,9 +3712,9 @@ $nameconfig";
     $text_report = "📣 جزئیات تغییر لینک در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$nameloc['username']}</blockquote>
+<blockquote>▫️نام اشتراک :{$nameloc['username']}</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس : {$marzban_list_get['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$marzban_list_get['name_panel']}</blockquote>
 <blockquote>▫️نوع کاربر : {$user['agent']}</blockquote>
 <blockquote>▫️زمان تغییر لینک : $timejalali</blockquote>";
     if (strlen($setting['Channel_Report'] ?? '') > 0) {
@@ -3973,9 +3977,9 @@ $nameconfig";
         $extra_volume['msg'] = rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
         $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
-        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه اشتراک رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
         if (strlen($setting['Channel_Report'] ?? '') > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
@@ -4037,9 +4041,9 @@ $nameconfig";
     }
     $volumesformat = number_format($volumepricelast, 0);
     $volumes = $fxExtraQty ?? $volume / $extrapricevalue;
-    $textvolume = "✅ افزایش حجم برای سرویس شما با موفقیت صورت گرفت
+    $textvolume = "✅ افزایش حجم برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس  : {$nameloc['username']}
+▫️نام اشتراک  : {$nameloc['username']}
 ▫️حجم اضافه : $volumes گیگ
 
 ▫️مبلغ افزایش حجم : $volumesformat تومان";
@@ -4050,7 +4054,7 @@ $nameconfig";
 <blockquote>🪪 آیدی عددی : $from_id</blockquote>
 <blockquote>🛍 حجم خریداری شده  : $volumes گیگ</blockquote>
 <blockquote>💰 مبلغ پرداختی : $volumesformat تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ : {$nameloc['username']}</blockquote>
+<blockquote>👤 نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>موجودی کاربر قبل خرید : " . rxFormatToman($user['Balance']) . "</blockquote>
 ";
     if (strlen($setting['Channel_Report'] ?? '') > 0) {
@@ -4098,7 +4102,7 @@ $nameconfig";
     if ($userlimitlastfree < 0)
         $userlimitlastfree = 0;
     $Pricechange = select("marzban_panel", "*", "code_panel", $dataget[1], "select")['priceChangeloc'];
-    $textchange = "📍 با  تایید کردن انتقال موقعیت سرویس شما در این موقعیت حذف و به موقعیت جدید منتقل خواهد شد.
+    $textchange = "📍 با  تایید کردن انتقال موقعیت اشتراک شما در این موقعیت حذف و به موقعیت جدید منتقل خواهد شد.
 💰 هزینه انتقال " . rxFormatToman($Pricechange) . " تومان می باشد
 📌 محدودیت باقی مانده شما : $userlimitlast عدد (تعداد محدودیت رایگان باقی مانده :‌$userlimitlastfree عدد)
 
@@ -4167,7 +4171,7 @@ $nameconfig";
     }
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "on_hold") {
-        sendmessage($from_id, $datatextbot['dyn_errors_transfer_unused_config_only'] ?? "❌ کانفیگ شما در وضعیت استفاده نشده است و امکان انتقال موقعیت سرویس وجود ندارد.", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_transfer_unused_config_only'] ?? "❌ کانفیگ شما در وضعیت استفاده نشده است و امکان انتقال موقعیت اشتراک وجود ندارد.", null, 'html');
         return;
     }
     if ($DataUserOut['status'] != "active") {
@@ -4268,7 +4272,7 @@ $nameconfig";
         if ($dataoutput['username'] == null) {
             $dataoutput['msg'] = rx_panel_error_text($dataoutput['msg'] ?? null, $dataoutput['detail'] ?? null);
             sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
-            $texterros = "خطا هنگام تغییر موقعیت سرویس
+            $texterros = "خطا هنگام تغییر موقعیت اشتراک
 <blockquote>دلیل خطا : {$dataoutput['msg']}</blockquote>
 <blockquote>آیدی کابر : $from_id</blockquote>
 <blockquote>نام کاربری کاربر : @$username</blockquote>
@@ -4301,8 +4305,8 @@ $nameconfig";
     update("user", "limitchangeloc", $limitnew, "id", $from_id);
     $textchangeloc = "✅ کانفیگ شما باموفقیت به سرور ({$marzban_list_get_new['name_panel']}) انتقال یافت.
 
-🖥 نام سرویس : {$nameloc['username']}
-💠 حجم سرویس : $RemainingVolume
+🖥 نام اشتراک : {$nameloc['username']}
+💠 حجم اشتراک : $RemainingVolume
 ⏳ زمان انقضا :  $expirationDate | $day
 
 🔗 لینک اشتراک شما:
@@ -4317,7 +4321,7 @@ $nameconfig";
         }
         $Balance_Low_user = $__chargePc['new_balance'];
         if (function_exists('wallet_ledger_record')) {
-            wallet_ledger_record($from_id, 'debit', $Pricechange, 'service_action', 'تغییر موقعیت سرویس', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
+            wallet_ledger_record($from_id, 'debit', $Pricechange, 'service_action', 'تغییر موقعیت اشتراک', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
         }
     }
     update("invoice", "Service_location", $marzban_list_get_new['name_panel'], "username", $nameloc['username']);
@@ -4328,14 +4332,14 @@ $nameconfig";
     $balanceformatsell = number_format(select("user", "Balance", "id", $from_id, "select")['Balance'], 0);
     $format_byte = formatBytes($data_limit);
     $textreport = "
-تغییر موقعیت سرویس
+تغییر موقعیت اشتراک
 
 <blockquote>🔻آیدی عددی : <code>$from_id</code></blockquote>
 <blockquote>🔻نام کاربری : @$username</blockquote>
 <blockquote>🔻نام پنل قدیم : {$marzban_list_get['name_panel']}</blockquote>
 <blockquote>🔻نام پنل جدید : {$marzban_list_get_new['name_panel']}</blockquote>
 <blockquote>🔻 نام کاربری مشتری در پنل  :{$nameloc['username']}</blockquote>
-<blockquote>🔻حجم نهایی سرویس : $format_byte</blockquote>
+<blockquote>🔻حجم نهایی اشتراک : $format_byte</blockquote>
 <blockquote>🔻موجودی کاربر : $balanceformatsell تومان</blockquote>";
     if (strlen($setting['Channel_Report'] ?? '') > 0) {
         telegram('sendmessage', [
@@ -4418,13 +4422,13 @@ $nameconfig";
         ]
     ]);
     $textdisorder = "
-    ⚠️ یک کاربر با اطلاعات زیر یک گزارش اختلال در سرویس ثبت کرده است .
+    ⚠️ یک کاربر با اطلاعات زیر یک گزارش اختلال در اشتراک ثبت کرده است .
 
 - نام کاربری : @$username
 - آیدی عددی : $from_id
-- نام کاربری کانفیگ : {$nameloc['username']}
+- نام اشتراک : {$nameloc['username']}
 - نام پلن تهیه شده : {$nameloc['name_product']}
-- موقعیت سرویس : {$nameloc['Service_location']}
+- موقعیت اشتراک : {$nameloc['Service_location']}
 - توضیحات اختلال : {$user['Processing_value']}";
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     $lastonline = formatOnlineAtLabel($DataUserOut['online_at'] ?? null, $DataUserOut['is_online'] ?? null);
@@ -4482,9 +4486,9 @@ $nameconfig";
     $Percent = round($Percent, 2);
     $textdisorder .= "
 
- وضعیت سرویس : $status_var
+ وضعیت اشتراک : $status_var
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -4534,7 +4538,7 @@ $nameconfig";
         return;
     }
     if ($DataUserOut['status'] == "on_hold") {
-        sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید سرویس ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به اشتراک متصل نشده اید برای تمدید اشتراک ابتدا به اشتراک متصل شوید سپس اقدام به تمدید کنید", null, 'html');
         return;
     }
     $eextraprice = json_decode($marzban_list_get['priceextratime'], true);
@@ -4764,9 +4768,9 @@ $nameconfig";
         $extra_time['msg'] = rx_panel_error_text($extra_time['msg'] ?? null, $extra_time['detail'] ?? null);
         $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_time['msg']}</blockquote>";
-        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه اشتراک رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
         if (strlen($setting['Channel_Report'] ?? '') > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
@@ -4837,9 +4841,9 @@ $nameconfig";
         update("user", "score", $scorenew, "id", $from_id);
     }
     $volumesformat = number_format($tmieextra);
-    $textextratime = "✅ افزایش زمان برای سرویس شما با موفقیت صورت گرفت
+    $textextratime = "✅ افزایش زمان برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : {$nameloc['username']}
+▫️نام اشتراک : {$nameloc['username']}
 ▫️زمان اضافه : $extratimeday روز
 
 ▫️مبلغ افزایش زمان : $volumesformat تومان";
@@ -4851,7 +4855,7 @@ $nameconfig";
 <blockquote>🪪 آیدی عددی : $from_id</blockquote>
 <blockquote>🛍 زمان خریداری شده  : $volumes روز</blockquote>
 <blockquote>💰 مبلغ پرداختی : $volumesformat تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ : {$nameloc['username']}</blockquote>";
+<blockquote>👤 نام اشتراک : {$nameloc['username']}</blockquote>";
     if (strlen($setting['Channel_Report'] ?? '') > 0) {
         telegram('sendmessage', [
             'chat_id' => $setting['Channel_Report'],
@@ -4879,9 +4883,9 @@ $nameconfig";
             $stmtDelete->bindParam(':user_id', $from_id);
             $stmtDelete->execute();
         }
-        sendmessage($from_id, $datatextbot['dyn_errors_service_removed'] ?? "📌 سرویس از لیست شما حذف شد", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_service_removed'] ?? "📌 اشتراک از لیست شما حذف شد", null, 'html');
     } else {
-        sendmessage($from_id, $datatextbot['dyn_errors_service_removal_unavailable'] ?? "❌ امکان حذف سرویس وجود ندارد.", null, 'html');
+        sendmessage($from_id, $datatextbot['dyn_errors_service_removal_unavailable'] ?? "❌ امکان حذف اشتراک وجود ندارد.", null, 'html');
     }
 } elseif (preg_match('/removeserviceuser_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
@@ -4903,7 +4907,7 @@ $nameconfig";
             ]
         ]
     ]);
-    Editmessagetext($from_id, $message_id, $datatextbot['dyn_errors_removal_reason_prompt'] ?? "📌 دلیل حذف سرویس خود را ارسال کنید.", $bakinfos);
+    Editmessagetext($from_id, $message_id, $datatextbot['dyn_errors_removal_reason_prompt'] ?? "📌 دلیل حذف اشتراک خود را ارسال کنید.", $bakinfos);
     step("getdisdeleteconfig", $from_id);
 } elseif ($user['step'] == "getdisdeleteconfig") {
     $userdata = json_decode($user['Processing_value'], true);
@@ -4929,7 +4933,7 @@ $nameconfig";
     $confirmremove = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => "✅  درخواست حذف سرویس را دارم", 'callback_data' => "confirmremoveservices-$id_invoice"],
+                ['text' => "✅  درخواست حذف اشتراک را دارم", 'callback_data' => "confirmremoveservices-$id_invoice"],
             ],
         ]
     ]);
@@ -5016,31 +5020,31 @@ $nameconfig";
 
     $textinfoadmin = "سلام ادمین 👋
 
-📌 یک درخواست حذف سرویس  توسط کاربر برای شما ارسال شده است. لطفا بررسی کرده و در صورت درست بودن و موافقت تایید کنید.
+📌 یک درخواست حذف اشتراک  توسط کاربر برای شما ارسال شده است. لطفا بررسی کرده و در صورت درست بودن و موافقت تایید کنید.
 
-📊 اطلاعات سرویس کاربر :
+📊 اطلاعات اشتراک کاربر :
 آیدی عددی کاربر : $from_id
 نام کاربری کاربر : @$username
-نام کاربری کانفیگ : {$nameloc['username']}
-وضعیت سرویس : $status_var
-موقعیت سرویس : {$nameloc['Service_location']}
-کد سرویس:{$nameloc['id_invoice']}
+نام اشتراک : {$nameloc['username']}
+وضعیت اشتراک : $status_var
+موقعیت اشتراک : {$nameloc['Service_location']}
+کد اشتراک:{$nameloc['id_invoice']}
 
 🟢 اخرین زمان اتصال شما : $lastonline
 
 📥 حجم مصرفی : $usedTrafficGb
-♾ حجم سرویس : $LastTraffic
+♾ حجم اشتراک : $LastTraffic
 🪫 حجم باقی مانده : $RemainingVolume
 📅 فعال تا تاریخ : $expirationDate ($day)
 
-<b>❌ ادمین گرامی توجه داشته باشید دکمه حذف سرویس که میزنید ربات خودکار حساب میکند و احتمال اشتباه وجود دارد پیشنهاد می شود از  حذف دستی  استفاده نمایید</b>
+<b>❌ ادمین گرامی توجه داشته باشید دکمه حذف اشتراک که میزنید ربات خودکار حساب میکند و احتمال اشتباه وجود دارد پیشنهاد می شود از  حذف دستی  استفاده نمایید</b>
 
-دلیل حذف سرویس : {$userdata['descritionsremove']}";
+دلیل حذف اشتراک : {$userdata['descritionsremove']}";
     $confirmremoveadmin = json_encode([
         'inline_keyboard' => [
             [
                 ['text' => "❌حذف دستی", 'callback_data' => "remoceserviceadminmanual-{$nameloc['id_invoice']}"],
-                ['text' => "❌حذف سرویس", 'callback_data' => "remoceserviceadmin-{$nameloc['id_invoice']}"],
+                ['text' => "❌حذف اشتراک", 'callback_data' => "remoceserviceadmin-{$nameloc['id_invoice']}"],
                 ['text' => "❌لغو حذف", 'callback_data' => "rejectremoceserviceadmin-{$nameloc['id_invoice']}"],
             ],
         ]
@@ -5093,7 +5097,7 @@ $nameconfig";
     $confirmtransfer = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => "✅ تایید انتقال سرویس", 'callback_data' => "confrimtransfers_{$user['Processing_value_tow']}"],
+                ['text' => "✅ تایید انتقال اشتراک", 'callback_data' => "confrimtransfers_{$user['Processing_value_tow']}"],
             ],
         ]
     ]);
@@ -5124,7 +5128,7 @@ $nameconfig";
         ]
     ]);
     Editmessagetext($from_id, $message_id, $textbotlang['Admin']['transfor']['confirmed'], $bakinfos);
-    $texttransfer = "✅ کاربر گرامی  سرویس با نام کاربری {$nameloc['username']} از طرف کاربر با شناسه کاربری $from_id  به حساب کاربری شما منتقل گردید.";
+    $texttransfer = "✅ کاربر گرامی  اشتراک با نام کاربری {$nameloc['username']} از طرف کاربر با شناسه کاربری $from_id  به حساب کاربری شما منتقل گردید.";
     sendmessage($user['Processing_value_one'], $texttransfer, $keyboard, 'HTML');
     $stmt = $connect->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price) VALUES (?, ?, ?, ?,?,?)");
     $value = $user['Processing_value_one'];
@@ -5134,9 +5138,9 @@ $nameconfig";
     $stmt->bind_param("ssssss", $from_id, $nameloc['username'], $value, $type, $dateacc, $price);
     $stmt->execute();
     $stmt->close();
-} elseif (($text !== '' && $text == $datatextbot['text_usertest']) || $datain == "usertestbtn" || $text == "usertest") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_usertest']) || $datain == "usertestbtn" || $text == "usertest") {
     if (!check_active_btn($setting['keyboardmain'], "text_usertest")) {
-        sendmessage($from_id, $datatextbot['dyn_errors_test_service_unavailable'] ?? "📌 سرویس تست در حال حاضر در دسترس نیست .", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_errors_test_service_unavailable'] ?? "📌 اشتراک تست در حال حاضر در دسترس نیست .", null, 'HTML');
         return;
     }
     $rxTestEntryUser = select("user", "*", "id", $from_id, "select", ['cache' => false]);

@@ -283,8 +283,8 @@ try {
                         . "💎 ارز: " . htmlspecialchars($stuckCurrency) . "\n"
                         . "💵 مبلغ برگشت‌خورده: " . number_format($stuckPriceIrr) . " تومان\n"
                         . "💼 موجودی جدید: " . number_format($newBalance) . " تومان\n\n"
-                        . "⚠️ پرداخت شما تأیید شد ولی به دلیل خطا در ساخت سرویس، مبلغ به کیف پول شما برگشت داده شد.\n"
-                        . "💡 می‌توانید مجدداً اقدام به خرید سرویس کنید.",
+                        . "⚠️ پرداخت شما تأیید شد ولی به دلیل خطا در ساخت اشتراک، مبلغ به کیف پول شما برگشت داده شد.\n"
+                        . "💡 می‌توانید مجدداً اقدام به خرید اشتراک کنید.",
                         null,
                         'HTML'
                     );
@@ -292,12 +292,12 @@ try {
                 if (!empty($setting['Channel_Report']) && function_exists('telegram')) {
                     @telegram('sendmessage', [
                         'chat_id'    => $setting['Channel_Report'],
-                        'text'       => "💰 <b>برگشت پول خودکار (سرویس گیرکرده)</b>\n\n"
+                        'text'       => "💰 <b>برگشت پول خودکار (اشتراک گیرکرده)</b>\n\n"
                             . "<blockquote>🛒 کد فاکتور: <code>{$stuckOrderId}</code></blockquote>\n"
                             . "<blockquote>👤 کاربر: <code>{$stuckUserId}</code></blockquote>\n"
                             . "<blockquote>💎 ارز: " . htmlspecialchars($stuckCurrency) . "</blockquote>\n"
                             . "<blockquote>💵 مبلغ: " . number_format($stuckPriceIrr) . " تومان</blockquote>\n"
-                            . "<blockquote>⚠️ علت: فاکتور paid شد ولی سرویس ساخته نشد ({$stuckRow['inv_status']}, uuid=" . ($stuckRow['inv_uuid'] ?: 'NULL') . ")</blockquote>",
+                            . "<blockquote>⚠️ علت: فاکتور paid شد ولی اشتراک ساخته نشد ({$stuckRow['inv_status']}, uuid=" . ($stuckRow['inv_uuid'] ?: 'NULL') . ")</blockquote>",
                         'parse_mode' => 'HTML',
                     ]);
                 }
@@ -700,10 +700,10 @@ foreach ($rows as $row) {
                 if (function_exists('sendmessage')) {
                     @sendmessage(
                         (string) $row['id_user'],
-                        "✅ <b>پرداخت تایید شد و سرویس شما فعال است</b>\n\n"
+                        "✅ <b>پرداخت تایید شد و اشتراک شما فعال است</b>\n\n"
                         . "🛒 کد فاکتور: <code>{$orderId}</code>\n"
-                        . "👤 نام کاربری سرویس: <code>" . htmlspecialchars($invUsername) . "</code>\n\n"
-                        . "ℹ️ اگر پیام تحویل کانفیگ را دریافت نکردید، از بخش «🛍 سرویس‌های من» وارد سرویس شوید و کانفیگ را دریافت کنید.\n"
+                        . "👤 نام اشتراک: <code>" . htmlspecialchars($invUsername) . "</code>\n\n"
+                        . "ℹ️ اگر پیام تحویل کانفیگ را دریافت نکردید، از بخش «🛍 اشتراک‌های من» وارد اشتراک شوید و کانفیگ را دریافت کنید.\n"
                         . "در صورت بروز مشکل با پشتیبانی در تماس باشید.",
                         null,
                         'HTML'

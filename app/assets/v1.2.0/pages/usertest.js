@@ -1,8 +1,8 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, skeletonList, emptyState, copyToClipboard, toast } from '../utils.js?v=0.0.52';
+import { escapeHtml, skeletonList, emptyState, copyToClipboard, toast } from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
-import { renderServiceOutputs } from './service.js?v=0.0.56';
+import { renderServiceOutputs } from './service.js?v=0.0.57';
 import { downloadBlob, base64ToBlob } from '../download.js?v=0.0.52';
 
 export async function usertest(view) {
@@ -55,7 +55,7 @@ function unavailableText(reason) {
     if (reason === 'verify_verify') return 'حساب شما هنوز احراز هویت نشده است.';
     if (reason === 'audience_restricted') return 'دریافت اکانت تست فقط برای کاربرانی فعال است که در ۲۴ ساعت گذشته عضو شده‌اند.';
     if (reason === 'limit_reached') return 'سهمیه دریافت اکانت تست شما به پایان رسیده.';
-    return 'سرویس تست در حال حاضر غیرفعال است یا سهمیه شما به پایان رسیده.';
+    return 'اشتراک تست در حال حاضر غیرفعال است یا سهمیه شما به پایان رسیده.';
 }
 
 function quotaLeft(panel, info) {
@@ -67,7 +67,7 @@ function quotaLeft(panel, info) {
 
 function renderPanelList($host, panels, info) {
     $host.innerHTML = `
-        <p class="muted" style="font-size:13px">موقعیت سرویس تست را انتخاب کنید</p>
+        <p class="muted" style="font-size:13px">موقعیت اشتراک تست را انتخاب کنید</p>
         <div class="list mt-sm">
             ${panels.map((p) => `
                 <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}">
@@ -158,7 +158,7 @@ function renderSuccess($host, obj) {
         <div class="empty">
             ${icon('checkCircle', 'class="ico ico-xxl ico-success"')}
             <h3>اکانت تست شما ساخته شد</h3>
-            <p class="muted">${obj.delivery_failed ? escapeHtml(obj.delivery_message || 'ارسال جزئیات در تلگرام ناموفق بود؛ اطلاعات سرویس در همین صفحه در دسترس است.') : 'جزئیات کانفیگ برای شما در تلگرام ارسال شد.'}</p>
+            <p class="muted">${obj.delivery_failed ? escapeHtml(obj.delivery_message || 'ارسال جزئیات در تلگرام ناموفق بود؛ اطلاعات اشتراک در همین صفحه در دسترس است.') : 'جزئیات کانفیگ برای شما در تلگرام ارسال شد.'}</p>
         </div>
         <div class="kv mt-md">
             <span class="kv-label">نام کاربری</span>
@@ -186,7 +186,7 @@ function renderSuccess($host, obj) {
             ${configs.length ? `<div class="codeblock mt-md">${escapeHtml(configs.join('\n'))}</div>` : ''}
         `}
         <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
-            <a href="#/services/${encodeURIComponent(svc.username || '')}" class="btn ${showNativeDownload || linkValue || hasOutputs ? 'btn-ghost' : 'btn-primary'} btn-block" style="flex:1">مشاهده سرویس</a>
+            <a href="#/services/${encodeURIComponent(svc.username || '')}" class="btn ${showNativeDownload || linkValue || hasOutputs ? 'btn-ghost' : 'btn-primary'} btn-block" style="flex:1">مشاهده اشتراک</a>
             <a href="#/" class="btn btn-ghost btn-block" style="flex:1">خانه</a>
         </div>
     `;

@@ -71,7 +71,7 @@ function nmStockExtendProductKeyboard(array $invoice, array $userRow, array $pan
         if ($vol !== '' || $days !== '') $label .= " ({$volLabel} / {$days} روز)";
         $rows[] = [rx_kb_style(['text' => $label, 'callback_data' => 'nmstocksel_' . $token . '_' . $invoiceId], 'nmstock_actions', $styles)];
     }
-    $rows[] = [rx_kb_style(['text' => '🏠 بازگشت به لیست سرویس ها', 'callback_data' => 'backorder'], 'backorder', $styles)];
+    $rows[] = [rx_kb_style(['text' => '🏠 بازگشت به لیست اشتراک‌ها', 'callback_data' => 'backorder'], 'backorder', $styles)];
     return json_encode(['inline_keyboard' => $rows], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
@@ -99,7 +99,7 @@ function nmStockConvertInvoiceToPanelService($chatId, array $userRow, array $inv
         $msg = rx_panel_error_text(is_array($dataoutput) ? ($dataoutput['msg'] ?? null) : null, is_array($dataoutput) ? ($dataoutput['detail'] ?? null) : null);
         error_log('nmStockConvertInvoiceToPanelService createUser failed: ' . $msg);
         sendmessage($chatId, '❌ تمدید از پنل اصلی انجام نشد. لطفاً گزارش خطا را بررسی کنید.', null, 'HTML');
-        if (!empty($setting['Channel_Report'])) telegram('sendmessage', ['chat_id' => $setting['Channel_Report'], 'message_thread_id' => $errorreport ?? null, 'text' => "خطا در تبدیل سرویس انبار به پنل اصلی
+        if (!empty($setting['Channel_Report'])) telegram('sendmessage', ['chat_id' => $setting['Channel_Report'], 'message_thread_id' => $errorreport ?? null, 'text' => "خطا در تبدیل اشتراک انبار به پنل اصلی
 پنل: {$panel['name_panel']}
 کاربر: {$chatId}
 خطا: {$msg}", 'parse_mode' => 'HTML']);
@@ -109,7 +109,7 @@ function nmStockConvertInvoiceToPanelService($chatId, array $userRow, array $inv
         $__allowNegBl = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
         $__chargeBl = balance_atomic_charge($chatId, (float)$price, $__allowNegBl);
         if (!empty($__chargeBl['ok']) && function_exists('wallet_ledger_record')) {
-            wallet_ledger_record($chatId, 'debit', $price, 'service_action', 'تمدید سرویس (تبدیل انبار)', null, 'invoice', (string)$invoice['id_invoice']);
+            wallet_ledger_record($chatId, 'debit', $price, 'service_action', 'تمدید اشتراک (تبدیل انبار)', null, 'invoice', (string)$invoice['id_invoice']);
         }
     } else {
         update('user', 'Balance', (float)($userRow['Balance'] ?? 0) - $price, 'id', $chatId);
@@ -128,9 +128,9 @@ function nmStockConvertInvoiceToPanelService($chatId, array $userRow, array $inv
     $configs = $dataoutput['configs'] ?? [];
 
     $volumeLabel = intval($product['Volume_constraint'] ?? 0) === 0 ? 'نامحدود' : ($product['Volume_constraint'] . ' گیگ');
-    $caption = "✅ وضعیت نت ملی خاموش است؛ سرویس شما از پنل اصلی تمدید و جایگزین شد.
+    $caption = "✅ وضعیت نت ملی خاموش است؛ اشتراک شما از پنل اصلی تمدید و جایگزین شد.
 
-👤 نام سرویس: <code>{$dataoutput['username']}</code>
+👤 نام اشتراک: <code>{$dataoutput['username']}</code>
 🛍 محصول: {$product['name_product']}
 ⏳ مدت: {$product['Service_time']} روز
 🗜 حجم: {$volumeLabel}";
@@ -163,17 +163,17 @@ function nmStockNotifyExtend($chatId, array $userRow, array $invoice, array $pro
         $usernameTg = trim((string)($userRow['username'] ?? ''));
         if ($usernameTg === '') $usernameTg = '---';
         $price = (float)$price;
-        $title = ($action === 'buy') ? '🛒 خرید سرویس انجام شد' : '♻️ تمدید سرویس انجام شد';
+        $title = ($action === 'buy') ? '🛒 خرید اشتراک انجام شد' : '♻️ تمدید اشتراک انجام شد';
         $msg = "{$title} ({$modeLabel})\n\n"
             . "<blockquote>👤 آیدی کاربر: <code>{$chatId}</code></blockquote>\n"
             . "<blockquote>🔖 یوزرنیم تلگرام: @" . htmlspecialchars($usernameTg, ENT_QUOTES, 'UTF-8') . "</blockquote>\n"
-            . "<blockquote>🪪 یوزرنیم سرویس: <code>" . htmlspecialchars((string)($newUsername !== '' ? $newUsername : ($invoice['username'] ?? '')), ENT_QUOTES, 'UTF-8') . "</code></blockquote>\n"
+            . "<blockquote>🪪 نام اشتراک: <code>" . htmlspecialchars((string)($newUsername !== '' ? $newUsername : ($invoice['username'] ?? '')), ENT_QUOTES, 'UTF-8') . "</code></blockquote>\n"
             . "<blockquote>🛍 محصول: " . htmlspecialchars((string)($product['name_product'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>\n"
             . "<blockquote>📍 پنل: " . htmlspecialchars((string)($panel['name_panel'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>\n"
             . "<blockquote>🗜 حجم: " . htmlspecialchars((string)($product['Volume_constraint'] ?? ''), ENT_QUOTES, 'UTF-8') . " گیگ</blockquote>\n"
             . "<blockquote>⏳ مدت: " . htmlspecialchars((string)($product['Service_time'] ?? ''), ENT_QUOTES, 'UTF-8') . " روز</blockquote>\n"
             . "<blockquote>💰 مبلغ: " . number_format($price) . " تومان</blockquote>\n"
-            . "<blockquote>🧾 کد سرویس: <code>" . htmlspecialchars((string)($invoice['id_invoice'] ?? ''), ENT_QUOTES, 'UTF-8') . "</code></blockquote>";
+            . "<blockquote>🧾 کد اشتراک: <code>" . htmlspecialchars((string)($invoice['id_invoice'] ?? ''), ENT_QUOTES, 'UTF-8') . "</code></blockquote>";
         if (!empty($setting['Channel_Report'])) {
             $payload = ['chat_id' => $setting['Channel_Report'], 'text' => $msg, 'parse_mode' => 'HTML'];
 
@@ -253,12 +253,12 @@ function nmStockInvoiceText(array $invoice,array $stock=null){
         if(is_array($shelf)) $shelfName=(string)($shelf['name']??'');
     }
     $shelfNameSafe=htmlspecialchars($shelfName!==''?$shelfName:'انبار شبکه‌ملی',ENT_QUOTES,'UTF-8');
-    $txt="✅ وضعیت نت ملی فعال است؛ این سرویس از انبار شبکه‌ملی تحویل شده است.\n\n";
+    $txt="✅ وضعیت نت ملی فعال است؛ این اشتراک از انبار شبکه‌ملی تحویل شده است.\n\n";
     $txt.="👤 نام کاربری: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="🛍 محصول: <code>".htmlspecialchars((string)($invoice['name_product']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📍 پنل: <code>".htmlspecialchars((string)($invoice['Service_location']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📦 انبار: <code>{$shelfNameSafe}</code>\n";
-    if($vol!=='')$txt.="🗜 حجم سرویس: <code>".htmlspecialchars($vol,ENT_QUOTES,'UTF-8')."</code>\n";
+    if($vol!=='')$txt.="🗜 حجم اشتراک: <code>".htmlspecialchars($vol,ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📅 شروع: <code>".nmJalaliDate('Y/m/d',$startTs)."</code>\n";
     $txt.="⏳ پایان: <code>".($days>0?nmJalaliDate('Y/m/d',$startTs+$days*86400):'نامحدود')."</code>\n";
     $txt.="📌 وضعیت: <code>".htmlspecialchars((string)($invoice['Status']??'active'),ENT_QUOTES,'UTF-8')."</code>\n\n";
@@ -295,7 +295,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
 
     try{$invoice=select('invoice','*','id_invoice',$iid,'select');}catch(Throwable $e){$invoice=false;}
     if(!is_array($invoice)||(string)($invoice['id_user']??'')!==(string)$chatId){
-        if($callbackQueryId&&function_exists('telegram'))telegram('answerCallbackQuery',['callback_query_id'=>$callbackQueryId,'text'=>'سرویس مورد نظر یافت نشد.','show_alert'=>true,'cache_time'=>3]);
+        if($callbackQueryId&&function_exists('telegram'))telegram('answerCallbackQuery',['callback_query_id'=>$callbackQueryId,'text'=>'اشتراک مورد نظر یافت نشد.','show_alert'=>true,'cache_time'=>3]);
         return true;
     }
     $stock=nmStockForInvoice($invoice);
@@ -306,7 +306,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
         $content=trim((string)($stock['content']??($invoice['user_info']??''))); $sub=nmStockSubLinkForInvoice($invoice,$stock);
         if($action==='sub'){
             if($sub===''){
-                sendmessage($chatId,'⚠️ برای این سرویس لینک اشتراک جداگانه ثبت نشده است؛ کانفیگ تکی ارسال می‌شود.',null,'HTML');
+                sendmessage($chatId,'⚠️ برای این اشتراک لینک اشتراک جداگانه ثبت نشده است؛ کانفیگ تکی ارسال می‌شود.',null,'HTML');
                 nmSendLongStockMessage($chatId, "📥 کانفیگ تکی:\n<code>".htmlspecialchars($content,ENT_QUOTES,'UTF-8')."</code>");
             } else {
                 nmSendLongStockMessage($chatId, "🔗 لینک اشتراک:\n<code>".htmlspecialchars($sub,ENT_QUOTES,'UTF-8')."</code>");
@@ -320,7 +320,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
     if($action==='refund'){
 
         if(!$stock || (string)($invoice['Status']??'')==='removebyuser' || (string)($invoice['Status']??'')==='nm_refund_pending' || (string)($invoice['Status']??'')==='removedbyadmin'){
-            sendmessage($chatId,'❌ امکان بازگشت وجه برای این سرویس وجود ندارد یا قبلاً درخواست داده‌اید.',$keyboard??null,'HTML');
+            sendmessage($chatId,'❌ امکان بازگشت وجه برای این اشتراک وجود ندارد یا قبلاً درخواست داده‌اید.',$keyboard??null,'HTML');
             if($callbackQueryId&&function_exists('telegram'))telegram('answerCallbackQuery',['callback_query_id'=>$callbackQueryId,'text'=>'قابل انجام نیست','show_alert'=>false,'cache_time'=>2]);
             return true;
         }
@@ -333,15 +333,15 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
         global $admin_ids, $username, $setting, $otherreport;
         $usernameAdminMsg = isset($username) ? $username : '';
         $invoiceId = (string)($invoice['id_invoice']??'');
-        $adminText = "📌 درخواست بازگشت وجه سرویس انبار شبکه ملی\n\n".
+        $adminText = "📌 درخواست بازگشت وجه اشتراک انبار شبکه ملی\n\n".
             "<blockquote>👤 آیدی عددی کاربر: <code>{$chatId}</code></blockquote>\n".
             "<blockquote>🔖 یوزرنیم تلگرام: @".htmlspecialchars((string)$usernameAdminMsg,ENT_QUOTES,'UTF-8')."</blockquote>\n".
-            "<blockquote>🪪 یوزرنیم سرویس: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code></blockquote>\n".
+            "<blockquote>🪪 نام اشتراک: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code></blockquote>\n".
             "<blockquote>🛍 محصول: ".htmlspecialchars((string)($invoice['name_product']??''),ENT_QUOTES,'UTF-8')."</blockquote>\n".
             "<blockquote>🔋 حجم: ".htmlspecialchars((string)($invoice['Volume']??0),ENT_QUOTES,'UTF-8')." گیگ</blockquote>\n".
             "<blockquote>⏳ مدت: ".htmlspecialchars((string)($invoice['Service_time']??0),ENT_QUOTES,'UTF-8')." روز</blockquote>\n".
             "<blockquote>💰 مبلغ پرداختی: ".number_format($defaultRefund)." تومان</blockquote>\n".
-            "<blockquote>🧾 کد سرویس: <code>{$invoiceId}</code></blockquote>\n\n".
+            "<blockquote>🧾 کد اشتراک: <code>{$invoiceId}</code></blockquote>\n\n".
             "ادمین گرامی: می‌توانید مبلغ پیش‌فرض را تأیید کنید یا با زدن «✏️ ورود مبلغ دلخواه» مبلغ دیگری وارد نمایید.";
         $adminKbd = json_encode(['inline_keyboard'=>[
             [
@@ -363,7 +363,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
     }
 
     $panel=nmStockPanelForInvoice($invoice);
-    if(!is_array($panel)){ sendmessage($chatId,'❌ پنل اصلی این سرویس پیدا نشد.',$keyboard??null,'HTML'); return true; }
+    if(!is_array($panel)){ sendmessage($chatId,'❌ پنل اصلی این اشتراک پیدا نشد.',$keyboard??null,'HTML'); return true; }
 
     if($action==='extend'){
         $userRow=is_array($user)?$user:select('user','*','id',$chatId,'select');
@@ -372,7 +372,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
         // the previous product) — for both national-net and main-panel services.
         $kbd=nmStockExtendProductKeyboard($invoice,$userRow,$panel);
         if(!$kbd){
-            sendmessage($chatId,'❌ محصولی برای تمدید این سرویس پیدا نشد.',$keyboard??null,'HTML');
+            sendmessage($chatId,'❌ محصولی برای تمدید این اشتراک پیدا نشد.',$keyboard??null,'HTML');
             if($callbackQueryId&&function_exists('telegram'))telegram('answerCallbackQuery',['callback_query_id'=>$callbackQueryId,'text'=>'محصولی پیدا نشد','show_alert'=>true,'cache_time'=>2]);
             return true;
         }
@@ -390,14 +390,14 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
         if(!$product){ sendmessage($chatId,'❌ محصول تمدید پیدا نشد.',$keyboard??null,'HTML'); return true; }
         if($action==='select_extend'){
             $price=number_format((float)($product['price_product']??0));
-            $txt="📜 فاکتور تمدید سرویس
+            $txt="📜 فاکتور تمدید اشتراک
 
-👤 سرویس: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>
+👤 اشتراک: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>
 🛍 محصول: {$product['name_product']}
 💰 مبلغ: {$price} تومان
 ⏳ مدت: {$product['Service_time']} روز
 🗜 حجم: {$product['Volume_constraint']} گیگ";
-            $kbd=json_encode(['inline_keyboard'=>[[['text'=>'✅ تایید تمدید','callback_data'=>'nmstockok_'.$token.'_'.$iid]],[['text'=>'🏠 بازگشت به لیست سرویس ها','callback_data'=>'backorder']]]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+            $kbd=json_encode(['inline_keyboard'=>[[['text'=>'✅ تایید تمدید','callback_data'=>'nmstockok_'.$token.'_'.$iid]],[['text'=>'🏠 بازگشت به لیست اشتراک‌ها','callback_data'=>'backorder']]]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if(!empty($messageId)&&function_exists('Editmessagetext')) Editmessagetext($chatId,$messageId,$txt,$kbd,'HTML'); else sendmessage($chatId,$txt,$kbd,'HTML');
             return true;
         }
@@ -410,7 +410,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
                 $__allowNegRb=(($userRow['agent']??'')==='n2')?(int)($userRow['maxbuyagent']??0):0;
                 $__chargeRb=balance_atomic_charge($chatId,(float)$price,$__allowNegRb);
                 if (!empty($__chargeRb['ok']) && function_exists('wallet_ledger_record')) {
-                    wallet_ledger_record($chatId, 'debit', $price, 'service_action', 'تمدید سرویس (انبار ملی)', null, 'invoice', (string)$invoice['id_invoice']);
+                    wallet_ledger_record($chatId, 'debit', $price, 'service_action', 'تمدید اشتراک (انبار ملی)', null, 'invoice', (string)$invoice['id_invoice']);
                 }
             } else {
                 update('user','Balance',(float)($userRow['Balance']??0)-$price,'id',$chatId);
@@ -424,7 +424,7 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
             update('invoice','user_info',$stockNew['content'],'id_invoice',$invoice['id_invoice']);
             try{ update('invoice','source_panel_code',$panel['code_panel']??'','id_invoice',$invoice['id_invoice']); }catch(Throwable $e){}
             $invoiceNew=array_merge($invoice,['name_product'=>$product['name_product'],'price_product'=>$product['price_product'],'Volume'=>$product['Volume_constraint'],'Service_time'=>$product['Service_time'],'time_sell'=>time(),'user_info'=>$stockNew['content'],'source_panel_code'=>$panel['code_panel']??'']);
-            nmStockDeliverConfig($stockNew,$invoiceNew,'✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد');
+            nmStockDeliverConfig($stockNew,$invoiceNew,'✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد');
             sendmessage($chatId,faoxima_textbot_get('dyn_errors_stock_extend_success','✅ تمدید انباری انجام شد و موجودی انبار یک عدد کم شد.'),$keyboard??null,'HTML');
 
             if(function_exists('nmStockNotifyExtend')) nmStockNotifyExtend($chatId,$userRow,$invoice,$product,$panel,'stock',(string)($invoice['username']??''),$price);
@@ -474,7 +474,7 @@ function nmStockFallbackForInvoice(array $invoice, array $product = null, $mode 
         if (!$stock && $productCode !== 'auto') $stock = nmStockReserveOne('auto', 'auto', $volume, $invoice['id_user'] ?? '', $invoice['id_invoice'] ?? '', $mode);
     }
     if (!$stock) return false;
-    nmStockDeliverConfig($stock, $invoice, $mode === 'config_button' ? '✅ کانفیگ مطابق حجم سرویس از انبار شبکه‌ملی تحویل شد' : '✅ تمدید از پنل انجام نشد؛ کانفیگ جایگزین از انبار شبکه‌ملی تحویل شد');
+    nmStockDeliverConfig($stock, $invoice, $mode === 'config_button' ? '✅ کانفیگ مطابق حجم اشتراک از انبار شبکه‌ملی تحویل شد' : '✅ تمدید از پنل انجام نشد؛ کانفیگ جایگزین از انبار شبکه‌ملی تحویل شد');
     try { update('invoice', 'Status', 'active', 'id_invoice', $invoice['id_invoice']); update('invoice', 'user_info', $stock['content'], 'id_invoice', $invoice['id_invoice']); } catch (Throwable $e) { error_log('nmStockFallbackForInvoice invoice update failed: ' . $e->getMessage()); }
     return $stock;
 }
@@ -491,7 +491,7 @@ function nmStockCompleteExtendFallback($userId, array $userRow, array $invoice, 
                 $__allowNegFb = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
                 $__chargeFb = balance_atomic_charge($userId, $priceToCharge, $__allowNegFb);
                 if (!empty($__chargeFb['ok']) && function_exists('wallet_ledger_record')) {
-                    wallet_ledger_record($userId, 'debit', $priceToCharge, 'service_action', 'تمدید سرویس (جایگزین انبار)', null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                    wallet_ledger_record($userId, 'debit', $priceToCharge, 'service_action', 'تمدید اشتراک (جایگزین انبار)', null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
                 }
             } else {
                 $newBalance = (float)$userRow['Balance'] - $priceToCharge;
@@ -824,7 +824,7 @@ function nmStockDeliveryKeyboard($content, $invoiceId = '', $subLink = '', array
         $hasConfig = ($cfg !== '' && $cfg !== $sub);
         $row1 = [];
         if ((string)($panel['status_extend'] ?? 'on_extend') !== 'off_extend') {
-            $row1[] = rx_kb_style(['text' => '🔄 تمدید سرویس', 'callback_data' => 'nmstockextend_' . $invoiceId], 'nmstock_actions', $styles);
+            $row1[] = rx_kb_style(['text' => '🔄 تمدید اشتراک', 'callback_data' => 'nmstockextend_' . $invoiceId], 'nmstock_actions', $styles);
         }
         if (!function_exists('panel_feature_enabled') || panel_feature_enabled($panel, 'refund')) {
             $row1[] = rx_kb_style(['text' => '💎 بازگشت وجه', 'callback_data' => 'nmstockrefund_' . $invoiceId], 'nmstock_actions', $styles);
@@ -840,7 +840,7 @@ function nmStockDeliveryKeyboard($content, $invoiceId = '', $subLink = '', array
         if ($row2) $buttons[] = $row2;
     } elseif ($invoiceId !== '') {
         $buttons[] = [
-            rx_kb_style(['text' => '🔄 تمدید سرویس', 'callback_data' => 'nmstockextend_' . $invoiceId], 'nmstock_actions', $styles),
+            rx_kb_style(['text' => '🔄 تمدید اشتراک', 'callback_data' => 'nmstockextend_' . $invoiceId], 'nmstock_actions', $styles),
             rx_kb_style(['text' => '💎 بازگشت وجه', 'callback_data' => 'nmstockrefund_' . $invoiceId], 'nmstock_actions', $styles),
         ];
         $buttons[] = [
@@ -853,7 +853,7 @@ function nmStockDeliveryKeyboard($content, $invoiceId = '', $subLink = '', array
         if (preg_match('/^https?:\/\//i', $link)) $buttons[] = [['text' => '🔗 لینک اشتراک', 'url' => $link]];
         else $buttons[] = [['text' => '🔗 لینک اشتراک', 'callback_data' => 'none']];
     }
-    $buttons[] = [rx_kb_style(['text' => '🏠 بازگشت به لیست سرویس ها', 'callback_data' => 'backorder'], 'backorder', $styles)];
+    $buttons[] = [rx_kb_style(['text' => '🏠 بازگشت به لیست اشتراک‌ها', 'callback_data' => 'backorder'], 'backorder', $styles)];
     return json_encode(['inline_keyboard' => $buttons], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
@@ -950,7 +950,7 @@ function nmStockCompleteBuyFromInventory($userId, array $userRow, array $panel, 
                     $__allowNeg3 = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
                     $__charge3 = balance_atomic_charge($userId, $__pp3, $__allowNeg3);
                     if (!empty($__charge3['ok']) && function_exists('wallet_ledger_record')) {
-                        wallet_ledger_record($userId, 'debit', $__pp3, 'purchase', 'خرید سرویس (انبار ملی)', (string)$invoiceId, 'invoice', (string)$invoiceId);
+                        wallet_ledger_record($userId, 'debit', $__pp3, 'purchase', 'خرید اشتراک (انبار ملی)', (string)$invoiceId, 'invoice', (string)$invoiceId);
                     }
                 } else {
                     update('user', 'Balance', (float)($userRow['Balance'] ?? 0) - $__pp3, 'id', $userId);
@@ -1005,7 +1005,7 @@ function nmAnyNationalNetEnabled()
 
 function nmServiceRestrictedNotice()
 {
-    return '🌐 وضعیت نت ملی این پنل روشن است؛ این سرویس فعلاً از ربات نمایش داده نمی‌شود. وقتی نت ملی خاموش شود، سرویس‌های قبلی دوباره در دسترس قرار می‌گیرند.';
+    return '🌐 وضعیت نت ملی این پنل روشن است؛ این اشتراک فعلاً از ربات نمایش داده نمی‌شود. وقتی نت ملی خاموش شود، اشتراک‌های قبلی دوباره در دسترس قرار می‌گیرند.';
 }
 
 function nmServicePanelAccessBlocked(array $invoice = null)
@@ -1028,7 +1028,7 @@ function nmStopIfServicePanelBlocked($invoice, $userId = null, $keyboard = null)
 {
     if (!is_array($invoice) || !nmServicePanelAccessBlocked($invoice)) return false;
     if ($keyboard === null) {
-        $back = $GLOBALS['textbotlang']['users']['stateus']['backlist'] ?? '🏠 بازگشت به لیست سرویس ها';
+        $back = $GLOBALS['textbotlang']['users']['stateus']['backlist'] ?? '🏠 بازگشت به لیست اشتراک‌ها';
         $keyboard = json_encode(['inline_keyboard' => [[['text' => $back, 'callback_data' => 'backorder']]]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
     if (function_exists('sendmessage') && $userId !== null) {

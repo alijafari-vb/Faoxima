@@ -1,4 +1,4 @@
-import { escapeHtml, copyToClipboard, toast } from './utils.js?v=0.0.53';
+import { escapeHtml, copyToClipboard, toast } from './utils.js?v=0.0.54';
 import { hapticImpact, hapticNotify, showConfirm } from './telegram.js?v=0.0.52';
 import { icon } from './icons.js?v=0.0.52';
 import { call, callForm } from './api.js?v=0.0.53';
@@ -163,13 +163,13 @@ function loadServiceSuccess() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./pages/service-success.js', import.meta.url);
-        url.searchParams.set('v', ver);
+        url.searchParams.set('v', `${ver}-subscriptions`);
         _successModulePromise = import(url.href).catch(() => {
             _successModulePromise = null;
-            return import('./pages/service-success.js');
+            return import('./pages/service-success.js?v=0.0.1');
         });
     } catch (e) {
-        _successModulePromise = import('./pages/service-success.js');
+        _successModulePromise = import('./pages/service-success.js?v=0.0.1');
     }
     return _successModulePromise;
 }
@@ -264,11 +264,11 @@ function createTracker(view, orderId, opts, ui) {
                         panelName: obj.service.panel_name || '',
                     });
                 } else {
-                    show(resultCard('checkCircle', 'ico-success', 'سرویس شما آماده است', 'پرداخت تأیید و سرویس ساخته شد.', orderId, [{ href: '#/services', label: 'سرویس‌های من' }]));
+                    show(resultCard('checkCircle', 'ico-success', 'اشتراک شما آماده است', 'پرداخت تأیید و اشتراک ساخته شد.', orderId, [{ href: '#/services', label: 'اشتراک‌های من' }]));
                 }
                 fireSuccess(obj);
             }).catch(() => {
-                show(resultCard('checkCircle', 'ico-success', 'سرویس شما آماده است', 'پرداخت تأیید و سرویس ساخته شد.', orderId, [{ href: '#/services', label: 'سرویس‌های من' }]));
+                show(resultCard('checkCircle', 'ico-success', 'اشتراک شما آماده است', 'پرداخت تأیید و اشتراک ساخته شد.', orderId, [{ href: '#/services', label: 'اشتراک‌های من' }]));
                 fireSuccess(obj);
             });
             return;
@@ -280,7 +280,7 @@ function createTracker(view, orderId, opts, ui) {
                 ? `واریز شما تأیید شد و مبلغ ${fmt(obj.amount)} تومان به کیف پول شما اضافه شد.`
                 : 'واریز شما تأیید شد و درخواست شما انجام شد.';
             show(resultCard('checkCircle', 'ico-success', 'پرداخت تأیید شد', text, orderId, [
-                { href: ev.flow === 'recharge' ? successHref : (opts.successHref || '#/services'), label: ev.flow === 'recharge' ? successLabel : (opts.successLabel || 'سرویس‌های من') },
+                { href: ev.flow === 'recharge' ? successHref : (opts.successHref || '#/services'), label: ev.flow === 'recharge' ? successLabel : (opts.successLabel || 'اشتراک‌های من') },
             ]));
             fireSuccess(obj);
             return;
@@ -316,11 +316,11 @@ function createTracker(view, orderId, opts, ui) {
             if (changed) settleSince = Date.now();
             if (Date.now() - settleSince > SETTLE_LIMIT_MS) {
                 stop();
-                show(resultCard('clock', 'ico-warn', kind === 'provisioning' ? 'آماده‌سازی سرویس بیش از حد معمول طول کشیده است' : 'تکمیل پرداخت بیش از حد معمول طول کشیده است', 'پرداخت شما ثبت شده است. می‌توانید دوباره بررسی کنید یا بعداً از صفحه خانه همین پرداخت را پیگیری کنید.', orderId, [{ recheck: true, label: 'بررسی دوباره' }, { href: '#/', label: 'خانه' }]));
+                show(resultCard('clock', 'ico-warn', kind === 'provisioning' ? 'آماده‌سازی اشتراک بیش از حد معمول طول کشیده است' : 'تکمیل پرداخت بیش از حد معمول طول کشیده است', 'پرداخت شما ثبت شده است. می‌توانید دوباره بررسی کنید یا بعداً از صفحه خانه همین پرداخت را پیگیری کنید.', orderId, [{ recheck: true, label: 'بررسی دوباره' }, { href: '#/', label: 'خانه' }]));
                 return;
             }
             if (changed) {
-                show(resultCard('hourglass', 'ico-accent', kind === 'provisioning' ? 'پرداخت دریافت شد — در حال ساخت سرویس…' : 'واریز شناسایی شد — در حال تکمیل…', 'لطفاً این صفحه را باز نگه دارید؛ نتیجه به‌صورت خودکار نمایش داده می‌شود.', orderId, []));
+                show(resultCard('hourglass', 'ico-accent', kind === 'provisioning' ? 'پرداخت دریافت شد — در حال ساخت اشتراک…' : 'واریز شناسایی شد — در حال تکمیل…', 'لطفاً این صفحه را باز نگه دارید؛ نتیجه به‌صورت خودکار نمایش داده می‌شود.', orderId, []));
             }
             return;
         }
@@ -491,7 +491,7 @@ export function wireVerify(view, d, opts = {}) {
                 if ($form) $form.innerHTML = '';
                 const $h = view.querySelector('#pay-result-host');
                 if ($h) {
-                    $h.innerHTML = resultCard('xCircle', 'ico-warn', 'پرداخت لغو شد', 'این پرداخت لغو شد و دیگر قابل واریز نیست. اکنون می‌توانید پرداخت جدیدی ایجاد کنید.', orderId, [{ href: '#/recharge', label: 'شارژ کیف پول' }, { href: '#/buy', label: 'خرید سرویس' }]);
+                    $h.innerHTML = resultCard('xCircle', 'ico-warn', 'پرداخت لغو شد', 'این پرداخت لغو شد و دیگر قابل واریز نیست. اکنون می‌توانید پرداخت جدیدی ایجاد کنید.', orderId, [{ href: '#/recharge', label: 'شارژ کیف پول' }, { href: '#/buy', label: 'خرید اشتراک' }]);
                 }
             } catch (err) {
                 hapticNotify('error');

@@ -594,7 +594,7 @@ if ($text == "📞 تنظیم نام کاربری پشتیبانی") {
     $text_bot_var['btn_keyboard']['test'] = $text;
     file_put_contents('text.json', json_encode($text_bot_var, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     step("home", $from_id);
-} elseif ($text == "🛒 دکمه سرویس های من") {
+} elseif (in_array($text, ["🛒 دکمه اشتراک‌های من", "🛒 دکمه سرویس های من"], true)) {
     sendmessage($from_id, "📌 جهت تنظیم متن جدید را ارسال نمایید. توضیحات فعلی :", $backadmin, 'HTML');
     sendmessage($from_id, $text_bot_var['btn_keyboard']['my_service'], $backadmin, 'HTML');
     step("gettext_my_service", $from_id);

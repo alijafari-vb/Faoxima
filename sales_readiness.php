@@ -96,7 +96,7 @@ function rx_sr_stage_panel(array $panel)
     if (function_exists('panel_creation_limit_reached_unlocked')) {
         try {
             if (panel_creation_limit_reached_unlocked($panel)) {
-                return rx_sr_st('fail', 'سقف تعداد سرویس این پنل پر شده و برای مشتری عادی نمایش داده نمی‌شود.');
+                return rx_sr_st('fail', 'سقف تعداد اشتراک این پنل پر شده و برای مشتری عادی نمایش داده نمی‌شود.');
             }
         } catch (Throwable $e) {
         }
@@ -306,7 +306,7 @@ function rx_sr_stage_delivery(array $panel, array $offers)
     } elseif ($type === 'guard') {
         $ids = function_exists('guardParseServiceIds') ? guardParseServiceIds($panel['guard_service_ids'] ?? null) : rx_sr_json_array($panel['guard_service_ids'] ?? '');
         if (empty($ids) && !$override) {
-            $missing[] = 'سرویس‌های قابل ساخت Guard تنظیم نشده است';
+            $missing[] = 'اشتراک‌های قابل ساخت Guard تنظیم نشده است';
         }
     } elseif ($type === 'remnawave') {
         $raw = trim((string) ($panel['remna_squad'] ?? ''));
@@ -325,7 +325,7 @@ function rx_sr_stage_delivery(array $panel, array $offers)
         }
     } elseif ($type === 'rebecca') {
         if (trim((string) ($panel['rebecca_service_id'] ?? '')) === '' && !$override) {
-            $notes[] = 'سرویس پیش‌فرض Rebecca ثبت نشده؛ ربات اولین سرویس موجود پنل را استفاده می‌کند.';
+            $notes[] = 'اشتراک پیش‌فرض Rebecca ثبت نشده؛ ربات اولین اشتراک موجود پنل را استفاده می‌کند.';
         }
     } elseif ($type === 'WGDashboard') {
         foreach (['url_panel' => 'آدرس پنل', 'inboundid' => 'نام کانفیگ WireGuard', 'password_panel' => 'کلید/رمز API'] as $column => $label) {

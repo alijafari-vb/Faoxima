@@ -1,7 +1,7 @@
-import { escapeHtml, fmtBytes, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.52';
+import { escapeHtml, subscriptionProductLabel, fmtBytes, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.53';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact } from '../telegram.js?v=0.0.52';
-import { renderServiceOutputs } from './service.js?v=0.0.56';
+import { renderServiceOutputs } from './service.js?v=0.0.57';
 
 
 function gaugeSvg(percent, opts = {}) {
@@ -81,8 +81,8 @@ export function renderServiceSuccess(view, res, opts = {}) {
                 <div style="font-size:42px;line-height:1;color:var(--green);margin:4px 0 8px">
                     ${icon('checkCircle', 'class="ico ico-xxl ico-success"')}
                 </div>
-                <h2 style="margin:6px 0 4px;font-size:18px">سرویس با موفقیت ایجاد شد</h2>
-                <p class="muted" style="font-size:13px">جزئیات و کانفیگ سرویس برای شما ارسال شد.</p>
+                <h2 style="margin:6px 0 4px;font-size:18px">اشتراک با موفقیت ایجاد شد</h2>
+                <p class="muted" style="font-size:13px">جزئیات و کانفیگ اشتراک برای شما ارسال شد.</p>
             </div>
 
             <article class="card card-window">
@@ -146,8 +146,8 @@ export function renderServiceSuccess(view, res, opts = {}) {
                 </div>
                 <div class="service-detail-row">
                     ${icon('fileText', 'class="ico ico-leading"')}
-                    <span class="service-detail-label">نام سرویس</span>
-                    <span class="service-detail-value">${escapeHtml(productName)}</span>
+                    <span class="service-detail-label">نام اشتراک</span>
+                    <span class="service-detail-value">${escapeHtml(subscriptionProductLabel(productName))}</span>
                 </div>
                 <div class="service-detail-row">
                     ${icon('pin', 'class="ico ico-leading"')}
@@ -162,7 +162,7 @@ export function renderServiceSuccess(view, res, opts = {}) {
                 ${isManual ? '' : `
                 <div class="service-detail-row">
                     ${icon('box', 'class="ico ico-leading"')}
-                    <span class="service-detail-label">حجم سرویس</span>
+                    <span class="service-detail-label">حجم اشتراک</span>
                     <span class="service-detail-value">${escapeHtml(unlimitedVolume ? 'نامحدود' : fmtBytes(totalBytes))}</span>
                 </div>
                 `}
@@ -192,7 +192,7 @@ export function renderServiceSuccess(view, res, opts = {}) {
                     </button>` : ''}
                 <a href="#/services/${encodeURIComponent(usernameAc)}" class="btn btn-ghost btn-block" style="flex:1">
                     ${icon('user', 'class="ico ico-leading"')}
-                    <span>مشاهده سرویس</span>
+                    <span>مشاهده اشتراک</span>
                 </a>
             </div>
             <a href="#/" class="btn btn-ghost btn-block mt-sm">

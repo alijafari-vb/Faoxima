@@ -864,11 +864,11 @@ function rebeccaCapabilityReport(array $panel, array &$report)
             }
         }
         $configured = trim((string) ($panel['rebecca_service_id'] ?? ''));
-        $note = count($ids) . ' سرویس قابل مشاهده.';
+        $note = count($ids) . ' اشتراک قابل مشاهده.';
         $ok = true;
         if ($configured !== '') {
             $ok = in_array($configured, $ids, true);
-            $note .= $ok ? ' سرویس پیش‌فرض تنظیم‌شده موجود است.' : ' سرویس پیش‌فرض تنظیم‌شده (' . $configured . ') در دسترس نیست.';
+            $note .= $ok ? ' اشتراک پیش‌فرض تنظیم‌شده موجود است.' : ' اشتراک پیش‌فرض تنظیم‌شده (' . $configured . ') در دسترس نیست.';
         }
         rx_cap_set($report, 'resources', $ok ? 'verified' : 'failed', $note);
     }

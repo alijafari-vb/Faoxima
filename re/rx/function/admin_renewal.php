@@ -1011,7 +1011,7 @@ if (!function_exists('rxArFinish')) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],
                     'message_thread_id' => $errorreport,
-                    'text' => "\n        خطای تمدید سرویس\n<blockquote>نام پنل : " . rxArEsc($panel['name_panel']) . "</blockquote>\n<blockquote>نام کاربری سرویس : " . rxArEsc($username) . "</blockquote>\n<blockquote>کد خطا : " . rxArEsc($extend['code'] ?? '') . "</blockquote>\n<blockquote>دلیل خطا : " . rxArEsc($extend['msg'] ?? '') . "</blockquote>",
+                    'text' => "\n        خطای تمدید اشتراک\n<blockquote>نام پنل : " . rxArEsc($panel['name_panel']) . "</blockquote>\n<blockquote>نام اشتراک : " . rxArEsc($username) . "</blockquote>\n<blockquote>کد خطا : " . rxArEsc($extend['code'] ?? '') . "</blockquote>\n<blockquote>دلیل خطا : " . rxArEsc($extend['msg'] ?? '') . "</blockquote>",
                     'parse_mode' => "HTML",
                 ]);
             }
@@ -1045,7 +1045,7 @@ if (!function_exists('rxArFinish')) {
                     . "<blockquote>🛍 بسته : " . rxArPackageLabel($d) . "</blockquote>\n"
                     . "<blockquote>⚙️ روش : " . rxArEsc(rxRenewalPolicyLabel((string) $d['m'])) . "</blockquote>\n"
                     . "<blockquote>👤 نام کاربری مشتری در پنل  : " . rxArEsc($username) . "</blockquote>\n"
-                    . "<blockquote>موقعیت سرویس سرویس کاربر : " . rxArEsc($invoice['Service_location']) . "</blockquote>",
+                    . "<blockquote>موقعیت اشتراک اشتراک کاربر : " . rxArEsc($invoice['Service_location']) . "</blockquote>",
                 'parse_mode' => "HTML",
             ]);
         }

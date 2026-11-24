@@ -997,7 +997,7 @@ if (!function_exists('rx_cashbackScopeOptionMap')) {
     {
         return [
             'purchase' => '🛒 خرید اشتراک',
-            'extend'   => '🔄 تمدید سرویس',
+            'extend'   => '🔄 تمدید اشتراک',
             'volume'   => '📦 خرید حجم',
             'time'     => '⏱ خرید روز',
             'topup'    => '💰 شارژ کیف پول',

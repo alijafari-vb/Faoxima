@@ -25,7 +25,7 @@ final class TestAccountHandler extends BaseHandler
         switch ($error) {
             case 'feature_disabled':
             case 'no_panel':
-                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_testaccount_service_unavailable', '📌 سرویس تست در حال حاضر در دسترس نیست.'));
+                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_testaccount_service_unavailable', '📌 اشتراک تست در حال حاضر در دسترس نیست.'));
                 break;
             case 'verify_phone':
                 FaoximaResponse::fail(403, faoxima_textbot_get('dyn_testaccount_phone_required', '📱 برای دریافت اکانت تست ابتدا باید شماره موبایل خود را تأیید کنید.'));
@@ -43,10 +43,10 @@ final class TestAccountHandler extends BaseHandler
                 FaoximaResponse::fail(403, faoxima_textbot_get('dyn_testaccount_limit_reached', '❌ سقف دریافت اکانت تست شما به پایان رسیده است.'));
                 break;
             case 'stock_empty':
-                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', '❌ موجودی این سرویس به پایان رسیده.'));
+                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', '❌ موجودی این اشتراک به پایان رسیده.'));
                 break;
             default:
-                FaoximaResponse::fail(404, faoxima_textbot_get('dyn_testaccount_location_unavailable', '❌ سرویس تست برای این موقعیت در دسترس نیست.'));
+                FaoximaResponse::fail(404, faoxima_textbot_get('dyn_testaccount_location_unavailable', '❌ اشتراک تست برای این موقعیت در دسترس نیست.'));
         }
     }
 
@@ -244,7 +244,7 @@ final class TestAccountHandler extends BaseHandler
 
         $template = $this->resolveTestTemplate((string)($panel['type'] ?? ''));
         if (trim($template) === '') {
-            $template = faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام سرویس : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
+            $template = faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام اشتراک : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
         }
         $displayDay    = rx_test_display_time($settings);
         $displayVolume = rx_test_display_volume($settings);
@@ -357,7 +357,7 @@ final class TestAccountHandler extends BaseHandler
         if ((string)$channel !== '') {
             $topicRow = select('topicid', 'idreport', 'report', 'paymentreport', 'select');
             $topicId = is_array($topicRow) ? (string)($topicRow['idreport'] ?? '') : '';
-            $text = faoxima_render_text(faoxima_textbot_get('dyn_testaccount_report_tpl', "🧪 دریافت اکانت تست از مینی‌اپ\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ :{config_username}</blockquote>\n<blockquote>▫️موقعیت سرویس : {panel_name}</blockquote>"), [
+            $text = faoxima_render_text(faoxima_textbot_get('dyn_testaccount_report_tpl', "🧪 دریافت اکانت تست از مینی‌اپ\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>"), [
                 'user_id' => $user['id'],
                 'username' => $user['username'],
                 'config_username' => guardDisplayUsername($usernameAc, $panel),
@@ -383,7 +383,7 @@ final class TestAccountHandler extends BaseHandler
             'success'  => true,
             'order_id' => $orderId,
             'delivery_failed' => !$deliveryOk,
-            'delivery_message' => $deliveryOk ? '' : faoxima_textbot_get('dyn_testaccount_delivery_failed_saved', '⚠️ اکانت تست ساخته شد اما ارسال آن در تلگرام ناموفق بود. اطلاعات سرویس در همین صفحه و بخش سرویس‌های من در دسترس است.'),
+            'delivery_message' => $deliveryOk ? '' : faoxima_textbot_get('dyn_testaccount_delivery_failed_saved', '⚠️ اکانت تست ساخته شد اما ارسال آن در تلگرام ناموفق بود. اطلاعات اشتراک در همین صفحه و بخش اشتراک‌های من در دسترس است.'),
             'service'  => [
                 'id'                => $orderId,
                 'username'          => (string)($dataoutput['username'] ?? $usernameAc),

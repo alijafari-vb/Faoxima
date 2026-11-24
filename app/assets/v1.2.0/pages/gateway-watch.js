@@ -1,5 +1,5 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, toast } from '../utils.js?v=0.0.52';
+import { escapeHtml, toast } from '../utils.js?v=0.0.53';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, hapticNotify, isDesktopPlatform } from '../telegram.js?v=0.0.52';
 
@@ -79,7 +79,7 @@ export function startGatewayWatch(view, opts) {
 
 
     const finalizingMessages = {
-        direct_buy:      'پرداخت تایید شد — در حال ساخت سرویس…',
+        direct_buy:      'پرداخت تایید شد — در حال ساخت اشتراک…',
         recharge:        'پرداخت تایید شد — در حال شارژ کیف‌پول…',
         crypto_offline:  'پرداخت تایید شد — در حال نهایی‌سازی…',
     };
@@ -262,7 +262,7 @@ export function startGatewayWatch(view, opts) {
                 finalCheckInFlight = false;
                 if ($check) $check.disabled = false;
                 if ($label) $label.textContent = oldLabel || 'بررسی نهایی';
-                toast('پرداخت تایید شد ولی سرویس هنوز ساخته نشده — لطفاً با پشتیبانی تماس بگیرید.', 'warn', 5000);
+                toast('پرداخت تایید شد ولی اشتراک هنوز ساخته نشده — لطفاً با پشتیبانی تماس بگیرید.', 'warn', 5000);
                 return;
             }
 

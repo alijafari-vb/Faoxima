@@ -185,7 +185,7 @@ if (!$tableMissing && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($name === '')                            $errors[] = 'نام انبار خالی است.';
         elseif (mb_strlen($name, 'UTF-8') > 190)     $errors[] = 'نام انبار بیش از حد طولانی است.';
         if ($volumeGb < 0    || $volumeGb > 100000)  $errors[] = 'حجم نامعتبر است.';
-        if ($serviceDays < 0 || $serviceDays > 36500) $errors[] = 'مدت سرویس نامعتبر است.';
+        if ($serviceDays < 0 || $serviceDays > 36500) $errors[] = 'مدت اشتراک نامعتبر است.';
         if ($price < 0)                              $errors[] = 'قیمت نمی‌تواند منفی باشد.';
 
         $validNationalCodes = [];
@@ -1166,7 +1166,7 @@ function faoxima_stock_status_label(string $s): array
                                                 <span class="config-meta-tag"><?php echo icon('user', 'svg-icon svg-sm'); ?> <?php echo htmlspecialchars((string)$cfg['assigned_user'], ENT_QUOTES); ?></span>
                                             <?php endif; ?>
                                             <?php if ($cfgStatus === 'reserved' || $cfgStatus === 'delivered'): ?>
-                                                <span class="config-meta-tag"><?php echo icon('lock', 'svg-icon svg-sm'); ?> متصل به سرویس</span>
+                                                <span class="config-meta-tag"><?php echo icon('lock', 'svg-icon svg-sm'); ?> متصل به اشتراک</span>
                                             <?php endif; ?>
                                         </div>
                                         <div class="config-row__actions">
@@ -1785,7 +1785,7 @@ function faoxima_stock_status_label(string $s): array
                 if (countEl) {
                     countEl.textContent = persisted.length === 0 ?
                         'موردی انتخاب نشده' :
-                        (persisted.length + ' مورد انتخاب شد' + (live > 0 ? ' (شامل ' + live + ' متصل به سرویس)' : ''));
+                        (persisted.length + ' مورد انتخاب شد' + (live > 0 ? ' (شامل ' + live + ' متصل به اشتراک)' : ''));
                 }
             }
 

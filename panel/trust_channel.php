@@ -24,7 +24,7 @@ $FIELDS = [
     ['type' => 'toggle', 'col' => 'PublicLog_Status',        'label' => 'فعال‌سازی گزارش عمومی خرید', 'on' => '1', 'off' => '0'],
     ['type' => 'text',   'col' => 'PublicLog_Channel',       'label' => 'آیدی کانال اعتماد',           'placeholder' => '@channel یا -100…'],
     ['type' => 'toggle', 'col' => 'PublicLog_NewSub',        'label' => 'خرید اشتراک جدید',            'on' => '1', 'off' => '0'],
-    ['type' => 'toggle', 'col' => 'PublicLog_Renewal',       'label' => 'تمدید سرویس',                 'on' => '1', 'off' => '0'],
+    ['type' => 'toggle', 'col' => 'PublicLog_Renewal',       'label' => 'تمدید اشتراک',                 'on' => '1', 'off' => '0'],
     ['type' => 'toggle', 'col' => 'PublicLog_VolumeTopup',   'label' => 'افزایش حجم',                  'on' => '1', 'off' => '0'],
     ['type' => 'toggle', 'col' => 'PublicLog_TimeExtra',     'label' => 'افزایش زمان',                 'on' => '1', 'off' => '0'],
     ['type' => 'toggle', 'col' => 'PublicLog_WalletDeposit', 'label' => 'شارژ کیف پول',                'on' => '1', 'off' => '0'],

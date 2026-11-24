@@ -111,7 +111,7 @@ $keyboard_change_price = json_encode([
         ],
         [
             ['text' => "🔑 دکمه تست"],
-            ['text' => "🛒 دکمه سرویس های من"]
+            ['text' => "🛒 دکمه اشتراک‌های من"]
         ],
         [
             ['text' => "👤 دکمه حساب کاربری"],
@@ -154,7 +154,7 @@ $list_marzban_panel_user = json_encode($list_marzban_panel_users);
 
 $payment = json_encode([
     'inline_keyboard' => [
-        [['text' => "💰 پرداخت و دریافت سرویس", 'callback_data' => "confirmandgetservice"]],
+        [['text' => "💰 پرداخت و دریافت اشتراک", 'callback_data' => "confirmandgetservice"]],
         [['text' => "🏠 بازگشت به منوی اصلی",  'callback_data' => "backuser"]]
     ]
 ]);
@@ -195,7 +195,7 @@ function KeyboardProduct($location, $query, $pricediscount, $datakeyboard, $stat
             ['text' =>  $result['name_product'], 'callback_data' => "{$datakeyboard}{$result['code_product']}{$valuetow}"]
         ];
     }
-    if ($statuscustom) $product['inline_keyboard'][] = [['text' => $textbotlang['users']['customsellvolume']['title'], 'callback_data' => $customvolume]];
+    if ($statuscustom) $product['inline_keyboard'][] = [['text' => str_replace('سرویس', 'اشتراک', $textbotlang['users']['customsellvolume']['title']), 'callback_data' => $customvolume]];
     $product['inline_keyboard'][] = [
         ['text' => $textbotlang['users']['stateus']['backinfo'], 'callback_data' => $backuser],
     ];

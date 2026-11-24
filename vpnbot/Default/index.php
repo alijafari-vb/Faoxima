@@ -311,7 +311,7 @@ if ($text == "/start") {
     $stmt->execute();
     $invoices = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($stmt->rowCount() == 0) {
-        sendmessage($from_id, "⛔️ شما هیچ سرویسی فعالی ندارید", null, 'html');
+        sendmessage($from_id, "⛔️ شما هیچ اشتراکی فعالی ندارید", null, 'html');
         return;
     }
     $pages = 1;
@@ -351,9 +351,9 @@ if ($text == "/start") {
     $keyboardlists['inline_keyboard'][] = $backuser;
     $keyboard_json = json_encode($keyboardlists);
     if ($datain == "backorder") {
-        Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json);
+        Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات اشتراک خود از لیست زیر اشتراک خود را انتخاب نمایید", $keyboard_json);
     } else {
-        sendmessage($from_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json, 'html');
+        sendmessage($from_id, "🛍 برای مشاهده اطلاعات اشتراک خود از لیست زیر اشتراک خود را انتخاب نمایید", $keyboard_json, 'html');
     }
 } elseif ($datain == 'next_page') {
     $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND bottype = :apibot");
@@ -403,7 +403,7 @@ if ($text == "/start") {
     $keyboardlists['inline_keyboard'][] = $backuser;
     $keyboard_json = json_encode($keyboardlists);
     update("user", "pagenumber", $next_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json);
+    Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات اشتراک خود از لیست زیر اشتراک خود را انتخاب نمایید", $keyboard_json);
 } elseif ($datain == 'previous_page') {
     $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :id_user AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold') AND bottype = :apibot");
     $stmt->bindParam(':id_user', $from_id);
@@ -452,7 +452,7 @@ if ($text == "/start") {
     $keyboardlists['inline_keyboard'][] = $backuser;
     $keyboard_json = json_encode($keyboardlists);
     update("user", "pagenumber", $previous_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات سرویس خود از لیست زیر سرویس خود را انتخاب نمایید", $keyboard_json);
+    Editmessagetext($from_id, $message_id, "🛍 برای مشاهده اطلاعات اشتراک خود از لیست زیر اشتراک خود را انتخاب نمایید", $keyboard_json);
 } elseif ($text == $text_bot_var['btn_keyboard']['support']) {
     $textsupport = "📞 برای ارتباط با ما  روی دکمه زیر کلیک کنید";
     $Keyboardsupport = json_encode([
@@ -466,7 +466,7 @@ if ($text == "/start") {
 } elseif ($text == $text_bot_var['btn_keyboard']['test']) {
     $locationproduct = select("marzban_panel", "*", "TestAccount", "ONTestAccount", "count");
     if ($locationproduct == 0) {
-        sendmessage($from_id, "❌ سرویس تست درحال حاضر غیرفعال می باشد.", null, 'HTML');
+        sendmessage($from_id, "❌ اشتراک تست درحال حاضر غیرفعال می باشد.", null, 'HTML');
         return;
     }
     if ($locationproduct != 1) {
@@ -474,7 +474,7 @@ if ($text == "/start") {
             sendmessage($from_id, "⚠️ محدودیت دریافت اکانت تست شما به پایان رسیده است .", $keyboard, 'html');
             return;
         }
-        sendmessage($from_id, "📌 موقعیت سرویس خود را انتخاب کنید.", $list_marzban_usertest, 'html');
+        sendmessage($from_id, "📌 موقعیت اشتراک خود را انتخاب کنید.", $list_marzban_usertest, 'html');
     }
 }
 if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $datain, $dataget) || ($text == $text_bot_var['btn_keyboard']['test'])) {
@@ -489,7 +489,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         if ($panel['hide_user'] != null) {
             $list_user = json_decode($panel['hide_user'], true);
             if (in_array($from_id, $list_user)) {
-                sendmessage($from_id, "❌ سرویس تست درحال حاضر غیرفعال می باشد.", null, 'HTML');
+                sendmessage($from_id, "❌ اشتراک تست درحال حاضر غیرفعال می باشد.", null, 'HTML');
                 return;
             }
         }
@@ -533,7 +533,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         $stmt->execute();
         $configexits = $stmt->rowCount();
         if (intval($configexits) == 0) {
-            sendmessage($from_id, "❌ موجودی این سرویس به پایان رسیده.", null, 'HTML');
+            sendmessage($from_id, "❌ موجودی این اشتراک به پایان رسیده.", null, 'HTML');
             return;
         }
     }
@@ -603,23 +603,23 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             $config .= "\n" . $configs;
         }
     }
-    $datatextbot['textaftertext'] = "✅ سرویس با موفقیت ایجاد شد
+    $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
-🗜 حجم سرویس:  {volume} مگابایت
+🗜 حجم اشتراک:  {volume} مگابایت
 
 {connection_links}";
     if ($marzban_list_get['type'] == "WGDashboard") {
-        $datatextbot['textaftertext'] = "✅ سرویس با موفقیت ایجاد شد
+        $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
-🗜 حجم سرویس:  {volume} مگابایت
+🗜 حجم اشتراک:  {volume} مگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
     }
@@ -712,9 +712,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
 ▫️آیدی عددی نماینده : <code>{$userbot['id']}</code>
 ▫️نام کاربری ربات نماینده :@{$dataBase['username']}
 ▫️نام کاربری کاربر :@$username
-▫️نام کاربری کانفیگ :$username_ac
+▫️نام اشتراک :$username_ac
 ▫️نام کاربر : $first_name
-▫️موقعیت سرویس سرویس : {$marzban_list_get['name_panel']}
+▫️موقعیت اشتراک اشتراک : {$marzban_list_get['name_panel']}
 ▫️زمان خریداری شده : {$marzban_list_get['time_usertest']} ساعت
 ▫️حجم خریداری شده : {$marzban_list_get['val_usertest']} MB
 ▫️کد پیگیری: $randomString
@@ -793,7 +793,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
                     null,
                     $customvolume = "customvolumebuy"
                 );
-                sendmessage($from_id, "🛍️ لطفاً سرویسی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
+                sendmessage($from_id, "🛍️ لطفاً اشتراکی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
                 return;
             } else {
                 $nullproduct = select("product", "*", "agent", $userbot['agent'], "count");
@@ -839,7 +839,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
         savedata('clear', "note", $text);
         step("home", $from_id);
     }
-    sendmessage($from_id, "📌 موقعیت سرویس خود را انتخاب کنید", $list_marzban_panel_user, 'HTML');
+    sendmessage($from_id, "📌 موقعیت اشتراک خود را انتخاب کنید", $list_marzban_panel_user, 'HTML');
 
 } elseif ($datain == "customvolumebuy") {
 
@@ -906,7 +906,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
                 null,
                 $customvolume = "customvolumebuy"
             );
-            Editmessagetext($from_id, $message_id, "🛍️ لطفاً سرویسی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
+            Editmessagetext($from_id, $message_id, "🛍️ لطفاً اشتراکی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
         } else {
             $nullproduct = select("product", "*", "agent", $userbot['agent'], "count");
             if ($nullproduct == 0) {
@@ -972,7 +972,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
         null,
         $customvolume = "customvolumebuy"
     );
-    Editmessagetext($from_id, $message_id, "🛍️ لطفاً سرویسی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
+    Editmessagetext($from_id, $message_id, "🛍️ لطفاً اشتراکی که می‌خواهید خریداری کنید را انتخاب کنید!", $prodcut, 'HTML');
 
 } elseif ($user['step'] == "gettimecustomvol") {
 
@@ -1000,7 +1000,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
 
     $customtimevalueprice = $setting['pricetime'];
     savedata("save", "volume", $text);
-    $textcustom = "⌛️ زمان سرویس خود را انتخاب نمایید
+    $textcustom = "⌛️ زمان اشتراک خود را انتخاب نمایید
 📌 تعرفه هر روز  : $customtimevalueprice  تومان
 ⚠️ حداقل زمان $maintime روز  و حداکثر $maxtime روز  می توانید تهیه کنید";
     sendmessage($from_id, $textcustom, $backuser, 'html');
@@ -1235,7 +1235,7 @@ if (mysqli_num_rows($locationproduct) == 1) {
         $stmt->execute();
         $configexits = $stmt->rowCount();
         if (intval($configexits) == 0) {
-            sendmessage($from_id, "❌ موجودی این سرویس به پایان رسیده لطفا سرویسی دیگر را خریداری کنید.", null, 'HTML');
+            sendmessage($from_id, "❌ موجودی این اشتراک به پایان رسیده لطفا اشتراکی دیگر را خریداری کنید.", null, 'HTML');
             return;
         }
     }
@@ -1262,13 +1262,13 @@ if (mysqli_num_rows($locationproduct) == 1) {
                 ]
             ]
         ]);
-        Editmessagetext($from_id, $message_id, "❌ موجودی شما برای خرید سرویس کافی نمی باشد.
+        Editmessagetext($from_id, $message_id, "❌ موجودی شما برای خرید اشتراک کافی نمی باشد.
 💸  برای افزایش موجودی مبلغ را  به تومان وارد کنید:
 ✅  حداقل مبلغ $minbalance حداکثر مبلغ $maxbalance تومان می باشد", $bakinfos, 'HTML');
         step('get_price', $from_id);
         return;
     }
-    Editmessagetext($from_id, $message_id, "♻️ در حال ساختن سرویس شما...", null);
+    Editmessagetext($from_id, $message_id, "♻️ در حال ساختن اشتراک شما...", null);
     $datetimestep = strtotime("+" . $datafactor['Service_time'] . "days");
     if ($datafactor['Service_time'] == 0) {
         $datetimestep = 0;
@@ -1321,36 +1321,36 @@ if (mysqli_num_rows($locationproduct) == 1) {
             $configqr .= "";
         }
     }
-    $textafterpay = "✅ سرویس با موفقیت ایجاد شد
+    $textafterpay = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 {connection_links}
 ";
-    $textmanual = "✅ سرویس با موفقیت ایجاد شد
+    $textmanual = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 🇺🇳 لوکیشن: {location}
 
- اطلاعات سرویس :
+ اطلاعات اشتراک :
 {connection_links}
 ";
     if ($marzban_list_get['type'] == "Manualsale") {
         $textafterpay = $textmanual;
     }
     if ($marzban_list_get['type'] == "WGDashboard") {
-        $datatextbot['textafterpay'] = "✅ سرویس با موفقیت ایجاد شد
+        $datatextbot['textafterpay'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
     }
@@ -1453,9 +1453,9 @@ $textonebuy
 ▫️آیدی عددی نماینده : <code>{$userbot['id']}</code>
 ▫️نام کاربری کاربر :@$username
 ▫️نام کاربری ربات نماینده :@{$dataBase['username']}
-▫️نام کاربری کانفیگ :$username_ac
+▫️نام اشتراک :$username_ac
 ▫️نام کاربر : $first_name
-▫️موقعیت سرویس سرویس : {$userdate['name_panel']}
+▫️موقعیت اشتراک اشتراک : {$userdate['name_panel']}
 ▫️زمان خریداری شده :{$datafactor['Service_time']} روز
 ▫️حجم خریداری شده : {$datafactor['Volume_constraint']} GB
 ▫️موجودی قبل خرید : $balanceformatsellbefore تومان
@@ -1707,11 +1707,11 @@ $textonebuy
                 @unlink($mFile);
             }
         }
-        $textinfo = "وضعیت سرویس : <b>$status_var</b>
-    نام کاربری سرویس : {$DataUserOut['username']}
-    📎 کد پیگیری سرویس : {$nameloc['id_invoice']}
+        $textinfo = "وضعیت اشتراک : <b>$status_var</b>
+    نام اشتراک : {$DataUserOut['username']}
+    📎 کد پیگیری اشتراک : {$nameloc['id_invoice']}
 
-    📌 اطلاعات سرویس :
+    📌 اطلاعات اشتراک :
     {$userinfo['contentrecord']}";
         Editmessagetext($from_id, $message_id, $textinfo, $keyboardsetting);
         return;
@@ -1743,14 +1743,14 @@ $textonebuy
 
     $keyboardsetting = json_encode($keyboardsetting);
     if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
-        $textinfo = "وضعیت سرویس : <b>$status_var</b>
-نام کاربری سرویس : {$DataUserOut['username']}
-موقعیت سرویس :{$nameloc['Service_location']}
-مدت زمان سرویس :{$nameloc['Service_time']} روز
+        $textinfo = "وضعیت اشتراک : <b>$status_var</b>
+نام اشتراک : {$DataUserOut['username']}
+موقعیت اشتراک :{$nameloc['Service_location']}
+مدت زمان اشتراک :{$nameloc['Service_time']} روز
 
 📶 اخرین زمان اتصال شما : $lastonline
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -1761,13 +1761,13 @@ $textonebuy
 ";
     } else {
         if ($DataUserOut['sub_updated_at'] !== null) {
-            $textinfo = "وضعیت سرویس : $status_var
-👤 نام سرویس : {$DataUserOut['username']}
-🌍 موقعیت سرویس :{$nameloc['Service_location']}
-🖇 کد سرویس:{$nameloc['id_invoice']}
+            $textinfo = "وضعیت اشتراک : $status_var
+👤 نام اشتراک : {$DataUserOut['username']}
+🌍 موقعیت اشتراک :{$nameloc['Service_location']}
+🖇 کد اشتراک:{$nameloc['id_invoice']}
 
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -1781,12 +1781,12 @@ $textonebuy
 {$connectionLinksBlock}
 ";
         } else {
-            $textinfo = "وضعیت سرویس : $status_var
-👤 نام سرویس : {$DataUserOut['username']}
-🌍 موقعیت سرویس :{$nameloc['Service_location']}
-🖇 کد سرویس:{$nameloc['id_invoice']}
+            $textinfo = "وضعیت اشتراک : $status_var
+👤 نام اشتراک : {$DataUserOut['username']}
+🌍 موقعیت اشتراک :{$nameloc['Service_location']}
+🖇 کد اشتراک:{$nameloc['id_invoice']}
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -1824,7 +1824,7 @@ $textonebuy
     if ($DataUserOut['status'] == "on_hold") {
         sendmessage(
             $from_id,
-            "❌ هنوز به سرویس متصل نشده اید برای تمدید، ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید",
+            "❌ هنوز به اشتراک متصل نشده اید برای تمدید، ابتدا به اشتراک متصل شوید سپس اقدام به تمدید کنید",
             null,
             'html'
         );
@@ -1860,7 +1860,7 @@ $textonebuy
             null,
             $customvolume = "customvolumeextend"
         );
-        sendmessage($from_id, "🛍️ لطفاً سرویسی که می‌خواهید تمدید کنید را انتخاب کنید!", $prodcut, 'HTML');
+        sendmessage($from_id, "🛍️ لطفاً اشتراکی که می‌خواهید تمدید کنید را انتخاب کنید!", $prodcut, 'HTML');
 
     } else {
 
@@ -1924,7 +1924,7 @@ $textonebuy
     }
 
     $customtimevalueprice = $setting['pricetime'];
-    $textcustom = "⌛️ زمان سرویس خود را انتخاب نمایید
+    $textcustom = "⌛️ زمان اشتراک خود را انتخاب نمایید
     📌 تعرفه هر روز  : $customtimevalueprice  تومان
     ⚠️ حداقل زمان $maintime روز  و حداکثر $maxtime روز  می توانید تهیه کنید";
 
@@ -1983,7 +1983,7 @@ $textonebuy
 ⏱ مدت زمان تمدید : {$datapish['Service_time']} روز
 🔋 حجم تمدید :{$datapish['Volume_constraint']} گیگ
 💸 موجودی کیف پول : {$user['Balance']}
-✅ برای تایید و تمدید سرویس روی دکمه زیر کلیک کنید";
+✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید";
     $keyboardextend = json_encode([
         'inline_keyboard' => [
             [
@@ -2067,7 +2067,7 @@ $textonebuy
                 ]
             ]
         ]);
-        Editmessagetext($from_id, $message_id, "❌ موجودی شما برای خرید سرویس کافی نمی باشد.
+        Editmessagetext($from_id, $message_id, "❌ موجودی شما برای خرید اشتراک کافی نمی باشد.
 💸  برای افزایش موجودی مبلغ را  به تومان وارد کنید:
 ✅  حداقل مبلغ $minbalance حداکثر مبلغ $maxbalance تومان می باشد", $bakinfos, 'HTML');
         step('get_price', $from_id);
@@ -2078,11 +2078,11 @@ $textonebuy
     if ($extend['status'] == false && !rxRenewalIsPending($extend)) {
         $extend['msg'] = rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
         $textreports = "
-خطای تمدید سرویس در ربات نماینده
+خطای تمدید اشتراک در ربات نماینده
 نام پنل : {$marzban_list_get['name_panel']}
-نام کاربری سرویس : {$nameloc['username']}
+نام اشتراک : {$nameloc['username']}
 دلیل خطا : {$extend['msg']}";
-        sendmessage($from_id, "❌خطایی در تمدید سرویس در ربات رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
+        sendmessage($from_id, "❌خطایی در تمدید اشتراک در ربات رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
         if (strlen($settingmain['Channel_Report']) > 0) {
             telegram('sendmessage', [
                 'chat_id' => $settingmain['Channel_Report'],
@@ -2134,9 +2134,9 @@ $textonebuy
     $priceproductformat = number_format($datafactor['price_product']);
     $balanceformatsell = number_format($userbalance = json_decode(file_get_contents("data/$from_id/$from_id.json"), true)['Balance']);
     $balanceformatsellbefore = number_format($user['Balance'], 0);
-    $textextend = "✅ تمدید برای سرویس شما با موفقیت صورت گرفت
+    $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : {$nameloc['username']}
+▫️نام اشتراک : {$nameloc['username']}
 ▫️نام محصول : {$datafactor['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
@@ -2149,9 +2149,9 @@ $textonebuy
 ▫️نام کاربری ربات نماینده :@{$dataBase['username']}
 
 ▫️نام کاربری کاربر :@$username
-▫️نام کاربری کانفیگ :{$nameloc['username']}
+▫️نام اشتراک :{$nameloc['username']}
 ▫️نام کاربر : $first_name
-▫️موقعیت سرویس سرویس : {$nameloc['Service_location']}
+▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}
 ▫️نام محصول : {$datafactor['name_product']}
 ▫️حجم محصول : {$datafactor['Volume_constraint']}
 ▫️زمان محصول : {$datafactor['Service_time']}
@@ -2177,7 +2177,7 @@ $textonebuy
         return;
     }
     if ($DataUserOut['status'] == "disabled" || $DataUserOut['status'] == "on_hold") {
-        sendmessage($from_id, "❌ سرویس غیرفعال است و امکان تعویض لینک برای سرویس وجود ندارد.", null, 'html');
+        sendmessage($from_id, "❌ اشتراک غیرفعال است و امکان تعویض لینک برای اشتراک وجود ندارد.", null, 'html');
         return;
     }
     $keyboardextend = json_encode([

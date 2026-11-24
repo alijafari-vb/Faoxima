@@ -1,8 +1,8 @@
-import { escapeHtml, copyToClipboard, toast, blobToDataUrl, rialCopyValue } from './utils.js?v=0.0.53';
+import { escapeHtml, copyToClipboard, toast, blobToDataUrl, rialCopyValue } from './utils.js?v=0.0.54';
 import { hapticImpact, hapticNotify, isDesktopPlatform } from './telegram.js?v=0.0.52';
 import { icon } from './icons.js?v=0.0.52';
 import { getToken } from './state.js';
-import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.4';
+import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.5';
 
 export function iconForMethod(m) {
     const id = String(m.id || '').toLowerCase();
@@ -392,7 +392,7 @@ export function wireCardToCard(view, d, opts = {}) {
 let _gatewayWatchModulePromise = null;
 function loadGatewayWatch() {
     if (_gatewayWatchModulePromise) return _gatewayWatchModulePromise;
-    _gatewayWatchModulePromise = import('./pages/gateway-watch.js');
+    _gatewayWatchModulePromise = import('./pages/gateway-watch.js?v=0.0.1');
     return _gatewayWatchModulePromise;
 }
 
@@ -403,13 +403,13 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./pages/service-success.js', import.meta.url);
-        url.searchParams.set('v', ver);
+        url.searchParams.set('v', `${ver}-subscriptions`);
         _successModulePromise = import(url.href).catch(() => {
             _successModulePromise = null;
-            return import('./pages/service-success.js');
+            return import('./pages/service-success.js?v=0.0.1');
         });
     } catch (e) {
-        _successModulePromise = import('./pages/service-success.js');
+        _successModulePromise = import('./pages/service-success.js?v=0.0.1');
     }
     return _successModulePromise;
 }
@@ -482,7 +482,7 @@ function renderGenericSuccess(view, statusObj, opts) {
                 </div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>
         </article>`;
@@ -538,7 +538,7 @@ function renderGatewayTimeout(view, opts) {
 let _tonpayCustomModulePromise = null;
 function loadTonpayCustom() {
     if (_tonpayCustomModulePromise) return _tonpayCustomModulePromise;
-    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.7');
+    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.8');
     return _tonpayCustomModulePromise;
 }
 
@@ -563,7 +563,7 @@ export function startTonpayCustomFlow(rootView, obj, opts = {}) {
 let _atlaspayCustomModulePromise = null;
 function loadAtlaspayCustom() {
     if (_atlaspayCustomModulePromise) return _atlaspayCustomModulePromise;
-    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.1');
+    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.2');
     return _atlaspayCustomModulePromise;
 }
 

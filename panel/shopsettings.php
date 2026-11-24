@@ -56,10 +56,10 @@ $SHOP_GROUPS = [
             ['type' => 'toggle', 'name' => 'statustimeextra',    'label' => 'فعال‌سازی خرید زمان اضافه',         'on' => 'ontimeextraa',    'off' => 'offtimeextraa'],
             ['type' => 'toggle', 'name' => 'statusdirectpabuy',  'label' => 'پرداخت مستقیم (بدون شارژ کیف پول)','on' => 'ondirectbuy',     'off' => 'offdirectbuy'],
             ['type' => 'toggle', 'name' => 'statusdisorder',     'label' => 'حالت غیرفعال‌سازی فروش (Disorder)', 'on' => 'ondisorder',      'off' => 'offdisorder'],
-            ['type' => 'toggle', 'name' => 'statuschangeservice','label' => 'اجازه‌ی تغییر سرویس',                'on' => 'onstatus',        'off' => 'offstatus'],
+            ['type' => 'toggle', 'name' => 'statuschangeservice','label' => 'اجازه‌ی تغییر اشتراک',                'on' => 'onstatus',        'off' => 'offstatus'],
             ['type' => 'toggle', 'name' => 'statusshowprice',    'label' => 'نمایش قیمت روی محصولات',            'on' => 'onshowprice',     'off' => 'offshowprice'],
             ['type' => 'toggle', 'name' => 'configshow',         'label' => 'نمایش کانفیگ به کاربر',              'on' => 'onconfig',        'off' => 'offconfig'],
-            ['type' => 'toggle', 'name' => 'backserviecstatus',  'label' => 'دکمه بازگشت در منوی سرویس',          'on' => 'on',              'off' => 'off'],
+            ['type' => 'toggle', 'name' => 'backserviecstatus',  'label' => 'دکمه بازگشت در منوی اشتراک',          'on' => 'on',              'off' => 'off'],
         ],
     ],
 

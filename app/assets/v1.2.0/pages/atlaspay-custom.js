@@ -1,5 +1,5 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, toast, copyToClipboard } from '../utils.js?v=0.0.53';
+import { escapeHtml, toast, copyToClipboard } from '../utils.js?v=0.0.54';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, hapticNotify } from '../telegram.js?v=0.0.52';
 
@@ -305,11 +305,11 @@ export function startAtlaspayCustom(view, orderId, opts = {}) {
             <div style="text-align:center;padding:10px 0">
                 <div style="font-size:42px;line-height:1;color:var(--green);margin:4px 0 10px">${icon('checkCircle', 'class="ico ico-xxl ico-success"')}</div>
                 <h2 style="margin:6px 0;font-size:18px">پرداخت با موفقیت تأیید شد</h2>
-                <p class="muted">${mode === 'direct_buy' ? 'سرویس شما فعال شد.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
+                <p class="muted">${mode === 'direct_buy' ? 'اشتراک شما فعال شد.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
                 <div class="kv mt-md"><span class="kv-label">شناسه پیگیری</span><span class="kv-value mono gold">${escapeHtml((data && data.tracking_code) || orderId)}</span></div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>`);
     }
@@ -323,7 +323,7 @@ export function startAtlaspayCustom(view, orderId, opts = {}) {
             <div style="text-align:center;padding:14px 0">
                 ${icon('hourglass', 'class="ico ico-xxl ico-accent"')}
                 <h2 style="margin:10px 0 4px;font-size:18px">پرداخت شما تأیید شد</h2>
-                <p class="muted" style="font-size:13px">${mode === 'direct_buy' ? 'در حال ساخت سرویس…' : 'در حال نهایی‌سازی…'}</p>
+                <p class="muted" style="font-size:13px">${mode === 'direct_buy' ? 'در حال ساخت اشتراک…' : 'در حال نهایی‌سازی…'}</p>
             </div>`);
         let statusObj = {};
         for (let i = 0; i < SERVICE_READY_MAX_TRIES; i++) {
@@ -340,7 +340,7 @@ export function startAtlaspayCustom(view, orderId, opts = {}) {
         }
         if (statusObj.is_service_ready && statusObj.service) {
             try {
-                const mod = await import('./service-success.js');
+                const mod = await import('./service-success.js?v=0.0.1');
                 if (mod && typeof mod.renderServiceSuccess === 'function') {
                     mod.renderServiceSuccess(view, { order_id: statusObj.order_id, service: statusObj.service }, {
                         productName: statusObj.service.product_name || '',

@@ -1,14 +1,14 @@
 import { call } from '../api.js?v=0.0.53';
 import {
     escapeHtml, fmtPrice, fmtGb, fmtDays, fmtIpLimit, fmtSymbolicLimit, skeletonList, emptyState, toast, fmtNumber,
-} from '../utils.js?v=0.0.52';
+} from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { getBuyDraft, setBuyDraft, clearBuyDraft } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.4';
+import { showVerifyPending } from '../card-verify.js?v=0.0.5';
 import {
     fmtNum, renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml,
-} from '../payment-ui.js?v=0.0.67';
+} from '../payment-ui.js?v=0.0.68';
 
 
 let _successModulePromise = null;
@@ -18,14 +18,14 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./service-success.js', import.meta.url);
-        url.searchParams.set('v', ver);
+        url.searchParams.set('v', `${ver}-subscriptions`);
         _successModulePromise = import(url.href).catch((err) => {
             console.warn('[buy] dynamic import of service-success.js with cache-bust failed, retrying plain', err);
             _successModulePromise = null;
-            return import('./service-success.js');
+            return import('./service-success.js?v=0.0.1');
         });
     } catch (e) {
-        _successModulePromise = import('./service-success.js');
+        _successModulePromise = import('./service-success.js?v=0.0.1');
     }
     return _successModulePromise;
 }
@@ -44,8 +44,8 @@ function renderFallbackSuccess(view, res) {
                 <div style="font-size:48px;line-height:1;color:var(--green);margin:8px 0">
                     ${icon('checkCircle', 'class="ico ico-xxl ico-success"')}
                 </div>
-                <h2 style="margin:8px 0;font-size:20px">سرویس شما با موفقیت ساخته شد</h2>
-                <p class="muted">جزئیات و کانفیگ سرویس برای شما در تلگرام ارسال شد.</p>
+                <h2 style="margin:8px 0;font-size:20px">اشتراک شما با موفقیت ساخته شد</h2>
+                <p class="muted">جزئیات و کانفیگ اشتراک برای شما در تلگرام ارسال شد.</p>
                 <div class="kv mt-md">
                     <span class="kv-label">کد پیگیری</span>
                     <span class="kv-value mono gold">${escapeHtml(id)}</span>
@@ -55,7 +55,7 @@ function renderFallbackSuccess(view, res) {
                     <span class="kv-value mono">${escapeHtml(u)}</span>
                 </div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
-                    <a href="#/services/${encodeURIComponent(u)}" class="btn btn-primary btn-block" style="flex:1">مشاهده سرویس</a>
+                    <a href="#/services/${encodeURIComponent(u)}" class="btn btn-primary btn-block" style="flex:1">مشاهده اشتراک</a>
                     <a href="#/" class="btn btn-ghost btn-block" style="flex:1">خانه</a>
                 </div>
             </div>
@@ -66,7 +66,7 @@ const STEPS = [
     { key: 'panel',     label: 'موقعیت' },
     { key: 'category',  label: 'دسته‌بندی' },
     { key: 'time',      label: 'زمان' },
-    { key: 'product',   label: 'سرویس' },
+    { key: 'product',   label: 'اشتراک' },
     { key: 'confirm',   label: 'تایید' },
 ];
 
@@ -153,7 +153,7 @@ export async function buy(view) {
     async function renderPanelStep(host) {
         host.innerHTML = `
             <p class="section-title">انتخاب موقعیت</p>
-            <h2 class="section-headline">سرویس شما کجا ارائه شود؟</h2>
+            <h2 class="section-headline">اشتراک شما کجا ارائه شود؟</h2>
             <div id="panel-list" class="list mt-md">${skeletonList(4)}</div>
         `;
         try {
@@ -246,7 +246,7 @@ export async function buy(view) {
         host.innerHTML = `
             ${backRow('بازگشت')}
             <p class="section-title">مدت زمان</p>
-            <h2 class="section-headline">مدت زمان سرویس را انتخاب کنید</h2>
+            <h2 class="section-headline">مدت زمان اشتراک را انتخاب کنید</h2>
             <div id="time-list" class="list mt-md">${skeletonList(3)}</div>
         `;
         wireBackBtn(host);
@@ -286,8 +286,8 @@ export async function buy(view) {
     async function renderProductStep(host) {
         host.innerHTML = `
             ${backRow('بازگشت')}
-            <p class="section-title">انتخاب سرویس</p>
-            <h2 class="section-headline">یکی از سرویس‌های زیر را انتخاب کنید</h2>
+            <p class="section-title">انتخاب اشتراک</p>
+            <h2 class="section-headline">یکی از اشتراک‌های زیر را انتخاب کنید</h2>
             ${draft.panel.is_custom ? `
                 <div class="row-spread mt-md mb-md">
                     <button class="chip is-active" data-mode="catalog">${icon('fileText')} کاتالوگ</button>
@@ -324,7 +324,7 @@ export async function buy(view) {
                 const res = await call('services', { params });
                 const list = Array.isArray(res?.obj) ? res.obj : [];
                 if (!list.length) {
-                    target.innerHTML = emptyState('سرویسی یافت نشد', 'با این تنظیمات هیچ سرویسی موجود نیست.');
+                    target.innerHTML = emptyState('اشتراکی یافت نشد', 'با این تنظیمات هیچ اشتراکی موجود نیست.');
                     return;
                 }
                 target.innerHTML = `
@@ -446,7 +446,7 @@ export async function buy(view) {
                         const price = Number(r?.obj?.price || 0);
                         draft.product = {
                             id: 'customvolume',
-                            name: 'سرویس سفارشی',
+                            name: 'اشتراک سفارشی',
                             traffic_gb: trafficVal,
                             time_days: timeVal,
                             price,
@@ -479,7 +479,7 @@ export async function buy(view) {
 
             <div class="card" style="padding:16px">
                 <div class="kv"><span class="kv-label">${icon('pin')} موقعیت</span><span class="kv-value">${escapeHtml(draft.panel.name)}</span></div>
-                <div class="kv"><span class="kv-label">${icon('fileText')} سرویس</span><span class="kv-value">${escapeHtml(p.name)}</span></div>
+                <div class="kv"><span class="kv-label">${icon('fileText')} اشتراک</span><span class="kv-value">${escapeHtml(p.name)}</span></div>
                 <div class="kv"><span class="kv-label">${icon('box')} حجم</span><span class="kv-value">${escapeHtml(fmtGb(p.traffic_gb))}</span></div>
                 <div class="kv"><span class="kv-label">${icon('calendar')} مدت زمان</span><span class="kv-value">${escapeHtml(fmtDays(p.time_days))}</span></div>
                 ${fmtSymbolicLimit(p) ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtSymbolicLimit(p))}</span></div>` : (p.ip_limit_guard_active ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtIpLimit(p.ip_limit))}</span></div>` : '')}
@@ -494,7 +494,7 @@ export async function buy(view) {
                         <input id="custom-username" type="text" placeholder="مثلا alireza" maxlength="40" style="flex:1" ${usernameRequired ? 'required' : ''} />
                         ${usernameRandom ? '<button type="button" id="gen-random-username" class="btn btn-ghost" style="white-space:nowrap;padding:8px 14px;min-height:auto">🎲 رندوم</button>' : ''}
                     </div>
-                    ${usernameRequired ? '<small class="muted" style="display:block;margin-top:4px;font-size:11px">⚠️ برای این پنل، انتخاب نام کاربری اجباری است و سرویس بدون نام ساخته نمی‌شود.</small>' : ''}
+                    ${usernameRequired ? '<small class="muted" style="display:block;margin-top:4px;font-size:11px">⚠️ برای این پنل، انتخاب نام کاربری اجباری است و اشتراک بدون نام ساخته نمی‌شود.</small>' : ''}
                 </div>
             ` : ''}
             ${showNote ? `
@@ -510,7 +510,7 @@ export async function buy(view) {
             </div>
 
             <button class="btn btn-primary btn-block mt-md" id="do-purchase">
-                <span>پرداخت و ساخت سرویس</span>
+                <span>پرداخت و ساخت اشتراک</span>
                 <span class="arrow">${icon('select', 'class="ico"')}</span>
             </button>
             <p class="muted mono mt-sm" style="font-size:11px;text-align:center">با کلیک روی دکمه بالا، مبلغ از کیف پول شما کسر خواهد شد.</p>
@@ -582,7 +582,7 @@ export async function buy(view) {
                     if (!ready) {
                         if ($ckHost) $ckHost.innerHTML = '';
                         $btn.disabled = false;
-                        $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                        $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                         return;
                     }
                     renderInlinePayment(host, ready);
@@ -634,7 +634,7 @@ export async function buy(view) {
                     if (!readyErr) {
                         if ($ckHostErr) $ckHostErr.innerHTML = '';
                         $btn.disabled = false;
-                        $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                        $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                         return;
                     }
                     renderInlinePayment(host, readyErr);
@@ -653,13 +653,13 @@ export async function buy(view) {
                     toast('موجودی شما کافی نیست — یک روش پرداخت انتخاب کنید', 'warn', 5000);
                     setTimeout(() => { window.location.hash = '#/recharge'; }, 800);
                     $btn.disabled = false;
-                    $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                    $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                     return;
                 }
 
-                toast(err.message || 'خطا در ساخت سرویس', 'error', 5000);
+                toast(err.message || 'خطا در ساخت اشتراک', 'error', 5000);
                 $btn.disabled = false;
-                $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
             }
         });
     }
@@ -680,7 +680,7 @@ export async function buy(view) {
                     ${icon('wallet', 'class="ico ico-xxl ico-accent"')}
                     <h3>پرداخت مبلغ کسری</h3>
                     <p class="muted center" style="font-size:12px">
-                        موجودی شما برای خرید کامل کافی نیست. مبلغ کسری را با یکی از روش‌های زیر پرداخت کنید؛ پس از تأیید ادمین، سرویس به‌صورت خودکار ساخته خواهد شد.
+                        موجودی شما برای خرید کامل کافی نیست. مبلغ کسری را با یکی از روش‌های زیر پرداخت کنید؛ پس از تأیید ادمین، اشتراک به‌صورت خودکار ساخته خواهد شد.
                     </p>
                 </div>
 
@@ -689,7 +689,7 @@ export async function buy(view) {
                     <span class="kv-value mono">${escapeHtml(fmtPrice(balance))}</span>
                 </div>
                 <div class="kv">
-                    <span class="kv-label">${icon('coin')} قیمت سرویس</span>
+                    <span class="kv-label">${icon('coin')} قیمت اشتراک</span>
                     <span class="kv-value mono">${escapeHtml(fmtPrice(price))}</span>
                 </div>
                 ${walletBreakdownHtml(pay.checkout)}
@@ -699,7 +699,7 @@ export async function buy(view) {
                 </div>
                 ${username ? `
                 <div class="kv">
-                    <span class="kv-label">${icon('user')} نام کاربری سرویس</span>
+                    <span class="kv-label">${icon('user')} نام اشتراک</span>
                     <span class="kv-value mono">${escapeHtml(username)}</span>
                 </div>` : ''}
 
@@ -770,7 +770,7 @@ export async function buy(view) {
             const cryptoOfflineIds = ['crypto_offline', 'digitaltron'];
             if (method.kind === 'crypto_offline' || cryptoOfflineIds.includes(method.id)) {
                 try {
-                    const mod = await import( './crypto-offline.js');
+                    const mod = await import( './crypto-offline.js?v=0.0.1');
                     if (mod && typeof mod.renderCryptoOffline === 'function') {
                         mod.renderCryptoOffline(view, {
                             amount: amountDue,
@@ -802,7 +802,7 @@ export async function buy(view) {
                 handleInitResult($inline, method.id, obj, {
                     rootView: view,
                     purchaseUsername: username,
-                    successText: 'پس از تأیید پرداخت، سرویس شما به‌صورت خودکار ساخته می‌شود.',
+                    successText: 'پس از تأیید پرداخت، اشتراک شما به‌صورت خودکار ساخته می‌شود.',
                     successCta:  { href: '#/', label: 'بازگشت به خانه' },
                     onSuccess:   () => { clearBuyDraft(); },
                 });

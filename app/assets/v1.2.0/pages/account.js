@@ -1,5 +1,5 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, fmtPrice, fmtNumber, skeletonList } from '../utils.js?v=0.0.52';
+import { escapeHtml, fmtPrice, fmtNumber, skeletonList } from '../utils.js?v=0.0.53';
 import { setUser } from '../state.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
 
@@ -98,7 +98,7 @@ export async function account(view) {
                 <div class="stat-value">${escapeHtml(info.group_type || '—')}</div>
             </div>
             <div class="stat">
-                <div class="stat-label">${icon('box')} سرویس‌های فعال</div>
+                <div class="stat-label">${icon('box')} اشتراک‌های فعال</div>
                 <div class="stat-value">${escapeHtml(fmtNumber(info.count_order))}</div>
             </div>
             <div class="stat">
@@ -126,11 +126,11 @@ export async function account(view) {
         <div class="action-grid mt-md">
             <a href="#/buy" class="action-tile">
                 ${icon('cart', 'class="ico ico-xl action-icon is-green"')}
-                <span>خرید سرویس</span>
+                <span>خرید اشتراک</span>
             </a>
             <a href="#/services" class="action-tile">
                 ${icon('fileText', 'class="ico ico-xl action-icon is-yellow"')}
-                <span>سرویس‌های من</span>
+                <span>اشتراک‌های من</span>
             </a>
             <a href="#/tickets" class="action-tile">
                 ${icon('send', 'class="ico ico-xl action-icon is-orange"')}

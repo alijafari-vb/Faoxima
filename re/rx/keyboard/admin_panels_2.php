@@ -183,7 +183,7 @@ function KeyboardProduct($location,$query,$pricediscount,$datakeyboard,$statuscu
     }
     if ($statusshowprice == "onshowprice") {
         $product['inline_keyboard'][] = [
-            ['text' => $textbotlang['users']['sell']['grid_header_name'] ?? '📦 نام سرویس', 'callback_data' => 'noop'],
+            ['text' => $textbotlang['users']['sell']['grid_header_name'] ?? '📦 نام اشتراک', 'callback_data' => 'noop'],
             ['text' => $textbotlang['users']['sell']['grid_header_time'] ?? '⏳ زمان', 'callback_data' => 'noop'],
             ['text' => $textbotlang['users']['sell']['grid_header_price'] ?? '💵 قیمت', 'callback_data' => 'noop'],
         ];
@@ -234,7 +234,7 @@ function KeyboardProduct($location,$query,$pricediscount,$datakeyboard,$statuscu
             ];
         }
     }
-    if ($statuscustom)$product['inline_keyboard'][] = [['text' => $textbotlang['users']['customsellvolume']['title'], 'callback_data' => $customvolume]];
+    if ($statuscustom)$product['inline_keyboard'][] = [['text' => str_replace('سرویس', 'اشتراک', $textbotlang['users']['customsellvolume']['title']), 'callback_data' => $customvolume]];
     $product['inline_keyboard'][] = [
         ['text' => $textbotlang['users']['stateus']['backinfo'], 'callback_data' => $backuser],
     ];
@@ -351,7 +351,7 @@ function keyboardTimeCategory($name_panel,$agent,$callback_data = "producttime_"
                 ];
             }
     if($statusbtnextend)$monthkeyboard['inline_keyboard'][] = [['text' => "♻️ تمدید پلن فعلی", 'callback_data' => "exntedagei"]];
-    if ($statuscustomvolume == true)$monthkeyboard['inline_keyboard'][] = [['text' => $textbotlang['users']['customsellvolume']['title'], 'callback_data' => "customsellvolume"]];
+    if ($statuscustomvolume == true)$monthkeyboard['inline_keyboard'][] = [['text' => str_replace('سرویس', 'اشتراک', $textbotlang['users']['customsellvolume']['title']), 'callback_data' => "customsellvolume"]];
     $monthkeyboard['inline_keyboard'][] = [
                 ['text' => $textbotlang['users']['stateus']['backinfo'], 'callback_data' => $callback_data_back]
             ];
@@ -613,7 +613,7 @@ function keyboard_config_unavailable_text($dataUserOut, $outcomeOverride = null)
     $outcome = $outcomeOverride !== null ? (string) $outcomeOverride : (string) ($diagnostic['outcome'] ?? 'failed');
     $baseError = $datatextbot['dyn_errors_config_read_from_panel_error'] ?? "❌ خطا در خواندن کانفیگ از پنل.";
     if ($outcome === 'empty') {
-        $message = "ℹ️ در حال حاضر پنل هیچ کانفیگی برای این سرویس ارائه نمی‌دهد.";
+        $message = "ℹ️ در حال حاضر پنل هیچ کانفیگی برای این اشتراک ارائه نمی‌دهد.";
     } elseif ($outcome === 'invalid') {
         $message = $baseError . "\nپاسخ پنل شامل کانفیگ قابل استفاده نبود.";
     } else {

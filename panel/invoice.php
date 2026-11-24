@@ -137,8 +137,8 @@ $invExtraCriteria = array_filter([
     'محصول' => $invProduct !== '' ? ($invPmatch === 'exact' ? $invProduct . ' (تطابق دقیق)' : $invProduct) : '',
     'لوکیشن' => $invLocation,
 ], function ($v) { return $v !== ''; });
-$invFilterCriteria = array_merge(fx_filter_delete_criteria($invStatusActive ? $invStatusOptions[$invStatus] : '', $df, $lookup !== '' ? 'شناسهٔ سرویس یا لینک اشتراک' : $invQ), $invExtraCriteria);
-$invDeleteNote = ($invTestScope ? 'حذف فقط به رکوردهای فاکتور «سرویس تست» مطابق فیلتر محدود است. ' : '')
+$invFilterCriteria = array_merge(fx_filter_delete_criteria($invStatusActive ? $invStatusOptions[$invStatus] : '', $df, $lookup !== '' ? 'شناسهٔ اشتراک یا لینک اشتراک' : $invQ), $invExtraCriteria);
+$invDeleteNote = ($invTestScope ? 'حذف فقط به رکوردهای فاکتور «اشتراک تست» مطابق فیلتر محدود است. ' : '')
     . 'این عملیات فقط رکوردهای سفارش (تاریخچه فاکتور) را از پایگاه داده ربات حذف می‌کند و هیچ اکانت یا کانفیگی از پنل خارجی حذف نمی‌شود.';
 if (fx_filter_delete_requested()) {
     $fdRes = ($invFilterActive && !$invDeleteBlocked && !$invIdentifierFilter) ? fx_filter_delete_where($pdo, 'invoice', $whereSql, $whereParams) : [0, 0];
@@ -213,7 +213,7 @@ if ($invCanSearchIdentifiers) {
 
             <?php echo fx_filter_delete_flash_html(); ?>
 
-            <?php echo fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null, 'lookup' => $lookup], $invDateKeep, $invExtraKeep), $invCanSearchIdentifiers ? 'نام کاربری، شناسهٔ سرویس، UUID یا لینک اشتراک' : 'جستجو در شماره سفارش، شناسهٔ تلگرام کاربر، نام کاربری سرویس یا محصول…', 'q', $invCanSearchIdentifiers); ?>
+            <?php echo fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null, 'lookup' => $lookup], $invDateKeep, $invExtraKeep), $invCanSearchIdentifiers ? 'نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک' : 'جستجو در شماره سفارش، شناسهٔ تلگرام کاربر، نام اشتراک یا محصول…', 'q', $invCanSearchIdentifiers); ?>
 
             <?php echo fx_status_filter_ui('invoice.php', $invStatusOptions, $invStatus, array_merge($invSearchParams, $invDateKeep, $invExtraKeep)); ?>
 
@@ -240,7 +240,7 @@ if ($invCanSearchIdentifiers) {
                                 <th><input type="checkbox" id="check-all" onclick="faoximaToggleAll(this)"></th>
                                 <th>شماره سفارش</th>
                                 <th>شناسهٔ تلگرام کاربر</th>
-                                <th>نام کاربری سرویس</th>
+                                <th>نام اشتراک</th>
                                 <th>لوکیشن</th>
                                 <th>محصول</th>
                                 <th>تاریخ سفارش</th>
@@ -277,14 +277,14 @@ if ($invCanSearchIdentifiers) {
                                         <?php echo $list['id_user']; ?>
                                     </a>
                                 </td>
-                                <td data-label="نام کاربری سرویس" style="direction:ltr; text-align:right;">
+                                <td data-label="نام اشتراک" style="direction:ltr; text-align:right;">
                                     <?php echo htmlspecialchars((string) $list['username'], ENT_QUOTES, 'UTF-8'); ?>
                                     <?php if (!empty($list['panel_user_id'])): ?>
-                                        <span dir="rtl"> · شناسهٔ سرویس <bdi dir="ltr"><?= htmlspecialchars($list['panel_user_id'], ENT_QUOTES, 'UTF-8') ?></bdi></span>
+                                        <span dir="rtl"> · شناسهٔ اشتراک <bdi dir="ltr"><?= htmlspecialchars($list['panel_user_id'], ENT_QUOTES, 'UTF-8') ?></bdi></span>
                                     <?php endif; ?>
                                 </td>
                                 <td data-label="لوکیشن"><?php echo htmlspecialchars($list['Service_location'], ENT_QUOTES, 'UTF-8'); ?></td>
-                                <td data-label="محصول" data-summary="1"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td data-label="محصول" data-summary="1"><?php echo htmlspecialchars(strtr((string) $list['name_product'], ['سرویس تست' => 'اشتراک تست', 'سرویس دلخواه' => 'اشتراک دلخواه']), ENT_QUOTES, 'UTF-8'); ?></td>
                                 <td data-label="تاریخ سفارش" style="direction:ltr; text-align:right;"><?php echo $time_sell; ?></td>
                                 <td data-label="مبلغ (T)"><?php echo $price; ?></td>
                                 <td data-label="وضعیت" data-summary="1"><span class="badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span></td>

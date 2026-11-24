@@ -310,10 +310,10 @@ if (!function_exists('applyConnectionPlaceholders')) {
         if ($hasConnectionLinksPlaceholder) {
             if ($connectionLinksBlock === '') {
                 $orphanLabels = [
-                    'اطلاعات سرویس :',
-                    'اطلاعات سرویس:',
-                    '📌 اطلاعات سرویس :',
-                    '📌 اطلاعات سرویس:',
+                    'اطلاعات اشتراک :',
+                    'اطلاعات اشتراک:',
+                    '📌 اطلاعات اشتراک :',
+                    '📌 اطلاعات اشتراک:',
                 ];
                 foreach ($orphanLabels as $orphanLabel) {
                     $orphanPattern = '/(^|\R)[^\S\r\n]*' . preg_quote($orphanLabel, '/') . '[^\S\r\n]*(?:\r?\n)?[^\S\r\n]*\{connection_links\}/u';

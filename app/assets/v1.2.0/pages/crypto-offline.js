@@ -1,5 +1,5 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.52';
+import { escapeHtml, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.53';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, hapticNotify, showConfirm } from '../telegram.js?v=0.0.52';
 import { startGatewayWatch } from './gateway-watch.js';
@@ -44,13 +44,13 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./service-success.js', import.meta.url);
-        url.searchParams.set('v', ver);
+        url.searchParams.set('v', `${ver}-subscriptions`);
         _successModulePromise = import(url.href).catch(() => {
             _successModulePromise = null;
-            return import('./service-success.js');
+            return import('./service-success.js?v=0.0.1');
         });
     } catch (e) {
-        _successModulePromise = import('./service-success.js');
+        _successModulePromise = import('./service-success.js?v=0.0.1');
     }
     return _successModulePromise;
 }
@@ -563,7 +563,7 @@ export function renderCryptoOffline(view, opts = {}) {
                 }
 
                 const pendingTitles = {
-                    renew: 'سرویس با موفقیت تمدید شد',
+                    renew: 'اشتراک با موفقیت تمدید شد',
                     extra_time: 'زمان اضافه با موفقیت اعمال شد',
                     extra_volume: 'حجم اضافه با موفقیت اعمال شد',
                 };
@@ -575,7 +575,7 @@ export function renderCryptoOffline(view, opts = {}) {
                     ? `مبلغ ${escapeHtml(Number(statusObj.amount || 0).toLocaleString('en-US'))} تومان پرداخت و اعمال شد.`
                     : `مبلغ ${escapeHtml(Number(statusObj.amount || 0).toLocaleString('en-US'))} تومان به حساب شما اضافه شد.`;
                 const ctaHref = isPendingAction ? '#/services' : '#/buy';
-                const ctaLabel = isPendingAction ? 'سرویس‌های من' : 'خرید سرویس';
+                const ctaLabel = isPendingAction ? 'اشتراک‌های من' : 'خرید اشتراک';
 
                 view.innerHTML = `
                     <article class="card card-window">

@@ -101,7 +101,7 @@ final class ServiceSimpleActionHandler extends BaseHandler
             FaoximaResponse::fail(409, 'ابتدا به کانفیگ متصل شوید و سپس مجدداً تلاش کنید.');
         }
         if ($remoteStatus === 'Unsuccessful') {
-            FaoximaResponse::fail(502, '❌ خطایی در دریافت وضعیت سرویس از پنل رخ داده است');
+            FaoximaResponse::fail(502, '❌ خطایی در دریافت وضعیت اشتراک از پنل رخ داده است');
         }
 
         $output = $managePanel->Change_status((string)$invoice['username'], (string)$invoice['Service_location']);
@@ -109,7 +109,7 @@ final class ServiceSimpleActionHandler extends BaseHandler
             if (($output['code'] ?? '') === 'not_connected') {
                 FaoximaResponse::fail(409, (string)$output['msg']);
             }
-            FaoximaResponse::fail(502, '❌ تغییر وضعیت سرویس انجام نشد. لطفاً دوباره تلاش کنید.');
+            FaoximaResponse::fail(502, '❌ تغییر وضعیت اشتراک انجام نشد. لطفاً دوباره تلاش کنید.');
         }
 
 
@@ -123,8 +123,8 @@ final class ServiceSimpleActionHandler extends BaseHandler
         }
 
         $msg = $newStatus === 'active'
-            ? '💡 سرویس روشن شد'
-            : '❌ سرویس خاموش شد';
+            ? '💡 اشتراک روشن شد'
+            : '❌ اشتراک خاموش شد';
 
         FaoximaResponse::ok([
             'kind'    => 'done',
@@ -152,11 +152,11 @@ final class ServiceSimpleActionHandler extends BaseHandler
         $topic = is_array($topicRow) ? (string)($topicRow['idreport'] ?? '') : '';
 
         $report =
-            "⚠️ گزارش اختلال سرویس (از مینی‌اپ)\n\n" .
+            "⚠️ گزارش اختلال اشتراک (از مینی‌اپ)\n\n" .
             "<blockquote>👤 کاربر: <code>{$userId}</code>" . ($userName !== '' ? ' (@' . htmlspecialchars($userName, ENT_QUOTES) . ')' : '') . "</blockquote>\n" .
             "<blockquote>🌍 پنل: " . htmlspecialchars((string)$invoice['Service_location'], ENT_QUOTES) . "</blockquote>\n" .
             "<blockquote>🛍 محصول: " . htmlspecialchars((string)$invoice['name_product'], ENT_QUOTES) . "</blockquote>\n" .
-            "<blockquote>👤 نام کاربری سرویس: <code>" . htmlspecialchars((string)$invoice['username'], ENT_QUOTES) . "</code></blockquote>\n" .
+            "<blockquote>👤 نام اشتراک: <code>" . htmlspecialchars((string)$invoice['username'], ENT_QUOTES) . "</code></blockquote>\n" .
             ($userText !== '' ? "\n<blockquote>📝 توضیحات کاربر:\n" . htmlspecialchars($userText, ENT_QUOTES) . "</blockquote>\n" : '');
 
         if ($channel !== '') {

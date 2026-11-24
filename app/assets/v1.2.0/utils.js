@@ -8,9 +8,16 @@ export function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+export function subscriptionProductLabel(name) {
+    if (name === 'سرویس تست') return 'اشتراک تست';
+    if (name === '⚙️ سرویس دلخواه') return '⚙️ اشتراک دلخواه';
+    if (name === 'سرویس سفارشی') return 'اشتراک سفارشی';
+    return name;
+}
+
 export function serviceListIdentity(username, panelUserId) {
     const accountId = panelUserId
-        ? `<span class="li-sub">شناسهٔ سرویس <bdi dir="ltr">${escapeHtml(panelUserId)}</bdi></span>`
+        ? `<span class="li-sub">شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(panelUserId)}</bdi></span>`
         : '';
     return `<div class="service-list-identity"><bdi class="li-title" dir="ltr">${escapeHtml(username)}</bdi>${accountId}</div>`;
 }

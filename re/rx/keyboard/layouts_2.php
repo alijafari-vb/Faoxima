@@ -608,14 +608,14 @@ if ($table_exists) {
 }
 $payment = json_encode([
     'inline_keyboard' => [
-        [rx_kb_style(['text' => "💰 پرداخت و دریافت سرویس", 'callback_data' => "confirmandgetservice"], 'confirm_pay', $_rx_nav_styles)],
+        [rx_kb_style(['text' => "💰 پرداخت و دریافت اشتراک", 'callback_data' => "confirmandgetservice"], 'confirm_pay', $_rx_nav_styles)],
         [rx_kb_style(['text' => "🎁 ثبت کد تخفیف", 'callback_data' => "aptdc"], 'confirm_discount', $_rx_nav_styles)],
         [rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"], 'backuser', $_rx_acc_styles)]
     ]
 ]);
 $paymentom = json_encode([
     'inline_keyboard' => [
-        [rx_kb_style(['text' => "💰 پرداخت و دریافت سرویس", 'callback_data' => "confirmandgetservice"], 'confirm_pay', $_rx_nav_styles)],
+        [rx_kb_style(['text' => "💰 پرداخت و دریافت اشتراک", 'callback_data' => "confirmandgetservice"], 'confirm_pay', $_rx_nav_styles)],
         [rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"], 'backuser', $_rx_acc_styles)]
     ]
 ]);
@@ -815,7 +815,7 @@ $optionMarzban = rx_finalizeInlineAdminKb(json_encode([
         [$rxAdminPanelBtn("🔐 ویرایش رمز عبور", 'admin_panel_marzban'), $rxAdminPanelBtn("👤 ویرایش نام", 'admin_panel_marzban')],
         [$rxAdminPanelBtn("⁉️ اتصال به پنل", 'admin_panel_marzban')],
         [$rxAdminPanelBtn("🔗 ویرایش آدرس پنل", 'admin_panel_marzban'), $rxAdminPanelBtn("⚙️ پروتکل اینباند", 'admin_panel_marzban')],
-        [$rxAdminPanelBtn("🔋 روش تمدید سرویس", 'admin_panel_marzban'), $rxAdminPanelBtn("💡 ساخت نام کاربری", 'admin_panel_marzban')],
+        [$rxAdminPanelBtn("🔋 روش تمدید اشتراک", 'admin_panel_marzban'), $rxAdminPanelBtn("💡 ساخت نام کاربری", 'admin_panel_marzban')],
         [$rxAdminPanelBtn("🚨 محدودیت اکانت", 'admin_panel_marzban'), $rxAdminPanelBtn("📍 تغییر گروه", 'admin_panel_marzban')],
         [$rxAdminPanelBtn("🧪 تنظیمات تست", 'admin_panel_marzban')],
         $rxFxPricingRow('admin_panel_marzban'),

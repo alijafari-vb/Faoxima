@@ -169,7 +169,7 @@ if (false) {
 با لغو اشتراک کامل، لینک اشتراک و رمزهای اتصال هر دو بازتولید می‌شوند.");
     step('PanelMenu', $from_id);
 } elseif ($text == "🔑 ریست رمز عبور کاربر" && $adminrulecheck['rule'] == "administrator") {
-    nm_adminInstantReply($from_id, "📌 نام کاربری سرویس رمن‌ویو را ارسال کنید تا فقط رمزهای اتصال آن بازتولید شود (لینک اشتراک تغییر نمی‌کند).", $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, "📌 نام اشتراک رمن‌ویو را ارسال کنید تا فقط رمزهای اتصال آن بازتولید شود (لینک اشتراک تغییر نمی‌کند).", $backadmin, 'HTML');
     step('get_remna_resetcreds', $from_id);
 } elseif ($user['step'] == "get_remna_resetcreds" && $adminrulecheck['rule'] == "administrator") {
     try {
@@ -256,7 +256,7 @@ if (false) {
             if (!is_array($u)) {
                 continue;
             }
-            $txt .= "\n👤 <code>" . htmlspecialchars((string)($u['username'] ?? '')) . "</code>\n   وضعیت: " . htmlspecialchars((string)($u['status'] ?? '')) . "\n   UUID: <code>" . htmlspecialchars((string)($u['uuid'] ?? '')) . "</code>\n";
+            $txt .= "\n👤 <code>" . htmlspecialchars((string)($u['username'] ?? '')) . "</code>\n   وضعیت: " . htmlspecialchars((string)($u['status'] ?? '')) . "\n";
         }
         nm_adminInstantReply($from_id, $txt, $backadmin, 'HTML');
     } catch (\Throwable $e) {
@@ -265,7 +265,7 @@ if (false) {
     }
     step('remna_panel_back', $from_id);
 } elseif ($text == "🛡 انتساب Squad کاربر" && $adminrulecheck['rule'] == "administrator") {
-    nm_adminInstantReply($from_id, "📌 با فرمت زیر بفرستید:\n<code>username,squad-uuid[,squad-uuid2]</code>", $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, "📌 با فرمت زیر بفرستید:\n<code>username,squad-id[,squad-id2]</code>", $backadmin, 'HTML');
     step('get_remna_setsquad', $from_id);
 } elseif ($user['step'] == "get_remna_setsquad" && $adminrulecheck['rule'] == "administrator") {
     try {
@@ -281,7 +281,7 @@ if (false) {
             return $v !== '';
         }));
         if ($uname === '' || count($squads) === 0) {
-            nm_adminInstantReply($from_id, "❌ فرمت نادرست. نمونه: username,squad-uuid", $backadmin, 'HTML');
+            nm_adminInstantReply($from_id, "❌ فرمت نادرست. نمونه: username,squad-id", $backadmin, 'HTML');
             return;
         }
         $sres = function_exists('remnawave_set_squads') ? remnawave_set_squads($typepanel['name_panel'], $uname, $squads) : ['status' => 'Unsuccessful'];
@@ -433,7 +433,7 @@ if (false) {
     if (is_array($typepanel) && !empty($typepanel)) {
         outtypepanel($typepanel['type'], $textbotlang['Admin']['Back-menu']);
     }
-} elseif (($text == "🧪 تنظیمات تست" || $text == "⏳ زمان سرویس تست" || $text == "💾 حجم اکانت تست") && $adminrulecheck['rule'] == "administrator") {
+} elseif (($text == "🧪 تنظیمات تست" || rxSubscriptionCopy($text) == "⏳ زمان اشتراک تست" || $text == "💾 حجم اکانت تست") && $adminrulecheck['rule'] == "administrator") {
     $rxTestPanelName = function_exists('nmResolvePanelNameForUser') ? nmResolvePanelNameForUser($user) : (string)($user['Processing_value'] ?? '');
     $rxTestPanel = $rxTestPanelName !== '' ? select("marzban_panel", "*", "name_panel", $rxTestPanelName, "select", ['cache' => false]) : false;
     if (!is_array($rxTestPanel) || empty($rxTestPanel['code_panel'])) {
@@ -501,8 +501,8 @@ if (false) {
         return;
     }
     $rxTestPrompts = [
-        'time'  => ['updatetime', "🕰 مدت زمان سرویس تست را ارسال کنید.\n⚠️ زمان بر حسب ساعت و عدد صحیح بزرگ‌تر از صفر است؛ برای نامحدود از دکمه «♾ زمان نامحدود» استفاده کنید."],
-        'vol'   => ['val_usertest', "💾 حجم سرویس تست را ارسال کنید.\n⚠️ حجم بر حسب مگابایت و عدد صحیح بزرگ‌تر از صفر است؛ برای نامحدود از دکمه «♾ حجم نامحدود» استفاده کنید."],
+        'time'  => ['updatetime', "🕰 مدت زمان اشتراک تست را ارسال کنید.\n⚠️ زمان بر حسب ساعت و عدد صحیح بزرگ‌تر از صفر است؛ برای نامحدود از دکمه «♾ زمان نامحدود» استفاده کنید."],
+        'vol'   => ['val_usertest', "💾 حجم اشتراک تست را ارسال کنید.\n⚠️ حجم بر حسب مگابایت و عدد صحیح بزرگ‌تر از صفر است؛ برای نامحدود از دکمه «♾ حجم نامحدود» استفاده کنید."],
     ];
     $rxTestPromptKb = json_encode(['inline_keyboard' => [[['text' => "🔙 بازگشت به تنظیمات تست", 'callback_data' => 'tset_menu_' . $rxTestCode]]]], JSON_UNESCAPED_UNICODE);
     step($rxTestPrompts[$rxTestAction][0], $from_id);
@@ -784,7 +784,7 @@ if (false) {
     $capabilityReport = rx_panel_capability_report($typepanel);
     outtypepanel($typepanel['type'], rx_cap_render($capabilityReport));
     step('PanelMenu', $from_id);
-} elseif ($text == "⚙️ سرویس پیش‌فرض" && $adminrulecheck['rule'] == "administrator") {
+} elseif (rxSubscriptionCopy($text) == "⚙️ اشتراک پیش‌فرض" && $adminrulecheck['rule'] == "administrator") {
     $panelName = guardResolveUserPanelName($user);
     $panel = $panelName ? select("marzban_panel", "*", "name_panel", $panelName, "select") : null;
     if (!is_array($panel) || ($panel['type'] ?? null) != "rebecca") {
@@ -793,19 +793,19 @@ if (false) {
     }
     $servicesResponse = rebeccaGetServices($panel['name_panel']);
     if ($servicesResponse['status'] === false || empty($servicesResponse['services'])) {
-        $errorMsg = $servicesResponse['msg'] ?? 'لیست سرویس‌ها خالی است.';
-        outtypepanel("rebecca", "❌ دریافت سرویس‌ها از Rebecca ناموفق بود: {$errorMsg}");
+        $errorMsg = $servicesResponse['msg'] ?? 'لیست اشتراک‌ها خالی است.';
+        outtypepanel("rebecca", "❌ دریافت اشتراک‌ها از Rebecca ناموفق بود: {$errorMsg}");
         step('PanelMenu', $from_id);
         return;
     }
     $currentServiceId = trim((string) ($panel['rebecca_service_id'] ?? ''));
     $rebeccaServiceView = rebeccaBuildServiceKeyboard($servicesResponse['services'], $currentServiceId, 1);
     if ($rebeccaServiceView === null) {
-        outtypepanel("rebecca", "❌ دریافت سرویس‌ها از Rebecca ناموفق بود: لیست سرویس‌ها خالی است.");
+        outtypepanel("rebecca", "❌ دریافت اشتراک‌ها از Rebecca ناموفق بود: لیست اشتراک‌ها خالی است.");
         step('PanelMenu', $from_id);
         return;
     }
-    nm_adminInstantReply($from_id, "⚙️ سرویس پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک سرویس، همان سرویس به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+    nm_adminInstantReply($from_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
 } elseif ($datain === 'rebeccaservicenoop') {
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
@@ -830,14 +830,14 @@ if (false) {
     if ($rebeccaServiceView === null) {
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'دریافت لیست سرویس‌ها ناموفق بود. دوباره تلاش کنید.',
+            'text' => 'دریافت لیست اشتراک‌ها ناموفق بود. دوباره تلاش کنید.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
         return;
     }
     if (!empty($message_id)) {
-        Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک سرویس، همان سرویس به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+        Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
     }
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
@@ -864,7 +864,7 @@ if (false) {
     if ($rebeccaServiceView === null) {
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'دریافت لیست سرویس‌ها ناموفق بود؛ سرویس پیش‌فرض تغییر نکرد.',
+            'text' => 'دریافت لیست اشتراک‌ها ناموفق بود؛ اشتراک پیش‌فرض تغییر نکرد.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
@@ -873,11 +873,11 @@ if (false) {
     if (!in_array($chosenServiceId, $rebeccaServiceView['ids'], true)) {
         $rebeccaServiceView = rebeccaBuildServiceKeyboard($servicesResponse['services'], $panel['rebecca_service_id'] ?? '', $rebeccaServicePage);
         if (!empty($message_id)) {
-            Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک سرویس، همان سرویس به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+            Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
         }
         telegram('answerCallbackQuery', [
             'callback_query_id' => $callback_query_id,
-            'text' => 'این سرویس دیگر وجود ندارد؛ فهرست به‌روزرسانی شد.',
+            'text' => 'این اشتراک دیگر وجود ندارد؛ فهرست به‌روزرسانی شد.',
             'show_alert' => true,
             'cache_time' => 0,
         ]);
@@ -885,15 +885,15 @@ if (false) {
     }
     update("marzban_panel", "rebecca_service_id", $chosenServiceId, "name_panel", $panel['name_panel']);
     if (!empty($message_id)) {
-        Editmessagetext($from_id, $message_id, "⚙️ سرویس پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک سرویس، همان سرویس به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
+        Editmessagetext($from_id, $message_id, "⚙️ اشتراک پیش‌فرض فعلی را انتخاب کنید. با هر بار ضربه زدن روی یک اشتراک، همان اشتراک به‌عنوان پیش‌فرض ذخیره می‌شود.", $rebeccaServiceView['keyboard'], 'HTML');
     }
     telegram('answerCallbackQuery', [
         'callback_query_id' => $callback_query_id,
-        'text' => 'سرویس پیش‌فرض ذخیره شد.',
+        'text' => 'اشتراک پیش‌فرض ذخیره شد.',
         'show_alert' => false,
         'cache_time' => 0,
     ]);
-} elseif ($text == "⚙️ تنظیم سرویس ها" && $adminrulecheck['rule'] == "administrator") {
+} elseif (rxSubscriptionCopy($text) == "⚙️ تنظیم اشتراک‌ها" && $adminrulecheck['rule'] == "administrator") {
     $panelName = guardResolveUserPanelName($user);
     $panel = $panelName ? select("marzban_panel", "*", "name_panel", $panelName, "select") : null;
     if (!is_array($panel) || ($panel['type'] ?? null) != "guard") {
@@ -902,16 +902,16 @@ if (false) {
     }
     $servicesResponse = guardGetServices($panel['name_panel']);
     if ($servicesResponse['status'] === false || empty($servicesResponse['services'])) {
-        $errorMsg = $servicesResponse['msg'] ?? 'لیست سرویس Guard خالی است.';
-        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت سرویس‌ها از Guard ناموفق بود: %s";
+        $errorMsg = $servicesResponse['msg'] ?? 'لیست اشتراک Guard خالی است.';
+        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت اشتراک‌ها از Guard ناموفق بود: %s";
         outtypepanel("guard", sprintf($failTextTemplate, $errorMsg));
         return;
     }
     $services = $servicesResponse['services'];
     $availableIds = guardExtractServiceIdsFromList($services);
     if (empty($availableIds)) {
-        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت سرویس‌ها از Guard ناموفق بود: %s";
-        outtypepanel("guard", sprintf($failTextTemplate, 'شناسه معتبر برای سرویس‌ها یافت نشد.'));
+        $failTextTemplate = $textbotlang['Admin']['managepanel']['guard']['service_fetch_failed'] ?? "❌ دریافت اشتراک‌ها از Guard ناموفق بود: %s";
+        outtypepanel("guard", sprintf($failTextTemplate, 'شناسه معتبر برای اشتراک‌ها یافت نشد.'));
         return;
     }
     $storedIds = guardParseServiceIds($panel['guard_service_ids'] ?? null);
@@ -1788,7 +1788,7 @@ $iduser  در ربات  رفع مسدود گردید
     $username = $dataget[1];
     $info_product = select("invoice", "*", "id_invoice", $username, "select");
     if ($info_product['Status'] == "removebyadmin") {
-        nm_adminInstantReply($from_id, "❌ سرویس از قبل حذف شده است", $keyboardadmin, 'HTML');
+        nm_adminInstantReply($from_id, "❌ اشتراک از قبل حذف شده است", $keyboardadmin, 'HTML');
         return;
     }
     $DataUserOut = $ManagePanel->DataUser($info_product['Service_location'], $info_product['username']);
@@ -2632,8 +2632,8 @@ $iduser  در ربات  رفع مسدود گردید
         }
         $buttons[] = [['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchorder']];
         $resultText = count($rows) > 50
-            ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ سرویس را بفرستید.'
-            : '🛍 چند سرویس پیدا شد. سرویس موردنظر را انتخاب کنید.';
+            ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ اشتراک را بفرستید.'
+            : '🛍 چند اشتراک پیدا شد. اشتراک موردنظر را انتخاب کنید.';
         nm_adminInstantReply($from_id, $resultText, json_encode(['inline_keyboard' => $buttons]), 'HTML');
         return;
     }
@@ -2653,7 +2653,7 @@ $iduser  در ربات  رفع مسدود گردید
         ['text' => $textbotlang['Admin']['ManageUser']['removeserviceandback'], 'callback_data' => "removeserviceandback-" . $OrderUser['id_invoice']],
     ];
     $keyboardlists['inline_keyboard'][] = [
-        ['text' => "🗑 حذف کامل سرویس", 'callback_data' => "removefull-" . $OrderUser['id_invoice']],
+        ['text' => "🗑 حذف کامل اشتراک", 'callback_data' => "removefull-" . $OrderUser['id_invoice']],
     ];
     if (isset($OrderUser['time_sell'])) {
         $datatime = jdate('Y/m/d H:i:s', $OrderUser['time_sell']);
@@ -2684,16 +2684,17 @@ $iduser  در ربات  رفع مسدود گردید
     }
     [$OrderUser] = ServiceSearch::addPanelIds($pdo, [$OrderUser]);
     $panelIdLine = rxServicePanelIdLine($OrderUser);
+    $productLabel = rxSubscriptionCopy((string) $OrderUser['name_product']);
     $text_order = "
 🛒 شماره سفارش  :  <code>{$OrderUser['id_invoice']}</code>
 🛒  وضعیت سفارش در ربات : <code>{$OrderUser['Status']}</code>
 🙍‍♂️ شناسهٔ تلگرام کاربر: <code>{$OrderUser['id_user']}</code>
-👤 نام کاربری سرویس: <code>{$OrderUser['username']}</code>{$panelIdLine}
-📍 موقعیت سرویس :  {$OrderUser['Service_location']}
-🛍 نام محصول :  {$OrderUser['name_product']}
-💰 قیمت پرداختی سرویس : " . rxFormatToman($OrderUser['price_product']) . " تومان
-⚜️ حجم سرویس خریداری شده : {$OrderUser['Volume']}
-⏳ زمان سرویس خریداری شده : {$OrderUser['Service_time']}
+👤 نام اشتراک: <code>{$OrderUser['username']}</code>{$panelIdLine}
+📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
+🛍 نام محصول :  {$productLabel}
+💰 قیمت پرداختی اشتراک : " . rxFormatToman($OrderUser['price_product']) . " تومان
+⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
+⏳ زمان اشتراک خریداری شده : {$OrderUser['Service_time']}
 📆 تاریخ خرید : $datatime
 ";
     $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username'], 'links', (string) $OrderUser['id_invoice']);
@@ -2745,9 +2746,9 @@ $iduser  در ربات  رفع مسدود گردید
     $Percent = round($Percent, 2);
     $text_order .= "
 
- وضعیت سرویس : $status_var
+ وضعیت اشتراک : $status_var
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -2792,12 +2793,12 @@ $iduser  در ربات  رفع مسدود گردید
             $time_jalali = jdate('Y/m/d H:i:s', strtotime($extend['time']));
 
             $extendtext = "
-📌 گزارش سرویس
-🔗  نوع سرویس : $extend_type
-🕰 زمان انجام سرویس : {$extend['time']} \n\n($time_jalali)
-💰مبلغ انجام سرویس : " . rxFormatToman($extend['price']) . "
+📌 گزارش اشتراک
+🔗  نوع اشتراک : $extend_type
+🕰 زمان انجام اشتراک : {$extend['time']} \n\n($time_jalali)
+💰مبلغ انجام اشتراک : " . rxFormatToman($extend['price']) . "
 👤 آیدی عددی کاربر : {$extend['id_user']}
-👤 نام کاربری کانفیگ: {$extend['username']}";
+👤 نام اشتراک: {$extend['username']}";
             nm_adminInstantReply($from_id, $extendtext, null, 'HTML');
         }
     }
@@ -3403,7 +3404,7 @@ $iduser  در ربات  رفع مسدود گردید
         }
     }
     if ($DataUserOut['data_limit'] == null && $DataUserOut['expire'] == null) {
-        nm_adminInstantReply($from_id, "❌ به دلیل نامحدود بودن حجم و زمان امکان حذف سرویس وجود ندارد. ", null, 'html');
+        nm_adminInstantReply($from_id, "❌ به دلیل نامحدود بودن حجم و زمان امکان حذف اشتراک وجود ندارد. ", null, 'html');
         step('home', $from_id);
         return;
     }
@@ -3464,7 +3465,7 @@ $iduser  در ربات  رفع مسدود گردید
             if (!balance_atomic_credit($nameloc['id_user'], $pricelast)) {
                 throw new RuntimeException('balance_atomic_credit returned false');
             }
-            if (!wallet_ledger_record($nameloc['id_user'], 'credit', $pricelast, 'refund', 'بازگشت وجه حذف سرویس (تایید ادمین)', null, 'invoice', (string) ($nameloc['id_invoice'] ?? ''))) {
+            if (!wallet_ledger_record($nameloc['id_user'], 'credit', $pricelast, 'refund', 'بازگشت وجه حذف اشتراک (تایید ادمین)', null, 'invoice', (string) ($nameloc['id_invoice'] ?? ''))) {
                 throw new RuntimeException('wallet_ledger_record failed');
             }
         }
@@ -3480,7 +3481,7 @@ $iduser  در ربات  رفع مسدود گردید
         }
     }
     if (!$rxRefundOk) {
-        nm_adminInstantReply($from_id, "❌ بازگشت وجه انجام نشد و سرویس حذف نگردید. دوباره تلاش کنید.", null, 'HTML');
+        nm_adminInstantReply($from_id, "❌ بازگشت وجه انجام نشد و اشتراک حذف نگردید. دوباره تلاش کنید.", null, 'HTML');
         return;
     }
     if ($pricelast > 0) {
@@ -3500,7 +3501,7 @@ $iduser  در ربات  رفع مسدود گردید
     }
     nm_adminInstantReply($from_id, "❌ مبلغ " . rxFormatToman($pricelast) . " تومان به موجودی کاربر اضافه گردید.", null, 'HTML');
     sendmessage($nameloc['id_user'], "✅ کاربری گرامی درخواست حذف شما با نام کاربری  {$nameloc['username']} موافقت گردید.", null, 'HTML');
-    $text_report = "⭕️ یک ادمین سرویس کاربر که درخواست حذف داشت را تایید کرد
+    $text_report = "⭕️ یک ادمین اشتراک کاربر که درخواست حذف داشت را تایید کرد
 
 اطلاعات کاربر تایید کننده  :
 
@@ -3563,7 +3564,7 @@ $iduser  در ربات  رفع مسدود گردید
             if (!balance_atomic_credit($invoice['id_user'], $rxManualRefundAmount)) {
                 throw new RuntimeException('balance_atomic_credit returned false');
             }
-            if (!wallet_ledger_record($invoice['id_user'], 'credit', $rxManualRefundAmount, 'refund', 'بازگشت وجه حذف سرویس (مبلغ دستی ادمین)', null, 'invoice', (string) $invoice['id_invoice'])) {
+            if (!wallet_ledger_record($invoice['id_user'], 'credit', $rxManualRefundAmount, 'refund', 'بازگشت وجه حذف اشتراک (مبلغ دستی ادمین)', null, 'invoice', (string) $invoice['id_invoice'])) {
                 throw new RuntimeException('wallet_ledger_record failed');
             }
         }
@@ -3594,7 +3595,7 @@ $iduser  در ربات  رفع مسدود گردید
     }
     sendmessage($invoice['id_user'], "💰کاربر گرامی مبلغ " . rxFormatToman($text) . " تومان به موجودی شما اضافه گردید.", null, 'HTML');
     nm_adminInstantReply($from_id, "✅ مبلغ با موفقیت به حساب کاربر اضافه گردید.", $keyboardadmin, 'HTML');
-    $text_report = "⭕️ یک ادمین سرویس کاربر که درخواست حذف داشت را تایید کرد
+    $text_report = "⭕️ یک ادمین اشتراک کاربر که درخواست حذف داشت را تایید کرد
 
 اطلاعات کاربر تایید کننده  :
 
@@ -3684,9 +3685,9 @@ $iduser  در ربات  رفع مسدود گردید
         error_log('mafurefauto invoice delete failed: ' . $e->getMessage());
     }
 
-    sendmessage($mafu_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($mafu_price) . " تومان به کیف‌پول شما اضافه گردید.\n📛 سرویس <code>" . $mafu_username_svc . "</code> حذف شد.", null, 'HTML');
+    sendmessage($mafu_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($mafu_price) . " تومان به کیف‌پول شما اضافه گردید.\n📛 اشتراک <code>" . $mafu_username_svc . "</code> حذف شد.", null, 'HTML');
 
-    $mafu_done = "✅ بازگشت وجه خودکار انجام شد.\n\n💰 مبلغ: " . number_format($mafu_price) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 سرویس: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>";
+    $mafu_done = "✅ بازگشت وجه خودکار انجام شد.\n\n💰 مبلغ: " . number_format($mafu_price) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 اشتراک: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>";
     if (!empty($message_id) && function_exists('Editmessagetext')) {
         Editmessagetext($from_id, $message_id, $mafu_done, null, 'HTML');
     } else {
@@ -3702,7 +3703,7 @@ $iduser  در ربات  رفع مسدود گردید
     if (!empty($setting['Channel_Report'])) {
         $mafu_rep = [
             'chat_id'    => $setting['Channel_Report'],
-            'text'       => "⭕️ بازگشت وجه خودکار (مینی‌اپ)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($mafu_price) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 سرویس: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>",
+            'text'       => "⭕️ بازگشت وجه خودکار (مینی‌اپ)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($mafu_price) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 اشتراک: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>",
             'parse_mode' => 'HTML',
         ];
         if (!empty($otherreport)) $mafu_rep['message_thread_id'] = $otherreport;
@@ -3738,7 +3739,7 @@ $iduser  در ربات  رفع مسدود گردید
     $mafu_default = number_format((int)($mafu_invoice['price_product'] ?? 0));
     nm_adminInstantReply(
         $from_id,
-        "📌 مبلغ بازگشتی برای این فاکتور را به‌صورت عدد (تومان) ارسال کنید.\n\n🆔 فاکتور: <code>$mafu_inv_id</code>\n💵 مبلغ خرید اولیه: $mafu_default تومان\n📛 سرویس: <code>" . htmlspecialchars((string)($mafu_invoice['username'] ?? '')) . "</code>",
+        "📌 مبلغ بازگشتی برای این فاکتور را به‌صورت عدد (تومان) ارسال کنید.\n\n🆔 فاکتور: <code>$mafu_inv_id</code>\n💵 مبلغ خرید اولیه: $mafu_default تومان\n📛 اشتراک: <code>" . htmlspecialchars((string)($mafu_invoice['username'] ?? '')) . "</code>",
         $backadmin ?? null,
         'HTML'
     );
@@ -3809,15 +3810,15 @@ $iduser  در ربات  رفع مسدود گردید
         error_log('mafurefamount invoice delete failed: ' . $e->getMessage());
     }
 
-    sendmessage($mafu_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($mafu_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 سرویس <code>" . $mafu_username_svc . "</code> حذف شد.", null, 'HTML');
+    sendmessage($mafu_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($mafu_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 اشتراک <code>" . $mafu_username_svc . "</code> حذف شد.", null, 'HTML');
 
-    nm_adminInstantReply($from_id, "✅ مبلغ " . number_format($mafu_amount) . " تومان به کیف‌پول کاربر اضافه شد و سرویس حذف گردید.", $keyboardadmin ?? null, 'HTML');
+    nm_adminInstantReply($from_id, "✅ مبلغ " . number_format($mafu_amount) . " تومان به کیف‌پول کاربر اضافه شد و اشتراک حذف گردید.", $keyboardadmin ?? null, 'HTML');
     step("home", $from_id);
 
     if (!empty($setting['Channel_Report'])) {
         $mafu_rep = [
             'chat_id'    => $setting['Channel_Report'],
-            'text'       => "⭕️ بازگشت وجه دستی (مینی‌اپ)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($mafu_amount) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 سرویس: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>",
+            'text'       => "⭕️ بازگشت وجه دستی (مینی‌اپ)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($mafu_amount) . " تومان\n👤 کاربر: <code>$mafu_user_id</code>\n📛 اشتراک: <code>$mafu_username_svc</code>\n🆔 فاکتور: <code>$mafu_inv_id</code>",
             'parse_mode' => 'HTML',
         ];
         if (!empty($otherreport)) $mafu_rep['message_thread_id'] = $otherreport;
@@ -3867,8 +3868,8 @@ $iduser  در ربات  رفع مسدود گردید
     if (function_exists('nmStockLog')) {
         try { nmStockLog(null, $nmref_user_id, $nmref_inv_id, 'refund_approved_default', ['amount' => $nmref_amount]); } catch (Throwable $e) {}
     }
-    sendmessage($nmref_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 سرویس <code>" . $nmref_username_svc . "</code> حذف شد.", null, 'HTML');
-    $nmref_done = "✅ بازگشت وجه انبار شبکه ملی انجام شد.\n\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 سرویس: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>";
+    sendmessage($nmref_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 اشتراک <code>" . $nmref_username_svc . "</code> حذف شد.", null, 'HTML');
+    $nmref_done = "✅ بازگشت وجه انبار شبکه ملی انجام شد.\n\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 اشتراک: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>";
     if (!empty($message_id) && function_exists('Editmessagetext')) {
         Editmessagetext($from_id, $message_id, $nmref_done, null, 'HTML');
     } else {
@@ -3876,7 +3877,7 @@ $iduser  در ربات  رفع مسدود گردید
     }
     telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'بازگشت وجه انجام شد', 'show_alert' => false, 'cache_time' => 0]);
     if (!empty($setting['Channel_Report'])) {
-        $nmref_rep = ['chat_id' => $setting['Channel_Report'], 'text' => "⭕️ بازگشت وجه انبار شبکه ملی (پیش‌فرض)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 سرویس: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>", 'parse_mode' => 'HTML'];
+        $nmref_rep = ['chat_id' => $setting['Channel_Report'], 'text' => "⭕️ بازگشت وجه انبار شبکه ملی (پیش‌فرض)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 اشتراک: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>", 'parse_mode' => 'HTML'];
         if (!empty($otherreport)) $nmref_rep['message_thread_id'] = $otherreport;
         telegram('sendmessage', $nmref_rep);
     }
@@ -3895,7 +3896,7 @@ $iduser  در ربات  رفع مسدود گردید
     update("user", "Processing_value", $nmref_inv_id, "id", $from_id);
     step("nmrefamount", $from_id);
     $nmref_default = number_format((int)($nmref_invoice['price_product'] ?? 0));
-    nm_adminInstantReply($from_id, "📌 مبلغ بازگشتی برای این فاکتور را به‌صورت عدد (تومان) ارسال کنید.\n\n🆔 فاکتور: <code>$nmref_inv_id</code>\n💵 مبلغ خرید اولیه: $nmref_default تومان\n📛 سرویس: <code>" . htmlspecialchars((string)($nmref_invoice['username'] ?? '')) . "</code>", $backadmin ?? null, 'HTML');
+    nm_adminInstantReply($from_id, "📌 مبلغ بازگشتی برای این فاکتور را به‌صورت عدد (تومان) ارسال کنید.\n\n🆔 فاکتور: <code>$nmref_inv_id</code>\n💵 مبلغ خرید اولیه: $nmref_default تومان\n📛 اشتراک: <code>" . htmlspecialchars((string)($nmref_invoice['username'] ?? '')) . "</code>", $backadmin ?? null, 'HTML');
     telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'مبلغ موردنظر را ارسال کنید', 'show_alert' => false, 'cache_time' => 0]);
 } elseif (($user['step'] ?? '') == "nmrefamount" && $adminrulecheck['rule'] == "administrator") {
     if (!ctype_digit($text)) {
@@ -3952,11 +3953,11 @@ $iduser  در ربات  رفع مسدود گردید
     if (function_exists('nmStockLog')) {
         try { nmStockLog(null, $nmref_user_id, $nmref_inv_id, 'refund_approved_custom', ['amount' => $nmref_amount]); } catch (Throwable $e) {}
     }
-    sendmessage($nmref_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 سرویس <code>" . $nmref_username_svc . "</code> حذف شد.", null, 'HTML');
-    nm_adminInstantReply($from_id, "✅ مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول کاربر اضافه شد و سرویس حذف گردید.", $keyboardadmin ?? null, 'HTML');
+    sendmessage($nmref_user_id, "✅ درخواست بازگشت وجه شما توسط ادمین تایید شد.\n\n💰 مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول شما اضافه گردید.\n📛 اشتراک <code>" . $nmref_username_svc . "</code> حذف شد.", null, 'HTML');
+    nm_adminInstantReply($from_id, "✅ مبلغ " . number_format($nmref_amount) . " تومان به کیف‌پول کاربر اضافه شد و اشتراک حذف گردید.", $keyboardadmin ?? null, 'HTML');
     step("home", $from_id);
     if (!empty($setting['Channel_Report'])) {
-        $nmref_rep = ['chat_id' => $setting['Channel_Report'], 'text' => "⭕️ بازگشت وجه انبار شبکه ملی (دلخواه)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 سرویس: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>", 'parse_mode' => 'HTML'];
+        $nmref_rep = ['chat_id' => $setting['Channel_Report'], 'text' => "⭕️ بازگشت وجه انبار شبکه ملی (دلخواه)\n\n🪪 ادمین: <code>$from_id</code>\n💰 مبلغ: " . number_format($nmref_amount) . " تومان\n👤 کاربر: <code>$nmref_user_id</code>\n📛 اشتراک: <code>$nmref_username_svc</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>", 'parse_mode' => 'HTML'];
         if (!empty($otherreport)) $nmref_rep['message_thread_id'] = $otherreport;
         telegram('sendmessage', $nmref_rep);
     }
@@ -3983,7 +3984,7 @@ $iduser  در ربات  رفع مسدود گردید
     if (function_exists('nmStockLog')) {
         try { nmStockLog(null, $nmref_user_id, $nmref_inv_id, 'refund_rejected', null); } catch (Throwable $e) {}
     }
-    sendmessage($nmref_user_id, "❌ درخواست بازگشت وجه شما توسط ادمین رد شد. سرویس شما فعال باقی می‌ماند.", null, 'HTML');
+    sendmessage($nmref_user_id, "❌ درخواست بازگشت وجه شما توسط ادمین رد شد. اشتراک شما فعال باقی می‌ماند.", null, 'HTML');
     $nmref_done = "❌ درخواست بازگشت وجه رد شد.\n\n👤 کاربر: <code>$nmref_user_id</code>\n🆔 فاکتور: <code>$nmref_inv_id</code>";
     if (!empty($message_id) && function_exists('Editmessagetext')) {
         Editmessagetext($from_id, $message_id, $nmref_done, null, 'HTML');

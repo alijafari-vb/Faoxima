@@ -1,11 +1,11 @@
 import { call } from '../api.js?v=0.0.53';
-import { fmtPrice, escapeHtml, skeletonList, toast, serviceListIdentity, serviceStatusBadge } from '../utils.js?v=0.0.54';
+import { fmtPrice, escapeHtml, subscriptionProductLabel, skeletonList, toast, serviceListIdentity, serviceStatusBadge } from '../utils.js?v=0.0.55';
 import { setUser } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { mountHomeBell } from '../notifications.js?v=0.0.52';
-import { methodLabel } from '../payment-ui.js?v=0.0.67';
-import { cancelVerifyPayment } from '../card-verify.js?v=0.0.4';
+import { methodLabel } from '../payment-ui.js?v=0.0.68';
+import { cancelVerifyPayment } from '../card-verify.js?v=0.0.5';
 
 function greetingName() {
     try {
@@ -85,11 +85,11 @@ export async function home(view) {
         <div class="action-grid mt-md">
             <a href="#/buy" class="action-tile">
                 ${icon('cart', 'class="ico ico-xl action-icon is-green"')}
-                <span>خرید سرویس</span>
+                <span>خرید اشتراک</span>
             </a>
             <a href="#/services" class="action-tile">
                 ${icon('fileText', 'class="ico ico-xl action-icon is-yellow"')}
-                <span>سرویس‌های من</span>
+                <span>اشتراک‌های من</span>
             </a>
             <a href="#/tickets" class="action-tile">
                 ${icon('shield', 'class="ico ico-xl action-icon is-orange"')}
@@ -104,7 +104,7 @@ export async function home(view) {
         <div id="home-usertest-host"></div>
 
         <div class="section-header-row mt-md">
-            <p class="section-title">${icon('box')} سرویس‌های فعال</p>
+            <p class="section-title">${icon('box')} اشتراک‌های فعال</p>
             <a href="#/services" class="section-link">مشاهده همه</a>
         </div>
         <div id="home-services-list" class="list mt-sm">
@@ -213,10 +213,10 @@ async function loadActiveServices(view) {
             host.innerHTML = `
                 <div class="empty">
                     ${icon('info', 'class="ico ico-xxl ico-muted"')}
-                    <h3>هنوز سرویسی ندارید</h3>
+                    <h3>هنوز اشتراکی ندارید</h3>
                     <a href="#/buy" class="btn btn-primary mt-md">
                         ${icon('cart', 'class="ico ico-leading"')}
-                        <span>اولین سرویس را بخرید</span>
+                        <span>اولین اشتراک را بخرید</span>
                     </a>
                 </div>
             `;
@@ -236,7 +236,7 @@ function renderServiceItem(it) {
         <a href="#/services/${encodeURIComponent(username)}/${encodeURIComponent(it.id_invoice)}" class="list-item" data-username="${escapeHtml(username)}">
             <div class="li-main">
                 ${serviceListIdentity(it.display_username || username, it.panel_user_id)}
-                ${it.name_product ? `<div class="li-sub">${escapeHtml(it.name_product)}</div>` : ''}
+                ${it.name_product ? `<div class="li-sub">${escapeHtml(subscriptionProductLabel(it.name_product))}</div>` : ''}
             </div>
             <span class="badge ${status.badge}">${icon(status.icon, 'class="ico"')} ${escapeHtml(status.text)}</span>
             <span class="li-action" aria-hidden="true">

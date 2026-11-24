@@ -166,7 +166,7 @@ function atlaspayCustomCreateOrder($orderId, $amount, $telegramId)
     $telegramId = (int) $telegramId;
     $decoded = atlaspayCreateOrder($orderId, $amount, $telegramId > 0 ? $telegramId : null);
     if (!is_array($decoded) || (isset($decoded['success']) && $decoded['success'] === false)) {
-        return atlaspayCustomError(is_array($decoded) ? (string) ($decoded['error'] ?? 'پاسخ نامعتبر از سرویس اطلس‌پی') : 'پاسخ نامعتبر از سرویس اطلس‌پی');
+        return atlaspayCustomError(is_array($decoded) ? (string) ($decoded['error'] ?? 'پاسخ نامعتبر از درگاه اطلس‌پی') : 'پاسخ نامعتبر از درگاه اطلس‌پی');
     }
     $remoteId = trim((string) ($decoded['orderId'] ?? ''));
     $discard = static function () use ($remoteId) {
@@ -386,8 +386,8 @@ function atlaspayCustomPurchaseKind($invoiceField)
 {
     $tag = strpos((string) $invoiceField, '|') !== false ? trim((string) explode('|', (string) $invoiceField, 2)[0]) : '';
     $kinds = [
-        'getconfigafterpay' => 'خرید سرویس',
-        'getextenduser' => 'تمدید سرویس',
+        'getconfigafterpay' => 'خرید اشتراک',
+        'getextenduser' => 'تمدید اشتراک',
         'getextratimeuser' => 'خرید زمان اضافه',
         'getextravolumeuser' => 'خرید حجم اضافه',
     ];

@@ -51,14 +51,14 @@ if (!function_exists('tk_album_send')) {
 
 $tkCancelKb = json_encode(['inline_keyboard' => [[['text' => '🔙 انصراف', 'callback_data' => 'tk_cancel']]]], JSON_UNESCAPED_UNICODE);
 
-if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $datain, $dataget) || (($text !== '' && $text == $datatextbot['text_usertest']) || $datain == "usertestbtn" || $text == "usertest")) {
+if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $datain, $dataget) || (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_usertest']) || $datain == "usertestbtn" || $text == "usertest")) {
     $rxTestIsAdmin = in_array($from_id, $admin_ids);
     $userlimit = select("user", "*", "id", $from_id, "select", ['cache' => false]);
     if (!is_array($userlimit) || empty($userlimit)) {
         $userlimit = $user;
     }
     if (!rx_test_feature_enabled()) {
-        sendmessage($from_id, $datatextbot['dyn_errors_test_service_unavailable'] ?? "📌 سرویس تست در حال حاضر در دسترس نیست .", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_errors_test_service_unavailable'] ?? "📌 اشتراک تست در حال حاضر در دسترس نیست .", null, 'HTML');
         return;
     }
     $rxTestGate = rx_test_verification_gate($userlimit, $rxTestIsAdmin);
@@ -129,7 +129,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     if (!rx_test_manual_stock_available($marzban_list_get)) {
         step('home', $from_id);
-        sendmessage($from_id, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', "❌ موجودی این سرویس به پایان رسیده."), null, 'HTML');
+        sendmessage($from_id, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', "❌ موجودی این اشتراک به پایان رسیده."), null, 'HTML');
         return;
     }
     $rxTestReserveError = '';
@@ -158,7 +158,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     if (empty($rxTestProvision['ok'])) {
         step('home', $from_id);
         if ($rxTestProvision['error'] === 'stock_empty') {
-            sendmessage($from_id, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', "❌ موجودی این سرویس به پایان رسیده."), null, 'HTML');
+            sendmessage($from_id, faoxima_textbot_get('dyn_testaccount_manualsale_stock_depleted', "❌ موجودی این اشتراک به پایان رسیده."), null, 'HTML');
             return;
         }
         sendmessage($from_id, $textbotlang['users']['usertest']['errorcreat'], $keyboard, 'html');
@@ -200,13 +200,13 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
         ]
     ]);
     if ($marzban_list_get['type'] == "WGDashboard" || trim((string) ($datatextbot['textaftertext'] ?? '')) === "") {
-        $datatextbot['textaftertext'] = "✅ سرویس با موفقیت ایجاد شد
+        $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
-🗜 حجم سرویس:  {volume} مگابایت
+🗜 حجم اشتراک:  {volume} مگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
     }
@@ -227,7 +227,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     }
     rx_test_mark_delivery($rxTestReservation, $rxTestDelivered);
     if (!$rxTestDelivered) {
-        sendmessage($from_id, $datatextbot['dyn_testaccount_delivery_failed_saved'] ?? "⚠️ اکانت تست ساخته شد اما ارسال جزئیات آن ناموفق بود. اطلاعات سرویس در بخش «سرویس‌های من» در دسترس است.", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_testaccount_delivery_failed_saved'] ?? "⚠️ اکانت تست ساخته شد اما ارسال جزئیات آن ناموفق بود. اطلاعات اشتراک در بخش «اشتراک‌های من» در دسترس است.", null, 'HTML');
     }
     sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard, 'HTML');
     step('home', $from_id);
@@ -252,9 +252,9 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     $text_report = "📣 جزئیات ساخت اکانت تست در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس : {$marzban_list_get['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$marzban_list_get['name_panel']}</blockquote>
 <blockquote>▫️زمان خریداری شده : {$rxTestReportTime}</blockquote>
 <blockquote>▫️حجم خریداری شده : {$rxTestReportVolume}</blockquote>
 <blockquote>▫️کد پیگیری: $randomString</blockquote>
@@ -390,7 +390,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
     tonpayCustomBotRefreshOriginal($from_id, $tpcOrder, 0);
 } elseif (preg_match('/^ckw_(pick|ok|menu|cancel)_/', (string) $datain)) {
     rx_ck_bot_callback($user, (string) $datain, $message_id, $callback_query_id ?? null);
-} elseif (($text !== '' && $text == $datatextbot['text_help']) || $datain == "helpbtn" || $datain == "helpbtns" || $datain == "helpmenubtn" || $text == "/help" || $text == "help") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_help']) || $datain == "helpbtn" || $datain == "helpbtns" || $datain == "helpmenubtn" || $text == "/help" || $text == "help") {
     if (!check_active_btn($setting['keyboardmain'], "text_help")) {
         sendmessage($from_id, $textbotlang['users']['help']['disablehelp'], null, 'HTML');
         return;
@@ -511,7 +511,7 @@ if ($user['step'] == "createusertest" || preg_match('/locationtest_(.*)/', $data
             sendmessage($from_id, $helpdata['Description_os'], $backinfoss, 'HTML');
         }
     }
-} elseif (($text !== '' && $text == $datatextbot['text_support']) || $datain == "supportbtns" || $text == "/support") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_support']) || $datain == "supportbtns" || $text == "/support") {
     if (!check_active_btn($setting['keyboardmain'], "text_support")) {
         sendmessage($from_id, $datatextbot['dyn_errors_button_disabled'] ?? "❌ این دکمه غیرفعال می باشد", null, 'HTML');
         return;
@@ -901,7 +901,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
 📱 شماره تماس :{phone}
 ⌚️زمان ثبت نام : {register_date}
 💰 موجودی: {balance} تومان
-🛒 تعداد سرویس های خریداری شده : {order_count} عدد
+🛒 تعداد اشتراک‌های خریداری شده : {order_count} عدد
 📑 تعداد فاکتور های پرداخت شده :  : {payment_count} عدد
 🤝 تعداد زیر مجموعه های شما : {affiliate_count} نفر
 🔖 گروه کاربری : {group}
@@ -978,13 +978,13 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
         'topup_gateway'        => 'شارژ درگاه پرداخت',
         'admin_credit'         => 'افزایش موجودی توسط ادمین',
         'admin_debit'          => 'کاهش موجودی توسط ادمین',
-        'purchase'             => 'خرید سرویس',
+        'purchase'             => 'خرید اشتراک',
         'refund'               => 'بازگشت وجه',
         'affiliate_commission' => 'پورسانت زیرمجموعه',
         'gift_code'            => 'کد هدیه',
         'lottery'              => 'جایزه قرعه‌کشی',
         'cashback'             => 'هدیه بازگشت وجه',
-        'service_action'       => 'عملیات سرویس',
+        'service_action'       => 'عملیات اشتراک',
         'transfer_out'         => 'انتقال موجودی به کاربر دیگر',
         'transfer_in'          => 'انتقال موجودی از کاربر دیگر',
         'referral_gift'        => 'هدیه عضویت زیرمجموعه',
@@ -1178,7 +1178,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
     $trNotifyText = sprintf("مبلغ %s تومان به کیف پول شما واریز شد.\n\n<blockquote>%s</blockquote>", number_format($trAmount), $trSenderLines);
     sendmessage($trRecipientId, $trNotifyText, null, 'HTML');
     step('home', $from_id);
-} elseif ((($text !== '' && $text == $datatextbot['text_sell']) || $datain == "buy" || $datain == "buyback" || $text == "/buy" || $text == "buy") && $statusnote) {
+} elseif ((($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_sell']) || $datain == "buy" || $datain == "buyback" || $text == "/buy" || $text == "buy") && $statusnote) {
     if ((($setting['get_number'] == "onAuthenticationphone") || ($setting['iran_number'] == "onAuthenticationiran")) && $user['step'] != "get_number" && $user['number'] == "none" && !rx_auth_skip_user($user)) {
         sendmessage($from_id, $textbotlang['users']['number']['Confirming'], $request_contact, 'HTML');
         step('get_number', $from_id);
@@ -1202,7 +1202,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
     }
     step("statusnamecustom", $from_id);
     return;
-} elseif (($text !== '' && $text == $datatextbot['text_sell']) || $datain == "buy" || $datain == "buybacktow" || $datain == "buyback" || $text == "/buy" || $text == "buy" || $user['step'] == "statusnamecustom") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_sell']) || $datain == "buy" || $datain == "buybacktow" || $datain == "buyback" || $text == "/buy" || $text == "buy" || $user['step'] == "statusnamecustom") {
     if (!check_active_btn($setting['keyboardmain'], "text_sell")) {
         sendmessage($from_id, $datatextbot['dyn_errors_button_disabled'] ?? "❌ این دکمه غیرفعال می باشد", null, 'HTML');
         return;
@@ -1589,7 +1589,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
     $eextraprice = json_decode($marzban_list_get['pricecustomtime'], true);
     $customtimevalueprice = fx_adjust_base_toman($eextraprice[$user['agent']], $marzban_list_get, 'custom_time');
     update("user", "Processing_value_one", $text, "id", $from_id);
-    $textcustom = "⌛️ زمان سرویس خود را انتخاب نمایید
+    $textcustom = "⌛️ زمان اشتراک خود را انتخاب نمایید
 📌 تعرفه هر روز  : " . rxFormatToman($customtimevalueprice) . "  تومان
 ⚠️ حداقل زمان $maintime روز  و حداکثر $maxtime روز  می توانید تهیه کنید";
     sendmessage($from_id, $textcustom, $backuser, 'html');
@@ -1868,7 +1868,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
             fx_quote_store($from_id, $fxBuyDiscountKey, $fxNewDiscounted, $marzban_list_get, $fxBuyKinds);
             $_rx_nav_s = (isset($_rx_nav_styles) && is_array($_rx_nav_styles)) ? $_rx_nav_styles : [];
             sendmessage($from_id, fx_price_changed_text($fxNewDiscounted), json_encode(['inline_keyboard' => [
-                [['text' => "💰 پرداخت و دریافت سرویس", 'callback_data' => "confirmandgetserviceDiscount"]],
+                [['text' => "💰 پرداخت و دریافت اشتراک", 'callback_data' => "confirmandgetserviceDiscount"]],
                 [rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"], 'backuser', $_rx_nav_s)],
             ]]), 'HTML');
             return;
@@ -1904,7 +1904,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
         $stmt->execute();
         $configexits = $stmt->rowCount();
         if (intval($configexits) == 0) {
-            sendmessage($from_id, $datatextbot['dyn_errors_stock_low_purchase_blocked'] ?? "❌ موجودی این سرویس به پایان رسیده لطفا سرویسی دیگر را خریداری کنید.", null, 'HTML');
+            sendmessage($from_id, $datatextbot['dyn_errors_stock_low_purchase_blocked'] ?? "❌ موجودی این اشتراک به پایان رسیده لطفا اشتراکی دیگر را خریداری کنید.", null, 'HTML');
             return;
         }
     }
@@ -1963,7 +1963,7 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
             return;
         }
     }
-    Editmessagetext($from_id, $message_id, "♻️ در حال ساختن سرویس شما...", null);
+    Editmessagetext($from_id, $message_id, "♻️ در حال ساختن اشتراک شما...", null);
     $SellDiscountlimit = false;
     if ($datain == "confirmandgetserviceDiscount") {
         $SellDiscountlimit = select("DiscountSell", "*", "codeDiscount", $partsdic[0], "select");
@@ -2188,9 +2188,9 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
 $textonebuy
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$userdate['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک اشتراک : {$userdate['name_panel']}</blockquote>
 <blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>
@@ -2332,7 +2332,7 @@ $textonebuy
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>{$user['Processing_value_tow']}</code>
-🔐 نام سرویس: {$info_product['name_product']}
+🔐 نام اشتراک: {$info_product['name_product']}
 📆 مدت اعتبار: {$info_product['Service_time']} روز
 💶 قیمت اصلی : <del>{$rxFmtInfoProductmain} تومان</del>
 💶 قیمت با تخفیف: {$rxFmtInfoProductPriceDiscounted}  تومان
@@ -2343,7 +2343,7 @@ $textonebuy
     $_rx_nav_s = (isset($_rx_nav_styles) && is_array($_rx_nav_styles)) ? $_rx_nav_styles : [];
     $paymentDiscount = json_encode([
         'inline_keyboard' => [
-            [['text' => "💰 پرداخت و دریافت سرویس", 'callback_data' => "confirmandgetserviceDiscount"]],
+            [['text' => "💰 پرداخت و دریافت اشتراک", 'callback_data' => "confirmandgetserviceDiscount"]],
             [rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => "backuser"], 'backuser', $_rx_nav_s)]
         ]
     ]);
@@ -2424,7 +2424,7 @@ $textonebuy
     $marzban_list_get = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
     $eextraprice = json_decode($marzban_list_get['pricecustomvolume'], true);
     $custompricevalue = fx_adjust_base_toman($eextraprice[$user['agent']], $marzban_list_get, 'custom_volume');
-    $textcustom = "🔋 لطفا مقدار حجم سرویس مورد نظر را وارد کنید ( برحسب گیگابایت ) :
+    $textcustom = "🔋 لطفا مقدار حجم اشتراک مورد نظر را وارد کنید ( برحسب گیگابایت ) :
 📌 تعرفه هر گیگ :  " . rxFormatToman($custompricevalue) . "
 🔔 حداقل حجم 1 گیگابایت و حداکثر 1000 گیگابایت می باشد.";
     sendmessage($from_id, $textcustom, $backuser, 'html');
@@ -2453,7 +2453,7 @@ $textonebuy
         return;
     }
     update("user", "Processing_value_one", $text, "id", $from_id);
-    $textcustom = "⌛️ زمان سرویس خود را انتخاب نمایید
+    $textcustom = "⌛️ زمان اشتراک خود را انتخاب نمایید
 📌 تعرفه هر روز  : " . rxFormatToman($customtimevalueprice) . "  تومان
 ⚠️ حداقل زمان $maintime روز  و حداکثر $maxtime روز  می توانید تهیه کنید";
     sendmessage($from_id, $textcustom, $backuser, 'html');
@@ -2580,7 +2580,7 @@ $textonebuy
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>" . guardDisplayUsername($username_ac, $marzban_list_get) . "</code>
-🔐 نام سرویس: {$info_product['name_product']}
+🔐 نام اشتراک: {$info_product['name_product']}
 📆 مدت اعتبار: {$info_product['Service_time']} روز
 💶 قیمت: $price_product_format  تومان
 👥 حجم اکانت: {$info_product['Volume_constraint']} گیگ
@@ -2774,7 +2774,7 @@ $textonebuy
             if (function_exists('balance_atomic_charge')) {
                 $__bulkChargeNm = balance_atomic_charge($from_id, (float)$__bulkItemCharge, $__bulkAllowNeg);
                 if (!empty($__bulkChargeNm['ok']) && function_exists('wallet_ledger_record')) {
-                    wallet_ledger_record($from_id, 'debit', $__bulkItemCharge, 'purchase', 'خرید انبوه سرویس (انبار ملی)', (string)$randomString, 'invoice', (string)$randomString);
+                    wallet_ledger_record($from_id, 'debit', $__bulkItemCharge, 'purchase', 'خرید انبوه اشتراک (انبار ملی)', (string)$randomString, 'invoice', (string)$randomString);
                 }
             }
             $__bulkChargedTotal += $__bulkItemCharge;
@@ -2828,13 +2828,13 @@ $textonebuy
         }
         $datatextbot['textafterpay'] = $marzban_list_get['type'] == "Manualsale" ? $datatextbot['textmanual'] : $datatextbot['textafterpay'];
         if ($marzban_list_get['type'] == "WGDashboard") {
-            $datatextbot['textafterpay'] = "✅ سرویس با موفقیت ایجاد شد
+            $datatextbot['textafterpay'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام اشتراک:  {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
         }
@@ -2848,7 +2848,7 @@ $textonebuy
         if (function_exists('balance_atomic_charge')) {
             $__bulkChargeLive = balance_atomic_charge($from_id, (float)$__bulkItemCharge, $__bulkAllowNeg);
             if (!empty($__bulkChargeLive['ok']) && function_exists('wallet_ledger_record')) {
-                wallet_ledger_record($from_id, 'debit', $__bulkItemCharge, 'purchase', 'خرید انبوه سرویس', (string)$randomString, 'invoice', (string)$randomString);
+                wallet_ledger_record($from_id, 'debit', $__bulkItemCharge, 'purchase', 'خرید انبوه اشتراک', (string)$randomString, 'invoice', (string)$randomString);
             }
         } else {
             update("user", "Balance", select("user", "Balance", "id", $from_id, "select")['Balance'] - $__bulkItemCharge, "id", $from_id);
@@ -2867,9 +2867,9 @@ $textonebuy
     $text_report = "📣 جزئیات ساخت اکانت انبوه در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$username_ac}_0-$count_service</blockquote>
+<blockquote>▫️نام اشتراک :{$username_ac}_0-$count_service</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$user['Processing_value']}</blockquote>
+<blockquote>▫️موقعیت اشتراک اشتراک : {$user['Processing_value']}</blockquote>
 <blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>
@@ -4018,7 +4018,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['error' => 'پاسخ نامعتبر از سرویس ترونادو'];
+            $paymentErrorData = ['error' => 'پاسخ نامعتبر از درگاه ترونادو'];
         } elseif (isset($payment['success']) && $payment['success'] === false) {
             $paymentErrorData = $payment;
         }
@@ -4166,7 +4166,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['error' => 'پاسخ نامعتبر از سرویس تون‌پی'];
+            $paymentErrorData = ['error' => 'پاسخ نامعتبر از درگاه تون‌پی'];
         } elseif (isset($payment['success']) && $payment['success'] === false) {
             $paymentErrorData = $payment;
         }
@@ -4303,7 +4303,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['error' => 'پاسخ نامعتبر از سرویس بلوپال'];
+            $paymentErrorData = ['error' => 'پاسخ نامعتبر از درگاه بلوپال'];
         } elseif (isset($payment['success']) && $payment['success'] === false) {
             $paymentErrorData = $payment;
         }
@@ -4435,7 +4435,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['error' => 'پاسخ نامعتبر از سرویس اطلس‌پی'];
+            $paymentErrorData = ['error' => 'پاسخ نامعتبر از درگاه اطلس‌پی'];
         } elseif (isset($payment['success']) && $payment['success'] === false) {
             $paymentErrorData = $payment;
         }
@@ -4576,7 +4576,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['message' => 'پاسخ نامعتبر از سرویس کیوب‌پی'];
+            $paymentErrorData = ['message' => 'پاسخ نامعتبر از درگاه کیوب‌پی'];
         } elseif (empty($payment['success'])) {
             $paymentErrorData = $payment;
         }
@@ -4719,7 +4719,7 @@ $textonebuy
 
         $paymentErrorData = null;
         if (!is_array($payment)) {
-            $paymentErrorData = ['message' => 'پاسخ نامعتبر از سرویس واریزا'];
+            $paymentErrorData = ['message' => 'پاسخ نامعتبر از درگاه واریزا'];
         } elseif (empty($payment['success'])) {
             $paymentErrorData = $payment;
         }

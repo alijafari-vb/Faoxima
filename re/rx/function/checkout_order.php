@@ -714,7 +714,7 @@ if (!function_exists('rx_ck_gate_fulfillment')) {
                     $balanceAfter = (int) $after->fetchColumn();
                     $pdo->prepare(
                         "INSERT INTO wallet_ledger (id_user, direction, amount, balance_after, category, description, id_order, ref_table, ref_id, fulfillment_key) VALUES (?, 'debit', ?, ?, 'checkout', ?, ?, 'checkout_order', ?, ?)"
-                    )->execute([$userId, $wallet, $balanceAfter, 'سهم کیف پول از پرداخت ترکیبی سرویس', $orderId, (string) $ck['checkout_id'], 'ckwallet:' . (string) $ck['checkout_id']]);
+                    )->execute([$userId, $wallet, $balanceAfter, 'سهم کیف پول از پرداخت ترکیبی اشتراک', $orderId, (string) $ck['checkout_id'], 'ckwallet:' . (string) $ck['checkout_id']]);
                 }
                 $pdo->prepare(
                     "UPDATE checkout_order SET status = 'awaiting_payment', wallet_state = ?, settle_order_id = ?, payment_order_id = ?, fulfillment_state = 'processing', updated_at = ? WHERE checkout_id = ?"
@@ -734,7 +734,7 @@ if (!function_exists('rx_ck_gate_fulfillment')) {
 }
 
 if (!function_exists('rx_ck_settlement_statements')) {
-    function rx_ck_settlement_statements(?array $ck, string $orderId, $userId, int $legacyAmount = 0, string $description = 'پرداخت ترکیبی سرویس'): array
+    function rx_ck_settlement_statements(?array $ck, string $orderId, $userId, int $legacyAmount = 0, string $description = 'پرداخت ترکیبی اشتراک'): array
     {
         $userId = (string) $userId;
         if ($ck === null) {

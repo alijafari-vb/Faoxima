@@ -249,7 +249,7 @@ function tronadoV2Hold(array $report, $reason, array $evaluation = [])
     }
     if ($claimed) {
         rxPaymentV2ReportToAdmin(
-            "⚠️ پرداخت ترونادو نیازمند بررسی دستی است و سرویس/شارژ خودکار انجام نشد.\n"
+            "⚠️ پرداخت ترونادو نیازمند بررسی دستی است و اشتراک/شارژ خودکار انجام نشد.\n"
             . "🛒 کد فاکتور: <code>" . rxPaymentV2Escape($orderId) . "</code>\n"
             . "👤 آیدی کاربر: <code>" . rxPaymentV2Escape($report['id_user'] ?? '') . "</code>\n"
             . "💰 مبلغ فاکتور: " . number_format((int) ($report['price'] ?? 0)) . " تومان\n"

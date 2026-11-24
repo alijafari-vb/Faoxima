@@ -97,7 +97,7 @@ function tonpayCustomCreateInvoice($orderId, $amount, $buyerChatId)
     $decoded = tonpayCurlJson('POST', TONPAY_CUSTOM_BASE_URL . '/invoices/telegram/create', $payload, $apiKey);
     $invoice = tonpayCustomNormalizeInvoice($decoded);
     if ($invoice === null) {
-        $error = tonpayNormalizeError($decoded, 'پاسخ نامعتبر از سرویس تون‌پی');
+        $error = tonpayNormalizeError($decoded, 'پاسخ نامعتبر از درگاه تون‌پی');
         error_log('TonPay custom create invoice failed: ' . json_encode([
             'order_id' => (string) $orderId,
             'status_code' => $error['status_code'],
@@ -332,8 +332,8 @@ function tonpayCustomPurchaseKind($invoiceField)
 {
     $tag = strpos($invoiceField, '|') !== false ? trim((string) explode('|', $invoiceField, 2)[0]) : '';
     $kinds = [
-        'getconfigafterpay' => 'خرید سرویس',
-        'getextenduser' => 'تمدید سرویس',
+        'getconfigafterpay' => 'خرید اشتراک',
+        'getextenduser' => 'تمدید اشتراک',
         'getextratimeuser' => 'خرید زمان اضافه',
         'getextravolumeuser' => 'خرید حجم اضافه',
     ];

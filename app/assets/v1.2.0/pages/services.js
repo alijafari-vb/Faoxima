@@ -1,11 +1,11 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, skeletonList, fmtBytes, fmtNumber, serviceListIdentity, serviceStatusBadge } from '../utils.js?v=0.0.54';
+import { escapeHtml, subscriptionProductLabel, skeletonList, fmtBytes, fmtNumber, serviceListIdentity, serviceStatusBadge } from '../utils.js?v=0.0.55';
 import { icon } from '../icons.js?v=0.0.52';
 
 const sortOptions = [
     ['زمان خرید', 'recent'],
-    ['شناسهٔ سرویس', 'panel_user_id'],
-    ['نام کاربری سرویس', 'username'],
+    ['شناسهٔ اشتراک', 'panel_user_id'],
+    ['نام اشتراک', 'username'],
     ['روز مانده', 'days_remaining'],
     ['حجم مانده', 'remaining_bytes'],
     ['تاریخ انقضا', 'expires_at'],
@@ -29,8 +29,8 @@ function renderService(it) {
             <div class="service-summary-identity">
                 <h2><a href="${href}"><bdi>${escapeHtml(it.display_username || username)}</bdi>${icon('chevronLeft', 'class="service-open-icon" aria-hidden="true"')}</a></h2>
                 <div class="service-summary-meta">
-                    <span>شناسهٔ سرویس <bdi dir="ltr">${escapeHtml(it.panel_user_id || '—')}</bdi></span>
-                    ${it.name_product ? `<span class="service-summary-plan">${escapeHtml(it.name_product)}</span>` : ''}
+                    <span>شناسهٔ اشتراک <bdi dir="ltr">${escapeHtml(it.panel_user_id || '—')}</bdi></span>
+                    ${it.name_product ? `<span class="service-summary-plan">${escapeHtml(subscriptionProductLabel(it.name_product))}</span>` : ''}
                 </div>
             </div>
             <div class="service-summary-badges">
@@ -60,24 +60,24 @@ export async function services(view) {
     view.innerHTML = `
         <section class="services-page" aria-labelledby="services-heading">
             <div class="services-heading">
-                <h1 id="services-heading">سرویس‌های من</h1>
+                <h1 id="services-heading">اشتراک‌های من</h1>
                 <span class="list-count hidden" id="services-count" aria-live="polite"></span>
             </div>
 
             <div class="services-tools">
                 <div class="search-field services-search">
                     ${icon('search', 'class="ico search-field-ico"')}
-                    <input id="services-search" type="text" dir="auto" placeholder="جستجو در سرویس‌ها" aria-label="جستجوی سرویس" enterkeyhint="search" inputmode="search" maxlength="2048" autocomplete="off" autocapitalize="off" spellcheck="false" />
+                    <input id="services-search" type="text" dir="auto" placeholder="جستجو در اشتراک‌ها" aria-label="جستجوی اشتراک" enterkeyhint="search" inputmode="search" maxlength="2048" autocomplete="off" autocapitalize="off" spellcheck="false" />
                     <button type="button" class="search-field-clear hidden" id="services-search-clear" aria-label="پاک کردن جستجو">
                         ${icon('close', 'class="ico"')}
                     </button>
                 </div>
                 <details class="services-search-help">
                     <summary>راهنمای جستجو</summary>
-                    <p>نام کاربری، شناسهٔ سرویس، UUID یا لینک اشتراک</p>
+                    <p>نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک</p>
                 </details>
                 <label id="services-scope" class="services-scope hidden">
-                    <input id="services-all" type="checkbox" /> جستجو در همهٔ سرویس‌ها
+                    <input id="services-all" type="checkbox" /> جستجو در همهٔ اشتراک‌ها
                 </label>
                 <div class="services-sort" id="services-sort">
                     <label for="services-sort-field">مرتب‌سازی</label>
@@ -123,7 +123,7 @@ export async function services(view) {
         try {
             if (allServices && !query) {
                 $count.classList.add('hidden');
-                $list.innerHTML = '<div class="empty">برای جستجو در همهٔ سرویس‌ها عبارتی وارد کنید.</div>';
+                $list.innerHTML = '<div class="empty">برای جستجو در همهٔ اشتراک‌ها عبارتی وارد کنید.</div>';
                 return;
             }
             const params = allServices ? { page, limit } : { page, limit, sort, direction };
@@ -138,14 +138,14 @@ export async function services(view) {
             totalItems = Number(res?.obj?.total) || items.length;
 
             $count.classList.toggle('hidden', totalItems === 0);
-            $count.textContent = `${fmtNumber(totalItems)} سرویس`;
+            $count.textContent = `${fmtNumber(totalItems)} اشتراک`;
 
             if (items.length === 0) {
                 $list.innerHTML = `
                     <div class="empty">
                         ${icon('info', 'class="ico ico-xxl ico-muted"')}
-                        <h3>${query ? 'نتیجه‌ای یافت نشد' : 'هنوز سرویسی ندارید'}</h3>
-                        ${query ? '' : `<a href="#/buy" class="btn btn-primary mt-md">${icon('cart', 'class="ico ico-leading"')}<span>اولین سرویس را بخرید</span></a>`}
+                        <h3>${query ? 'نتیجه‌ای یافت نشد' : 'هنوز اشتراکی ندارید'}</h3>
+                        ${query ? '' : `<a href="#/buy" class="btn btn-primary mt-md">${icon('cart', 'class="ico ico-leading"')}<span>اولین اشتراک را بخرید</span></a>`}
                     </div>
                 `;
                 return;

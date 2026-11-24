@@ -129,6 +129,18 @@ function search(PDO $pdo, string $query, ?string $owner, bool $includeTextMatche
     $stmt->execute($params + $extra);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
+$pdo->exec('CREATE TEMPORARY TABLE textbot (id_text varchar(150), text text)');
+$textInsert = $pdo->prepare('INSERT INTO textbot VALUES (?, ?)');
+$textInsert->execute(['jsontext.users.search.usernamgeget', 'نام کاربری را وارد کنید.']);
+$textInsert->execute(['jsontext.Admin.order.vieworderusername', 'نام کاربری، UUID یا لینک اشتراک']);
+$textInsert->execute(['jsontext.users.customsellvolume.title', '⚙️ سرویس دلخواه']);
+$textInsert->execute(['dyn_testaccount_product_name', 'سرویس تست']);
+$lang = languagechange(dirname(__DIR__, 2) . '/text.json');
+same('📌 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $lang['users']['search']['usernamgeget'], 'an old database prompt does not hide the supported inputs');
+same('🔎 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $lang['Admin']['order']['vieworderusername'], 'an old administrator prompt does not advertise UUID');
+same('⚙️ سرویس دلخواه', $lang['users']['customsellvolume']['title'], 'custom product identity remains compatible with invoice lookups');
+same('سرویس تست', faoxima_textbot_get('dyn_testaccount_product_name'), 'the legacy test product name is preserved for storage');
+same('🛍 اشتراک‌های من', rxSubscriptionCopy('🛍 سرویس های من'), 'a reply keyboard saved before updating keeps working');
 same(['e123'], search($pdo, '۹۱', '100'), 'Persian numeric ID / buyer');
 same(['w123'], search($pdo, '#٩١', '200'), 'Arabic digits / second owner');
 same(['e123', 'w123'], search($pdo, '91', null), 'same numeric ID on two panels / administrator');
@@ -168,19 +180,19 @@ $accountRows = [
     ['id_invoice' => 'm123', 'username' => 'manual-account', 'Service_location' => 'manual', 'name_product' => 'Test plan', 'Status' => 'disabled'],
 ];
 same(
-    [[['text' => 'same-name · شناسهٔ سرویس 91 | Test plan', 'callback_data' => 'quickview_e123']]],
+    [[['text' => 'same-name · شناسهٔ اشتراک 91 | Test plan', 'callback_data' => 'quickview_e123']]],
     rxServiceListButtons($pdo, [$accountRows[0]], 'quickview_'),
     'single service displays its username and Rebecca ID'
 );
 same(
     [
-        [['text' => 'same-name · شناسهٔ سرویس 91 | Test plan', 'callback_data' => 'extend_e123']],
+        [['text' => 'same-name · شناسهٔ اشتراک 91 | Test plan', 'callback_data' => 'extend_e123']],
         [['text' => 'manual-account | Test plan | غیرفعال', 'callback_data' => 'extend_m123']],
     ],
     rxServiceListButtons($pdo, $accountRows, 'extend_'),
     'shared plans and missing panel IDs keep labels and renewal callbacks independent'
 );
-same("\n🪪 شناسهٔ سرویس: <code>91</code>", rxServicePanelIdLine(['panel_user_id' => '91']), 'account ID uses its own Telegram copy field');
+same("\n🪪 شناسهٔ اشتراک: <code>91</code>", rxServicePanelIdLine(['panel_user_id' => '91']), 'account ID uses its own Telegram copy field');
 same('', rxServicePanelIdLine([]), 'account details omit the ID line when Rebecca has not supplied an ID');
 same(
     ['—', '∞', '0B', '512B', '0.5GB', '21GB', '1.2TB', '1TB'],

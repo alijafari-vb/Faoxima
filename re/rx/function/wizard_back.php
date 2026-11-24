@@ -248,15 +248,15 @@ if (!function_exists('rxRenderWizardStep')) {
                 return true;
 
             case 'getpanelgift':
-                nm_adminInstantReply($from_id, "📌 برای سرویس های کدام پنل میخواهید حجم یا زمان هدیه دهید؟", $GLOBALS['json_list_marzban_panel'] ?? null, "html");
+                nm_adminInstantReply($from_id, "📌 برای اشتراک‌های کدام پنل میخواهید حجم یا زمان هدیه دهید؟", $GLOBALS['json_list_marzban_panel'] ?? null, "html");
                 return true;
             case 'getvaluegift':
                 $userdata = json_decode($user['Processing_value'] ?? '{}', true);
                 $typegift = $userdata['typegift'] ?? 'volume';
                 if ($typegift === 'volume') {
-                    nm_adminInstantReply($from_id, "📌 چند گیگ حجم می خواهید به سرویس های کاربر اضافه شود", $backadmin, "html");
+                    nm_adminInstantReply($from_id, "📌 چند گیگ حجم می خواهید به اشتراک‌های کاربر اضافه شود", $backadmin, "html");
                 } else {
-                    nm_adminInstantReply($from_id, "📌 چند روز می خواهید به سرویس های کاربران اضافه شود", $backadmin, "html");
+                    nm_adminInstantReply($from_id, "📌 چند روز می خواهید به اشتراک‌های کاربران اضافه شود", $backadmin, "html");
                 }
                 return true;
             case 'gettextgift':

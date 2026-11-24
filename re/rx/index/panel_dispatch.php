@@ -692,7 +692,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             sendmessage($from_id, faoxima_textbot_get('dyn_errors_purchase_or_payment_restart', '❌ خطایی رخ داده است لطفا مراحل خرید یا پرداخت  را مجدد انجام دهید'), $keyboard, 'HTML');
             return;
         }
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید سرویس جدید\n\nنام کاربری سرویس : {service_username}\nنام محصول : {product_name}\nحجم محصول : {volume} گیگ\nزمان محصول : {service_time} روز\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\n\nنام اشتراک : {service_username}\nنام محصول : {product_name}\nحجم محصول : {volume} گیگ\nزمان محصول : {service_time} روز\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $get_invoice['username'],
             'product_name' => $get_invoice['name_product'],
             'volume' => $get_invoice['Volume'],
@@ -757,7 +757,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
                 ]
             ]
         ]);
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\nنام کاربری سرویس : {service_username}\nنام محصول : {product_name}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\nنام اشتراک : {service_username}\nنام محصول : {product_name}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'product_name' => $prodcut['name_product'],
             'first_name' => $first_name,
@@ -774,7 +774,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $partsdic = explode("%", $user['Processing_value_one']);
         $usernamepanel = $partsdic[0];
         $volumes = $partsdic[1];
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\nنام کاربری سرویس : {service_username}\nحجم خریداری شده  : {volumes}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\nنام اشتراک : {service_username}\nحجم خریداری شده  : {volumes}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'volumes' => $volumes,
             'first_name' => $first_name,
@@ -791,7 +791,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
         $partsdic = explode("%", $user['Processing_value_one']);
         $usernamepanel = $partsdic[0];
         $time = $partsdic[1];
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\nنام کاربری سرویس : {service_username}\nتعداد روز خریداری شده  : {days}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\nنام اشتراک : {service_username}\nتعداد روز خریداری شده  : {days}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💵 تعداد کل پرداختی های کاربر : {payment_count} عدد\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\nتوضیحات: {caption} {text}\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'days' => $time,
             'first_name' => $first_name,
@@ -938,7 +938,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             return;
         }
         $textdiscount = "";
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید سرویس جدید\nنام کاربری سرویس  : {service_username}\nنام محصول : {product_name}\nحجم محصول : {volume} گیگ\nزمان محصول : {service_time} روز\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_new_purchase_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید اشتراک جدید\nنام اشتراک  : {service_username}\nنام محصول : {product_name}\nحجم محصول : {volume} گیگ\nزمان محصول : {service_time} روز\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $get_invoice['username'],
             'product_name' => $get_invoice['name_product'],
             'volume' => $get_invoice['Volume'],
@@ -1003,7 +1003,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
                 ]
             ]
         ]);
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\nنام کاربری سرویس : {service_username}\nنام محصول : {product_name}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extend_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nتمدید\nنام اشتراک : {service_username}\nنام محصول : {product_name}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'product_name' => $prodcut['name_product'],
             'first_name' => $first_name,
@@ -1013,12 +1013,12 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'username' => $username,
             'format_price_cart' => $format_price_cart,
         ]);
-        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extend_sent', '🚀 رسید شما ارسال و پس از بررسی سرویس شما تمدید خواهد شد');
+        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extend_sent', '🚀 رسید شما ارسال و پس از بررسی اشتراک شما تمدید خواهد شد');
     } elseif ($split_data[0] == "getextravolumeuser") {
         $partsdic = explode("%", $split_data[1]);
         $usernamepanel = $partsdic[0];
         $volumes = $partsdic[1];
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\nنام کاربری سرویس : {service_username}\nحجم خریداری شده  : {volumes}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extra_volume_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید حجم اضافه\nنام اشتراک : {service_username}\nحجم خریداری شده  : {volumes}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'volumes' => $volumes,
             'first_name' => $first_name,
@@ -1028,12 +1028,12 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'username' => $username,
             'format_price_cart' => $format_price_cart,
         ]);
-        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extra_volume_sent', '🚀 رسید شما ارسال و پس از بررسی  به سرویس شما حجم اضافه خواهد شد.');
+        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extra_volume_sent', '🚀 رسید شما ارسال و پس از بررسی  به اشتراک شما حجم اضافه خواهد شد.');
     } elseif ($split_data[0] == "getextratimeuser") {
         $partsdic = explode("%", $split_data[1]);
         $usernamepanel = $partsdic[0];
         $time = $partsdic[1];
-        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\nنام کاربری سرویس : {service_username}\nتعداد روز خریداری شده  : {days}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
+        $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_extra_time_tpl', "⭕️ یک پرداخت جدید انجام شده است .\n\n⭕️⭕️⭕️⭕️⭕️\nخرید زمان اضافه\nنام اشتراک : {service_username}\nتعداد روز خریداری شده  : {days}\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
             'service_username' => $usernamepanel,
             'days' => $time,
             'first_name' => $first_name,
@@ -1043,7 +1043,7 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'username' => $username,
             'format_price_cart' => $format_price_cart,
         ]);
-        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extra_time_sent', '🚀 رسید شما ارسال و پس از بررسی به سرویس شما زمان اضافه خواهد شد');
+        $rxReceiptUserText = faoxima_textbot_get('dyn_cart_receipt_extra_time_sent', '🚀 رسید شما ارسال و پس از بررسی به اشتراک شما زمان اضافه خواهد شد');
     } else {
 
         $textsendrasid = faoxima_render_text(faoxima_textbot_get('dyn_admin_notify_cart_wallet_topup_tpl', "⭕️ یک پرداخت جدید انجام شده است .\nافزایش موجودی\n👤 نام اکانت کاربر : {first_name}\n👤 شناسه کاربر:  <a href = \"tg://user?id={from_id}\">{from_id}</a>\n💸 موجودی فعلی کاربر : {format_balance} تومان\n🛒 کد پیگیری پرداخت: {order_id}\n⚜️ نام کاربری: @{username}\n💸 مبلغ پرداختی: {format_price_cart} تومان\n\n✍️ در صورت درست بودن رسید پرداخت را تایید نمایید."), [
@@ -1234,13 +1234,13 @@ if (preg_match('/^sendresidcart-(.*)/', $datain, $dataget)) {
             'parse_mode' => "HTML"
         ]);
     }
-} elseif (($text !== '' && $text == $datatextbot['text_Tariff_list']) || $datain == "Tariff_list") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_Tariff_list']) || $datain == "Tariff_list") {
     rx_section_media_enter('tariff', $from_id, $datain, $message_id, ['Tariff_list']);
     sendmessage($from_id, $datatextbot['text_dec_Tariff_list'], null, 'HTML');
 } elseif ($datain == "colselist") {
     deletemessage($from_id, $message_id);
     sendmessage($from_id, $textbotlang['users']['back'], $keyboard, 'HTML');
-} elseif (($text !== '' && $text == $datatextbot['text_affiliates']) || $datain == "affiliatesbtn") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_affiliates']) || $datain == "affiliatesbtn") {
     if (!check_active_btn($setting['keyboardmain'], "text_affiliates")) {
         sendmessage($from_id, $datatextbot['dyn_errors_button_disabled'] ?? "❌ این دکمه غیرفعال می باشد", null, 'HTML');
         return;
@@ -1495,9 +1495,9 @@ $text_porsant
         $extra_volume['msg'] = rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
         $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$user['Processing_value_one']}</blockquote>
-<blockquote>نام کاربری سرویس : {$user['Processing_value']}</blockquote>
+<blockquote>نام اشتراک : {$user['Processing_value']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
-        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
+        sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه اشتراک رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
         if (strlen($setting['Channel_Report'] ?? '') > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],
@@ -1724,7 +1724,7 @@ $text_porsant
     }
 } elseif ($text == "/privacy") {
     sendmessage($from_id, $datatextbot['text_roll'], null, 'HTML');
-} elseif (($text !== '' && $text == $datatextbot['text_wheel_luck']) || $datain == "wheel_luck" || $text == "/gift") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_wheel_luck']) || $datain == "wheel_luck" || $text == "/gift") {
     if (!check_active_btn($setting['keyboardmain'], "text_wheel_luck")) {
         sendmessage($from_id, $datatextbot['dyn_errors_button_disabled'] ?? "❌ این دکمه غیرفعال می باشد", null, 'HTML');
         return;
@@ -1838,7 +1838,7 @@ $text_porsant
     }
     $price = $rates['USD'];
     sendmessage($from_id, sprintf($textbotlang['users']['pricearze']['tether-price'], $price), null, 'HTML');
-} elseif (($text !== '' && $text == $datatextbot['text_extend']) || $datain == "extendbtn") {
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_extend']) || $datain == "extendbtn") {
     $items_per_page = 20;
     $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :owner
         AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')
@@ -1970,9 +1970,9 @@ $text_porsant
     sendmessage($from_id, $textbotlang['users']['note']['changednote'], $backinfoss, "html");
     step("home", $from_id);
     $timejalali = jdate('Y/m/d H:i:s');
-    $textreport = "📌  یک کاربر یادداشت سرویس خود را تغییر داد.
+    $textreport = "📌  یک کاربر یادداشت اشتراک خود را تغییر داد.
 
-<blockquote>▫️ نام کاربری سرویس : {$invoice['username']}</blockquote>
+<blockquote>▫️ نام اشتراک : {$invoice['username']}</blockquote>
 <blockquote>▫️ یاداشت قبلی :‌ {$invoice['note']}</blockquote>
 <blockquote>▫️ یاداشت جدید :‌  $text</blockquote>
 

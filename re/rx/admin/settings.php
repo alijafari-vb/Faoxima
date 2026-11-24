@@ -530,7 +530,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     step('PanelMenu', $from_id);
     $rxReservationAdminView = rxReservationAdminView($rxReservationPanel, $rxReservationState, rxRenewalText('admin_date_saved', ['date' => rxRenewalFormatExpire($rxReservationAt)]));
     sendmessage($from_id, $rxReservationAdminView['text'], $rxReservationAdminView['keyboard'], 'HTML');
-} elseif ($text == "🔋 روش تمدید سرویس" && $adminrulecheck['rule'] == "administrator") {
+} elseif (rxSubscriptionCopy($text) == "🔋 روش تمدید اشتراک" && $adminrulecheck['rule'] == "administrator") {
     $rxExtendMethodGuide = "🔋 روش تمدید را انتخاب کنید.
 
 "
@@ -549,10 +549,10 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         . "🔄 «اضافه شدن زمان و تبدیل حجم کل به حجم باقی مانده»: مصرف صفر می‌شود اما حجم باقی‌مانده حذف نمی‌شود؛ حجم کل = حجم باقی‌مانده + حجم خرید؛ انقضا = انقضای فعلی + روزهای خرید.
 
 "
-        . "📌 «رزرو اشتراک»: سرویس فعلی تغییر نمی‌کند؛ ابتدا مدیر یکی از چهار روش تمدید را انتخاب می‌کند و سپس یک یا چند شرط فعال‌سازی (اتمام حجم، پایان زمان یا تاریخ مشخص) را تعیین می‌کند. رزرو با رسیدن اولین شرط انتخاب‌شده فعال می‌شود. مشتری فقط خرید را تأیید می‌کند و امکان تغییر تنظیمات را ندارد؛ حجم و زمان باقی‌مانده در لحظه فعال‌سازی محاسبه می‌شود.
+        . "📌 «رزرو اشتراک»: اشتراک فعلی تغییر نمی‌کند؛ ابتدا مدیر یکی از چهار روش تمدید را انتخاب می‌کند و سپس یک یا چند شرط فعال‌سازی (اتمام حجم، پایان زمان یا تاریخ مشخص) را تعیین می‌کند. رزرو با رسیدن اولین شرط انتخاب‌شده فعال می‌شود. مشتری فقط خرید را تأیید می‌کند و امکان تغییر تنظیمات را ندارد؛ حجم و زمان باقی‌مانده در لحظه فعال‌سازی محاسبه می‌شود.
 
 "
-        . "ℹ️ مصرف بیش از سقف قبلی هیچ‌گاه از حجم خریداری‌شده کم نمی‌شود. برای سرویس منقضی‌شده، روزهای خرید از زمان اجرا محاسبه و سرویس دوباره فعال می‌شود. سرویسی که توسط مدیر غیرفعال شده تمدید خودکار نمی‌شود.";
+        . "ℹ️ مصرف بیش از سقف قبلی هیچ‌گاه از حجم خریداری‌شده کم نمی‌شود. برای اشتراک منقضی‌شده، روزهای خرید از زمان اجرا محاسبه و اشتراک دوباره فعال می‌شود. اشتراکی که توسط مدیر غیرفعال شده تمدید خودکار نمی‌شود.";
     nm_adminInstantReply($from_id, $rxExtendMethodGuide, $Methodextend, 'HTML');
     step('updateextendmethod', $from_id);
 } elseif ($user['step'] == "updateextendmethod") {
@@ -879,7 +879,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $dupStmt->bindParam(':username', $user['Processing_value_one'], PDO::PARAM_STR);
     $dupStmt->execute();
     if ($dupStmt->fetch(PDO::FETCH_ASSOC) !== false) {
-        nm_adminInstantReply($from_id, "❌ این سرویس از قبل داخل ربات ثبت شده است.", $keyboardadmin, 'HTML');
+        nm_adminInstantReply($from_id, "❌ این اشتراک از قبل داخل ربات ثبت شده است.", $keyboardadmin, 'HTML');
         step("home", $from_id);
         return;
     }
@@ -907,8 +907,8 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $stmt->bindParam(':notifctions', $notifctions, PDO::PARAM_STR);
     $stmt->execute();
     if ($stmt->rowCount() === 0) {
-        nm_adminInstantReply($from_id, "❌ سرویس روی پنل پیدا شد، اما ثبت آن در ربات ناموفق بود؛ احتمالا این سرویس قبلا در ربات ثبت شده است.", null, 'HTML');
-        $texterros = "خطا در ثبت سفارش محلی برای سرویس موجود روی پنل (احتمالا تداخل نام کاربری)
+        nm_adminInstantReply($from_id, "❌ اشتراک روی پنل پیدا شد، اما ثبت آن در ربات ناموفق بود؛ احتمالا این اشتراک قبلا در ربات ثبت شده است.", null, 'HTML');
+        $texterros = "خطا در ثبت سفارش محلی برای اشتراک موجود روی پنل (احتمالا تداخل نام کاربری)
 <blockquote>نام کاربری: {$user['Processing_value_one']}</blockquote>
 <blockquote>آیدی ادمین: $from_id</blockquote>
 <blockquote>نام پنل: {$marzban_list_get['name_panel']}</blockquote>";
@@ -1804,7 +1804,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 1 - سفارش های غیرفعال (بیش از ۳۰ روز) حذف خواهند شد
 2 - سفارش های پرداخت نشده (بیش از ۳۰ روز) حذف خواهند شد
 3 - سفارش های حذف شده توسط ادمین (بیش از ۳۰ روز)
-4 - حذف سرویس های تست غیرفعال (بیش از ۳۰ روز)
+4 - حذف اشتراک‌های تست غیرفعال (بیش از ۳۰ روز)
 5 - سفارش های حذف شده توسط کاربر (بیش از ۳۰ روز)
 6 - سفارشاتی که زمان یا حجم شان تمام شده باشد (بیش از ۳۰ روز)
 7 - فاکتورهای قدیمی پرداخت نشده و ناموفق (بیش از ۳۰ روز)
@@ -1813,11 +1813,11 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 10 - درخواست‌های کنسلی و نمایندگی بررسی‌شده (بیش از ۶۰ روز)
 11 - کدهای هدیه مصرف‌شده و لاگ‌های کریپتو (بیش از ۹۰ روز)
 12 - تیکت‌های قدیمی‌تر از ۳۰ روز
-13 - سرویس‌های متصل به پنل حذف‌شده شناسایی و علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز)
-14 - تمام سرویس‌های فعال با پنل استعلام می‌شوند و سرویس‌های نامعتبر (کاربر یافت نشد) علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز) — این مرحله ممکن است طول بکشد
-15 - سرویس‌هایی که بیش از ۳۰ روز از خریدشان گذشته و هیچ مصرفی نداشته‌اند (۰ مصرف) شناسایی و علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر) — سرویس‌هایی که حتی مقدار کمی مصرف داشته‌اند دست‌نخورده می‌مانند
-16 - سرویس‌هایی که هنگام استعلام، پنل‌شان قابل‌دسترس نبود (خطای اتصال) علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر، مگر اینکه پنل در همین بازه دوباره در دسترس قرار گیرد)
-17 - سرویس‌هایی که حجم یا زمانشان تمام شده و تمدید نشده‌اند علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر از لحظه‌ی تمام‌شدن)
+13 - اشتراک‌های متصل به پنل حذف‌شده شناسایی و علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز)
+14 - تمام اشتراک‌های فعال با پنل استعلام می‌شوند و اشتراک‌های نامعتبر (کاربر یافت نشد) علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز) — این مرحله ممکن است طول بکشد
+15 - اشتراک‌هایی که بیش از ۳۰ روز از خریدشان گذشته و هیچ مصرفی نداشته‌اند (۰ مصرف) شناسایی و علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر) — اشتراک‌هایی که حتی مقدار کمی مصرف داشته‌اند دست‌نخورده می‌مانند
+16 - اشتراک‌هایی که هنگام استعلام، پنل‌شان قابل‌دسترس نبود (خطای اتصال) علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر، مگر اینکه پنل در همین بازه دوباره در دسترس قرار گیرد)
+17 - اشتراک‌هایی که حجم یا زمانشان تمام شده و تمدید نشده‌اند علامت‌گذاری خواهند شد (حذف نهایی پس از ۳۰ روز دیگر از لحظه‌ی تمام‌شدن)
 
 🛡 اگر در عملکرد ربات با باگ یا مشکلی مواجه شدید، از طریق گیت هاب یا گروه فاکسیما اطلاع رسانی کنید
 <a href=\"https://github.com/Mmd-Amir/Faoxima\">لینک گیت هاب</a>";
@@ -2189,7 +2189,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
             $sixtyDaysAgo = time() - (60 * 24 * 60 * 60);
             $ninetyDaysAgo = time() - (90 * 24 * 60 * 60);
 
-            $rxOptStage(1, 'بررسی سرویس‌های متصل به پنل حذف‌شده');
+            $rxOptStage(1, 'بررسی اشتراک‌های متصل به پنل حذف‌شده');
             $chk = $pdo->query("SHOW COLUMNS FROM invoice LIKE 'invalidated_at'");
             if ($chk && $chk->rowCount() !== 1) {
                 $pdo->exec("ALTER TABLE invoice ADD invalidated_at INT UNSIGNED NULL DEFAULT NULL");
@@ -2214,7 +2214,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
             $countunusedservice = 0;
             $countunreachablepanel = 0;
             $countexpiredservice = 0;
-            $rxOptStage(2, 'استعلام سرویس‌های فعال از پنل');
+            $rxOptStage(2, 'استعلام اشتراک‌های فعال از پنل');
             $rxOptScanBatch = 100;
             $rxOptScanSql = "SELECT id_invoice, Service_location, username, time_sell, Status, invalidated_at FROM invoice
                  WHERE Status IN ('active','end_of_time','end_of_volume','sendedwarn','send_on_hold')
@@ -2330,7 +2330,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
                 return $rxOptDeleted;
             };
 
-            $rxOptStage(3, 'حذف سفارش‌ها و سرویس‌های قدیمی');
+            $rxOptStage(3, 'حذف سفارش‌ها و اشتراک‌های قدیمی');
             $countunpiadorder = $rxOptDelete('invoice', "DELETE FROM invoice WHERE Status = 'unpaid' AND name_product != 'سرویس تست' AND CAST(time_sell AS UNSIGNED) < :cutoff", [':cutoff' => $thirtyDaysAgo]);
             $countdisableorder = $rxOptDelete('invoice', "DELETE FROM invoice WHERE Status = 'disabled' AND name_product != 'سرویس تست' AND CAST(time_sell AS UNSIGNED) < :cutoff", [':cutoff' => $thirtyDaysAgo]);
             $countremoveadminorder = $rxOptDelete('invoice', "DELETE FROM invoice WHERE Status = 'removebyadmin' AND CAST(time_sell AS UNSIGNED) < :cutoff", [':cutoff' => $thirtyDaysAgo]);
@@ -2432,7 +2432,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 ✅ {$countunpiadorder} سفارش پرداخت نشده (بیش از ۳۰ روز) حذف گردید
 ✅ {$countdisableorder} سفارش غیرفعال (بیش از ۳۰ روز) حذف گردید
 ✅ {$countremoveadminorder} سفارش حذف شده توسط ادمین (بیش از ۳۰ روز) پاک گردید
-✅ {$countdisableordtester} سرویس تست غیرفعال (بیش از ۳۰ روز) حذف گردید
+✅ {$countdisableordtester} اشتراک تست غیرفعال (بیش از ۳۰ روز) حذف گردید
 ✅ {$countoldunpaid} فاکتور تست پرداخت نشده (بیش از ۳۰ روز) پاک گردید
 ✅ {$countremovedservices} سفارشی که زمان یا حجم یا توسط کاربر حذف شده (بیش از ۳۰ روز) پاک گردید
 ✅ {$countfailedorder} سفارش ناموفق/نامعتبر (بیش از ۳۰ روز) پاک گردید
@@ -2444,13 +2444,13 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
 ✅ {$countgiftcodes} کد هدیه مصرف‌شده (بیش از ۹۰ روز) پاک گردید
 ✅ {$countcryptologs} لاگ کریپتوی قدیمی‌تر از ۹۰ روز پاک گردید
 ✅ {$countoldtickets} تیکت قدیمی‌تر از ۳۰ روز پاک گردید
-✅ {$countorphanedpanel} سرویس متصل به پنل حذف‌شده شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
-✅ {$countorphanedservice} سرویس نامعتبر (کاربر یافت نشد روی پنل) شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
-✅ {$countunusedservice} سرویس بدون مصرف (۰ مصرف، بیش از ۳۰ روز از خرید) شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
-✅ {$countunusedexpired} سرویس بدون مصرف که مهلتش تمام شده حذف گردید
-✅ {$countunreachablepanel} سرویس با پنل غیرقابل‌دسترس شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
-✅ {$countexpiredservice} سرویس با حجم/زمان تمام‌شده که تمدید نشده شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
-✅ {$countstalelive} سرویس علامت‌خورده (پنل غیرقابل‌دسترس یا حجم/زمان تمام‌شده) که مهلتش تمام شده حذف گردید";
+✅ {$countorphanedpanel} اشتراک متصل به پنل حذف‌شده شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
+✅ {$countorphanedservice} اشتراک نامعتبر (کاربر یافت نشد روی پنل) شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
+✅ {$countunusedservice} اشتراک بدون مصرف (۰ مصرف، بیش از ۳۰ روز از خرید) شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
+✅ {$countunusedexpired} اشتراک بدون مصرف که مهلتش تمام شده حذف گردید
+✅ {$countunreachablepanel} اشتراک با پنل غیرقابل‌دسترس شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
+✅ {$countexpiredservice} اشتراک با حجم/زمان تمام‌شده که تمدید نشده شناسایی و برای حذف (پس از ۳۰ روز) علامت‌گذاری شد
+✅ {$countstalelive} اشتراک علامت‌خورده (پنل غیرقابل‌دسترس یا حجم/زمان تمام‌شده) که مهلتش تمام شده حذف گردید";
 
             $time = time();
             $logss = "optimize_{$countunpiadorder}_{$countdisableorder}_{$countremoveadminorder}_{$countdisableordtester}_{$countdiscountexpired}_{$countcancelrequests}_{$countagentrequests}_{$countgiftcodes}_{$countcryptologs}_{$countorphanedpanel}_{$countorphanedservice}_{$countunusedservice}_{$countunusedexpired}_{$countunreachablepanel}_{$countexpiredservice}_{$countstalelive}_$time";
@@ -2514,7 +2514,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
         return;
     }
     update("user", "Processing_value_tow", $text, "id", $from_id);
-    nm_adminInstantReply($from_id, "📌 زمان سرویس را ارسال نمایید زمان براساس روز است.", $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, "📌 زمان اشتراک را ارسال نمایید زمان براساس روز است.", $backadmin, 'HTML');
     step("gettimeaccount", $from_id);
 } elseif ($user['step'] == "gettimeaccount") {
     $userdata = json_decode($user['Processing_value'], true);
@@ -2588,7 +2588,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     if (strlen($setting['Channel_Report']) > 0) {
         $text_report = " 🛍 ساخت کانفیگ توسط ادمین
 
-<blockquote>نام کاربری کانفیگ : {$user['Processing_value_one']}</blockquote>
+<blockquote>نام اشتراک : {$user['Processing_value_one']}</blockquote>
 <blockquote>حجم کانفیگ  : {$user['Processing_value_tow']} گیگ</blockquote>
 <blockquote>زمان کانفیگ : $text روز</blockquote>
 <blockquote>آیدی عددی ادمین : $from_id</blockquote>
@@ -4779,8 +4779,8 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     $stmt->execute();
     nm_adminInstantReply($from_id, "📌 بخش مورد نظر حذف گردید.", $supportcenter, 'HTML');
     step("home", $from_id);
-} elseif ($text == "⚙️ تنظیمات سرویس" && $adminrulecheck['rule'] == "administrator") {
-    $textsetservice = "📌 برای تنظیم سرویس یک کانفیگ در پنل خود ساخته و  سرویس هایی که میخواهید فعال باشند. را داخل پنل فعال کرده و نام کاربری کانفیگ را ارسال نمایید";
+} elseif (rxSubscriptionCopy($text) == "⚙️ تنظیمات اشتراک" && $adminrulecheck['rule'] == "administrator") {
+    $textsetservice = "📌 برای تنظیم اشتراک یک کانفیگ در پنل خود ساخته و  اشتراک‌هایی که میخواهید فعال باشند. را داخل پنل فعال کرده و نام اشتراک را ارسال نمایید";
     nm_adminInstantReply($from_id, $textsetservice, $backadmin, 'HTML');
     step('getservceid', $from_id);
 } elseif ($user['step'] == "getservceid") {
@@ -5424,7 +5424,7 @@ if ($datain == "settimecornremove" && $adminrulecheck['rule'] == "administrator"
     } elseif ($text == "⚙️ تنظیم نود") {
         $textsetprotocol = "📌 برای تنظیم نود یک کاربر در پنل خود ساخته و  نودهایی که میخواهید فعال باشند. را داخل پنل فعال کرده و نام کاربری کاربر را ارسال نمایید";
     } else {
-        $textsetprotocol = "📌 برای تنظیم اینباند  و پروتکل باید یک کانفیگ در پنل خود ساخته و  پروتکل و اینباند هایی که میخواهید فعال باشند. را داخل پنل فعال کرده و نام کاربری کانفیگ را ارسال نمایید";
+        $textsetprotocol = "📌 برای تنظیم اینباند  و پروتکل باید یک کانفیگ در پنل خود ساخته و  پروتکل و اینباند هایی که میخواهید فعال باشند. را داخل پنل فعال کرده و نام اشتراک را ارسال نمایید";
     }
     nm_adminInstantReply($from_id, $textsetprotocol, $backadmin, 'HTML');
     step("setinboundandprotocol", $from_id);
@@ -5785,7 +5785,7 @@ elseif ($text == "🫣 مخفی پنل برای کاربر" && $adminrulecheck['
 📆 تاریخ خرید :  {$paymentUser['time']}";
     nm_adminInstantReply($from_id, $text_order, null, 'HTML');
 } elseif ($text == "🎛 تنظیم اینباند") {
-    nm_adminInstantReply($from_id, "📌 در صورتی که پنل مرزبان  یا مرزنشین هستید یک نام کاربری کانفیگ از پنل کپی و ارسال نمایید در غیراینصورت برای پنل های ثنایی و علیرضا شناسه اینباند را ارسال نمایید", $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, "📌 در صورتی که پنل مرزبان  یا مرزنشین هستید یک نام اشتراک از پنل کپی و ارسال نمایید در غیراینصورت برای پنل های ثنایی و علیرضا شناسه اینباند را ارسال نمایید", $backadmin, 'HTML');
     step("getdatainboundproduct", $from_id);
 } elseif ($user['step'] == "getdatainboundproduct") {
     if (!isset($update['message']) && empty($text)) { return; }

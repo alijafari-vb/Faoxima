@@ -89,7 +89,7 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
     if (is_array($nameloc) && function_exists('nmPanelNationalEnabled') && nmPanelNationalEnabled($marzban_list_get) && function_exists('nmStockExtendProductKeyboard')) {
         $stockKeyboard = nmStockExtendProductKeyboard($nameloc, $user, $marzban_list_get);
         if (!$stockKeyboard) {
-            Editmessagetext($from_id, $message_id, "❌ برای این سرویس موجودی انبار قابل تمدید وجود ندارد.", json_encode(['inline_keyboard' => [[['text' => $textbotlang['users']['stateus']['backlist'] ?? '🏠 بازگشت به لیست سرویس ها', 'callback_data' => 'backorder']]]], JSON_UNESCAPED_UNICODE), 'HTML');
+            Editmessagetext($from_id, $message_id, "❌ برای این اشتراک موجودی انبار قابل تمدید وجود ندارد.", json_encode(['inline_keyboard' => [[['text' => $textbotlang['users']['stateus']['backlist'] ?? '🏠 بازگشت به لیست اشتراک‌ها', 'callback_data' => 'backorder']]]], JSON_UNESCAPED_UNICODE), 'HTML');
             return;
         }
         Editmessagetext($from_id, $message_id, "📦 وضعیت نت ملی فعال است؛ فقط محصولات موجود در انبار برای تمدید نمایش داده می‌شوند. یکی را انتخاب کنید:", $stockKeyboard, 'HTML');
@@ -262,7 +262,7 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
         }
         $Balance_Low_user = $__charge['new_balance'];
         if (function_exists('wallet_ledger_record')) {
-            wallet_ledger_record($from_id, 'debit', $__pp, 'service_action', 'تمدید سرویس (انبار ملی)', null, 'invoice', (string)$nameloc['id_invoice']);
+            wallet_ledger_record($from_id, 'debit', $__pp, 'service_action', 'تمدید اشتراک (انبار ملی)', null, 'invoice', (string)$nameloc['id_invoice']);
         }
         update("invoice", "name_product", $prodcut['name_product'], "id_invoice", $nameloc['id_invoice']);
         update("invoice", "price_product", $prodcut['price_product'], "id_invoice", $nameloc['id_invoice']);
@@ -281,7 +281,7 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
             'user_info' => $stockNew['content'],
             'source_panel_code' => $marzban_list_get['code_panel'],
         ]);
-        nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد');
+        nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد');
         sendmessage($from_id, $datatextbot['dyn_errors_stock_extend_success'] ?? "✅ تمدید انباری انجام شد و موجودی انبار یک عدد کم شد.", $keyboard, 'HTML');
         return;
     }
@@ -305,7 +305,7 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
     }
     $Balance_Low_user = $__charge2['new_balance'];
     if (function_exists('wallet_ledger_record')) {
-        wallet_ledger_record($from_id, 'debit', $__pp2, 'service_action', 'تمدید سرویس', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
+        wallet_ledger_record($from_id, 'debit', $__pp2, 'service_action', 'تمدید اشتراک', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
     }
     $rxFinalizeRef = 'wallet:' . $from_id . ':' . bin2hex(random_bytes(4));
     $extend = $ManagePanel->extend($marzban_list_get['Methodextend'], $prodcut['Volume_constraint'], $prodcut['Service_time'], $usernamePanelExtends, $prodcut['code_product'], $marzban_list_get['code_panel'], null, [
@@ -320,24 +320,24 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
         $__refundedFin = balance_atomic_credit($from_id, $__pp2);
         $Balance_Low_user = $user['Balance'];
         if ($__refundedFin && function_exists('wallet_ledger_record')) {
-            wallet_ledger_record($from_id, 'credit', $__pp2, 'refund', 'بازگشت وجه تمدید سرویس', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
+            wallet_ledger_record($from_id, 'credit', $__pp2, 'refund', 'بازگشت وجه تمدید اشتراک', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
         }
     }
     if ($extend['status'] == false && !$rxFinalizePending) {
         $rxStockEmpty = ($extend['code'] ?? '') === 'manual_stock_empty';
         $rxQueuedExists = ($extend['code'] ?? '') === 'queued_renewal_exists';
         $extend['msg'] = rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
-        $textreports = "خطای تمدید سرویس
+        $textreports = "خطای تمدید اشتراک
         <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-        <blockquote>نام کاربری سرویس : $usernamePanelExtends</blockquote>
+        <blockquote>نام اشتراک : $usernamePanelExtends</blockquote>
         <blockquote>کد خطا : " . htmlspecialchars((string) ($extend['code'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>
         <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
         if ($rxStockEmpty) {
             sendmessage($from_id, $datatextbot['dyn_errors_renewal_stock_empty'] ?? "❌ موجودی انبار برای این محصول تمام شده است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
         } elseif ($rxQueuedExists) {
-            sendmessage($from_id, $datatextbot['dyn_errors_queued_renewal_exists'] ?? "❌ یک رزرو اشتراک برای این سرویس در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
+            sendmessage($from_id, $datatextbot['dyn_errors_queued_renewal_exists'] ?? "❌ یک رزرو اشتراک برای این اشتراک در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
         } else {
-            sendmessage($from_id, rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($from_id, rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
         }
         if (strlen($setting['Channel_Report'] ?? '') > 0) {
             telegram('sendmessage', [
@@ -385,14 +385,14 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
         $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
         $textextend = "$rxQueuedSuccessTpl
 
-▫️نام سرویس : $usernamePanelExtends
+▫️نام اشتراک : $usernamePanelExtends
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";
     } else {
-        $textextend = "✅ تمدید برای سرویس شما با موفقیت صورت گرفت
+        $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : $usernamePanelExtends
+▫️نام اشتراک : $usernamePanelExtends
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";

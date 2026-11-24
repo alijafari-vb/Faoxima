@@ -27,7 +27,7 @@ final class InvoicesHandler extends BaseHandler
             [':uid' => $this->user['id']]
         ) !== null;
         if ($all && !$canSearchAll) {
-            FaoximaResponse::forbidden('جستجوی همهٔ سرویس‌ها برای مدیر اصلی در دسترس است.');
+            FaoximaResponse::forbidden('جستجوی همهٔ اشتراک‌ها برای مدیر اصلی در دسترس است.');
         }
         if ($all && $search === null) {
             FaoximaResponse::badRequest('عبارت جستجو را وارد کنید.');

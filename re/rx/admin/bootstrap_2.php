@@ -81,7 +81,7 @@ if (!function_exists('rx_featCategoryRows')) {
                  ['text' => "🌍 قفل مکان", 'callback_data' => "changeloc"]],
                 [['text' => "{$infocardColorEmoji} رنگ کارت", 'callback_data' => "infocard_color_menu"],
                  ['text' => $infocardStatusText, 'callback_data' => "editstsuts-infocard-{$infocardStatusValue}"],
-                 ['text' => "📊 کارت سرویس", 'callback_data' => "infocard_status"]],
+                 ['text' => "📊 کارت اشتراک", 'callback_data' => "infocard_status"]],
                 [['text' => "⚙️ تنظیمات", 'callback_data' => "randomwalletlimit"],
                  ['text' => $randomWalletStatusText, 'callback_data' => "editstsuts-randomwallet-{$randomWalletStatusValue}"],
                  ['text' => "🎯 رندوم کیف پول", 'callback_data' => "randomwallet_status"]],
@@ -1204,9 +1204,9 @@ if (in_array($text, $textadmin) || $datain == "admin") {
 💰 <b>موجودی کل کاربران:</b> <code>$Balanceall</code> تومان
 
 🧾 <b>تعداد کل فروش:</b> <code>$invoice</code> عدد
-🧾 <b>تعداد کل فروش سرویس های فعال:</b> <code>$invoiceactive</code> عدد
+🧾 <b>تعداد کل فروش اشتراک‌های فعال:</b> <code>$invoiceactive</code> عدد
 💵 <b>جمع کل فروش :</b> <code>$invoicesumall</code> تومان
-💵 <b>جمع کل فروش سرویس های فعال:</b> <code>$invoicesum</code> تومان
+💵 <b>جمع کل فروش اشتراک‌های فعال:</b> <code>$invoicesum</code> تومان
 🔄 <b>جمع کل تمدید:</b> <code>$extendsum</code> تومان
 📈 <b>نرخ تبدیل به مشتری:</b> <code>$ratecustomer</code>٪
 💳 <b>میانگین خرید هر مشتری:</b> <code>$avgbuy_customer</code> تومان
@@ -1955,7 +1955,7 @@ $paycount
     savedata("save", "url_panel", $guardBaseUrl);
     nm_adminInstantReply(
         $from_id,
-        "✅ اتصال به گارد برقرار شد.\n\n⚠️ توجه: سرویس‌های قابل ساخت روی این پنل هنوز تنظیم نشده‌اند. پیش از فروش، از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم سرویس‌ها» آن‌ها را مشخص کنید؛ در غیر این صورت ساخت سرویس روی این پنل با خطا مواجه می‌شود.\n\n"
+        "✅ اتصال به گارد برقرار شد.\n\n⚠️ توجه: اشتراک‌های قابل ساخت روی این پنل هنوز تنظیم نشده‌اند. پیش از فروش، از منوی «مدیریت پنل‌ها ← ⚙️ تنظیم اشتراک‌ها» آن‌ها را مشخص کنید؛ در غیر این صورت ساخت اشتراک روی این پنل با خطا مواجه می‌شود.\n\n"
             . $textbotlang['Admin']['managepanel']['getlimitedpanel'],
         $backadmin,
         'HTML'
@@ -2070,7 +2070,7 @@ $paycount
         if (isset($matches[1]) && $matches[1] === 't') {
             $id = intval($matches[2]);
             if (!in_array($id, $availableIds, true)) {
-                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'شناسه سرویس نامعتبر است.', 'show_alert' => true, 'cache_time' => 0]);
+                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => 'شناسهٔ اشتراک نامعتبر است.', 'show_alert' => true, 'cache_time' => 0]);
                 return;
             }
             if (in_array($id, $selected, true)) {
@@ -2094,7 +2094,7 @@ $paycount
             return;
         } elseif (($matches[3] ?? '') === 's') {
             if (empty($selected)) {
-                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '⚠️ حداقل یک سرویس را انتخاب کنید', 'show_alert' => true, 'cache_time' => 0]);
+                telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id, 'text' => '⚠️ حداقل یک اشتراک را انتخاب کنید', 'show_alert' => true, 'cache_time' => 0]);
                 return;
             }
             $storageValue = (count($selected) === count($availableIds)) ? '0' : json_encode(array_values($selected));
@@ -2336,7 +2336,7 @@ $paycount
     } elseif ($userdata['type'] == "remnawave") {
         nm_adminInstantReply($from_id, "✅ پنل رمن‌ویو با موفقیت ثبت شد. لطفاً شناسه Squad خود را حتماً تنظیم کرده و سپس دکمه تست اتصال را بزنید.", null, 'HTML');
     } elseif ($userdata['type'] == "rebecca") {
-        nm_adminInstantReply($from_id, "✅ پنل Rebecca با موفقیت ثبت شد. در صورت نیاز سرویس پیش‌فرض را از منوی مدیریت پنل تغییر دهید.", null, 'HTML');
+        nm_adminInstantReply($from_id, "✅ پنل Rebecca با موفقیت ثبت شد. در صورت نیاز اشتراک پیش‌فرض را از منوی مدیریت پنل تغییر دهید.", null, 'HTML');
     } elseif ($userdata['type'] == "pasarguard") {
         nm_adminInstantReply($from_id, "❌ نکته :
 برای فعالسازی پنل باید به منوی مدیریت پنل  رفته و گزینه های
@@ -2786,7 +2786,7 @@ elseif ($datain == "systemsms") {
             ],
         ]
     ]);
-    Editmessagetext($from_id, $message_id, "📌 سرویس برای کدام گروه کاربری اعمال شود؟", $listbtn);
+    Editmessagetext($from_id, $message_id, "📌 اشتراک برای کدام گروه کاربری اعمال شود؟", $listbtn);
 } elseif (preg_match('/^typeusermessage-(\w+)/', $datain, $dataget)) {
     $userdata = json_decode($user['Processing_value'], true);
     if (!isset($userdata['typeservice'])) {
@@ -2814,7 +2814,7 @@ elseif ($datain == "systemsms") {
             ],
         ]
     ]);
-    Editmessagetext($from_id, $message_id, "📌 سرویس برای چه دسته از کاربران اعمال شود؟", $listbtn);
+    Editmessagetext($from_id, $message_id, "📌 اشتراک برای چه دسته از کاربران اعمال شود؟", $listbtn);
 } elseif (preg_match('/^typeagent-(\w+)/', $datain, $dataget)) {
     $type = $dataget[1];
     $userdata = json_decode($user['Processing_value'], true);
@@ -3056,7 +3056,7 @@ elseif ($datain == "systemsms") {
     }
     $textconfirm = "📌 شما در حال انجام عملیات مربوط به ارسال پیام هستید با بررسی اطلاعات زیر و تایید دکمه زیر عملیات ارسال شروع خواهد شد.
 ⚙️ نوع عملیات : $typesend
-🎛 نوع سرویس : $typeservice
+🎛 نوع اشتراک : $typeservice
 🗂 نوع کاربری : {$userdata['agent']}
 $textday
 ";
@@ -7234,7 +7234,7 @@ $rx_sales_metrics
 
 ⛔ غیرفعال: {$rebeccaDisabledUsers}
 
-⚙️ سرویس پیش‌فرض: {$rebeccaServiceLine}
+⚙️ اشتراک پیش‌فرض: {$rebeccaServiceLine}
 
 {$rx_sales_metrics}";
                 nm_adminInstantReply($from_id, $text_rebecca, $optionRebecca, 'HTML');

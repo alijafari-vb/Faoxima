@@ -385,7 +385,7 @@ if (!function_exists('getCronJobDefinitions')) {
             'discount_expire' => ['script' => 'discount_expire.php', 'admin_label' => 'انقضای تخفیف', 'instruction' => '🏷 بررسی انقضای تخفیف‌ها — %s', 'default' => ['unit' => 'minute', 'value' => 30]],
             'lottery' => ['script' => 'lottery.php', 'admin_label' => 'قرعه‌کشی شبانه', 'instruction' => '🎁 قرعه‌کشی شبانه — %s', 'default' => ['unit' => 'day', 'value' => 1]],
             'expireagent' => ['script' => 'expireagent.php', 'admin_label' => 'انقضای‌نماینده', 'instruction' => '👥 بررسی انقضای نمایندگان — %s', 'default' => ['unit' => 'minute', 'value' => 30]],
-            'on_hold' => ['script' => 'on_hold.php', 'admin_label' => 'سرویس‌های معلق', 'instruction' => '⏸ بررسی سفارش‌های معلق — %s', 'default' => ['unit' => 'minute', 'value' => 15]],
+            'on_hold' => ['script' => 'on_hold.php', 'admin_label' => 'اشتراک‌های معلق', 'instruction' => '⏸ بررسی سفارش‌های معلق — %s', 'default' => ['unit' => 'minute', 'value' => 15]],
             'configtest' => ['script' => 'configtest.php', 'admin_label' => 'تست تنظیمات', 'instruction' => '🧪 تست تنظیمات سیستم — %s', 'default' => ['unit' => 'minute', 'value' => 2]],
             'uptime_node' => ['script' => 'uptime_node.php', 'admin_label' => 'Uptime نود', 'instruction' => '🌐 بررسی Uptime نودها — %s', 'default' => ['unit' => 'minute', 'value' => 15]],
             'uptime_panel' => ['script' => 'uptime_panel.php', 'admin_label' => 'Uptime پنل', 'instruction' => '🖥 بررسی Uptime پنل‌ها — %s', 'default' => ['unit' => 'minute', 'value' => 15]],

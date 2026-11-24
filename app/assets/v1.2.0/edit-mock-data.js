@@ -27,7 +27,7 @@ const DEPARTMENTS = [
 ];
 
 const TICKETS = [
-    { tracking: 'TCK1001', subject: 'مشکل در اتصال سرویس', department: 'پشتیبانی فنی', status: 'Answered',         open: true,  last_time: '۲ ساعت پیش' },
+    { tracking: 'TCK1001', subject: 'مشکل در اتصال اشتراک', department: 'پشتیبانی فنی', status: 'Answered',         open: true,  last_time: '۲ ساعت پیش' },
     { tracking: 'TCK1002', subject: 'سوال درباره تمدید',   department: 'فروش',         status: 'Customerresponse', open: true,  last_time: '۵ ساعت پیش' },
     { tracking: 'TCK1003', subject: 'درخواست بازگشت وجه',  department: 'مالی',         status: 'close',            open: false, last_time: 'دیروز' },
 ];
@@ -61,7 +61,7 @@ function serviceInfo(username) {
         expiration_time: '2026-08-30 23:59',
         last_subscription_update: '۲ ساعت پیش',
         subscription_url: 'https://sub.example.com/abc123demo',
-        note: 'سرویس کاری',
+        note: 'اشتراک کاری',
         allowed_users: 2,
         ip_summary: '۲ آی‌پی فعال',
         service_output: [],
@@ -133,13 +133,13 @@ const MOCK_RESPONDERS = {
     ticket_departments: () => ({ items: DEPARTMENTS }),
     ticket_thread: (params) => ({
         tracking: params.t || 'TCK1001',
-        subject: 'مشکل در اتصال سرویس',
+        subject: 'مشکل در اتصال اشتراک',
         department: 'پشتیبانی فنی',
         status: 'Answered',
         open: true,
         messages: [
-            { id: 1, sender: 'user',  body: 'سلام، از دیشب سرویس وصل نمی‌شود.',              time: '10:24', media: [], seen: true, reply_to: null, reactions: [] },
-            { id: 2, sender: 'admin', body: 'سلام، لطفاً نام کاربری سرویس را ارسال کنید.',   time: '10:31', media: [], seen: true, reply_to: { id: 1, body: 'سلام، از دیشب سرویس وصل نمی‌شود.' }, reactions: [{ emoji: '👍', actor: 'user', mine: true }] },
+            { id: 1, sender: 'user',  body: 'سلام، از دیشب اشتراک وصل نمی‌شود.',              time: '10:24', media: [], seen: true, reply_to: null, reactions: [] },
+            { id: 2, sender: 'admin', body: 'سلام، لطفاً نام اشتراک را ارسال کنید.',   time: '10:31', media: [], seen: true, reply_to: { id: 1, body: 'سلام، از دیشب اشتراک وصل نمی‌شود.' }, reactions: [{ emoji: '👍', actor: 'user', mine: true }] },
             { id: 3, sender: 'user',  body: 'user_demo1',                                     time: '10:33', media: [], seen: false, reply_to: null, reactions: [] },
         ],
     }),
@@ -317,7 +317,7 @@ const MOCK_RESPONDERS = {
         if (String(params.action || '') === 'change_location') {
             return {
                 kind: 'change_location_done',
-                message: 'موقعیت سرویس شما با موفقیت تغییر کرد.',
+                message: 'موقعیت اشتراک شما با موفقیت تغییر کرد.',
                 panel_name: 'هلند',
             };
         }
@@ -352,7 +352,7 @@ const MOCK_RESPONDERS = {
 
     service_renew_confirm: () => ({
         kind: 'done',
-        message: 'سرویس با موفقیت تمدید شد (پیش‌نمایش)',
+        message: 'اشتراک با موفقیت تمدید شد (پیش‌نمایش)',
         balance_after: BALANCE - 150000,
         cashback: 5000,
     }),
@@ -390,7 +390,7 @@ const MOCK_RESPONDERS = {
         notifications: [
             notification(1, 'به‌روزرسانی جدید: سرورهای آلمان ارتقا یافتند 🚀', false),
             notification(2, 'تخفیف ۱۰٪ شارژ کیف پول تا پایان هفته', true),
-            notification(3, 'سرویس‌های جدید هلند اضافه شدند', true),
+            notification(3, 'اشتراک‌های جدید هلند اضافه شدند', true),
         ],
     }),
 
@@ -405,7 +405,7 @@ const MOCK_RESPONDERS = {
     transactions: () => ({
         items: [
             { id: 5, direction: 'credit', amount: 200000, balance_after: BALANCE, category: 'topup_card', category_label: 'شارژ کارت به کارت', description: 'cart to cart', order_id: 'ORD100199', created_at: NOW_STR(-1) },
-            { id: 4, direction: 'debit', amount: 89000, balance_after: BALANCE - 200000, category: 'purchase', category_label: 'خرید سرویس', description: 'خرید سرویس', order_id: 'ORD100150', created_at: NOW_STR(-2) },
+            { id: 4, direction: 'debit', amount: 89000, balance_after: BALANCE - 200000, category: 'purchase', category_label: 'خرید اشتراک', description: 'خرید اشتراک', order_id: 'ORD100150', created_at: NOW_STR(-2) },
             { id: 3, direction: 'credit', amount: 15000, balance_after: BALANCE - 200000 + 89000, category: 'cashback', category_label: 'هدیه بازگشت وجه', description: 'هدیه بازگشت وجه کارت به کارت', order_id: 'ORD100150', created_at: NOW_STR(-2) },
             { id: 2, direction: 'credit', amount: 50000, balance_after: BALANCE - 200000 + 89000 - 15000, category: 'gift_code', category_label: 'کد هدیه', description: 'استفاده از کد هدیه', order_id: null, created_at: NOW_STR(-5) },
             { id: 1, direction: 'credit', amount: 100000, balance_after: BALANCE - 200000 + 89000 - 15000 - 50000, category: 'admin_credit', category_label: 'افزایش موجودی توسط ادمین', description: 'افزایش موجودی توسط ادمین', order_id: null, created_at: NOW_STR(-9) },

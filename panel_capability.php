@@ -166,7 +166,7 @@ function rx_cap_sample_usernames($panelName, $limit = 3)
 
 function rx_cap_no_sample_user(array &$report)
 {
-    $note = 'هیچ سرویس فعالی از این پنل در ربات ثبت نشده؛ کاربر موجودی برای تست فقط‌خواندنی پیدا نشد.';
+    $note = 'هیچ اشتراک فعالی از این پنل در ربات ثبت نشده؛ کاربر موجودی برای تست فقط‌خواندنی پیدا نشد.';
     rx_cap_set($report, 'read_user', 'not_tested', $note);
     rx_cap_set($report, 'configs', 'not_tested', $note);
 }

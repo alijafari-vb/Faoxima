@@ -45,7 +45,7 @@ function nm_sendInfoCardsForServiceList($from_id, array $services)
         $note = isset($row['note']) && $row['note'] !== '' ? ' | ' . $row['note'] : '';
         $caption = '✨ <b>' . htmlspecialchars((string)$row['username'], ENT_QUOTES, 'UTF-8') . '</b>'
             . htmlspecialchars($note, ENT_QUOTES, 'UTF-8');
-        $__kbButtons = [['text' => '🔧 مدیریت سرویس', 'callback_data' => 'product_' . $row['id_invoice']]];
+        $__kbButtons = [['text' => '🔧 مدیریت اشتراک', 'callback_data' => 'product_' . $row['id_invoice']]];
         if (!function_exists('isQrDisabled') || !isQrDisabled()) {
             $__kbButtons[] = ['text' => faoxima_textbot_get('dyn_purchase_qr_code_btn', '📷 دریافت QR Code'), 'callback_data' => 'infocard_qr_' . $row['id_invoice']];
         }

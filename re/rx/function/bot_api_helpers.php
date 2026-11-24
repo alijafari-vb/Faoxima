@@ -292,9 +292,9 @@ function rx_section_media_sections()
     return [
         'start' => '🚀 استارت (/start)',
         'buy' => '🔐 خرید اشتراک',
-        'extend' => '♻️ تمدید سرویس',
+        'extend' => '♻️ تمدید اشتراک',
         'test' => '🔑 اکانت تست',
-        'services' => '🛍 سرویس‌های من',
+        'services' => '🛍 اشتراک‌های من',
         'wallet' => '🏦 کیف پول + شارژ',
         'support' => '📞 پشتیبانی',
         'tariff' => '💵 تعرفه اشتراک',
@@ -1638,6 +1638,33 @@ function publickey()
         'msg' => 'Libsodium not available'
     ];
 }
+function rxSubscriptionCopy(string $text): string
+{
+    if (!str_contains($text, 'سرویس')) {
+        return $text;
+    }
+    $text = strtr($text, [
+        'نام کاربری سرویس' => 'نام اشتراک',
+        'یوزرنیم سرویس' => 'نام اشتراک',
+        'شناسهٔ سرویس' => 'شناسهٔ اشتراک',
+        'شناسه سرویس' => 'شناسهٔ اشتراک',
+    ]);
+    return preg_replace(
+        ['~سرویس[ ‌]*ها[ ‌]*ی(?=[\W‌]|$)~u', '~سرویس[ ‌]*ها~u', '~سرویس(?![ ‌]*(?:دهنده|دهی))~u'],
+        ['اشتراک‌های', 'اشتراک‌ها', 'اشتراک'],
+        $text
+    ) ?? $text;
+}
+
+function rxSubscriptionTemplate(string $key, string $text): string
+{
+    // These values are also stored as product identifiers in invoices.
+    if (in_array($key, ['dyn_testaccount_product_name', 'dyn_renewconfirm_custom_service_name', 'jsontext.users.customsellvolume.title'], true)) {
+        return $text;
+    }
+    return rxSubscriptionCopy($text);
+}
+
 function languagechange($path_dir)
 {
 
@@ -1724,6 +1751,12 @@ function languagechange($path_dir)
                     if (strpos($rx_overlay_id, 'jsontext.') !== 0) {
                         continue;
                     }
+                    $rx_overlay_text = rxSubscriptionTemplate($rx_overlay_id, (string) ($rx_overlay_row['text'] ?? ''));
+                    if (in_array($rx_overlay_id, ['jsontext.users.search.usernamgeget', 'jsontext.Admin.order.vieworderusername'], true)
+                        && (stripos($rx_overlay_text, 'uuid') !== false || !str_contains($rx_overlay_text, 'نام اشتراک')
+                            || !str_contains($rx_overlay_text, 'شناسهٔ اشتراک') || !str_contains($rx_overlay_text, 'لینک اشتراک'))) {
+                        continue;
+                    }
                     $rx_overlay_path = substr($rx_overlay_id, strlen('jsontext.'));
                     if ($rx_overlay_path === '') {
                         continue;
@@ -1735,7 +1768,7 @@ function languagechange($path_dir)
                             continue 2;
                         }
                         if ($rx_overlay_i === count($rx_overlay_segments) - 1) {
-                            $rx_overlay_cursor[$rx_overlay_seg] = (string) ($rx_overlay_row['text'] ?? '');
+                            $rx_overlay_cursor[$rx_overlay_seg] = $rx_overlay_text;
                         } else {
                             if (!isset($rx_overlay_cursor[$rx_overlay_seg]) || !is_array($rx_overlay_cursor[$rx_overlay_seg])) {
                                 $rx_overlay_cursor[$rx_overlay_seg] = [];
@@ -1775,10 +1808,10 @@ function faoxima_textbot_get($id_text, $fallback = '')
         return $fallback;
     }
     if (is_string($rx_tb_row)) {
-        return $rx_tb_row !== '' ? $rx_tb_row : $fallback;
+        return $rx_tb_row !== '' ? rxSubscriptionTemplate($id_text, $rx_tb_row) : $fallback;
     }
     if (is_array($rx_tb_row) && isset($rx_tb_row['text']) && is_string($rx_tb_row['text']) && $rx_tb_row['text'] !== '') {
-        return $rx_tb_row['text'];
+        return rxSubscriptionTemplate($id_text, $rx_tb_row['text']);
     }
     return $fallback;
 }
@@ -1815,7 +1848,7 @@ function faoxima_public_purchase_log_event(string $eventKey, array $vars, ?array
     $configEvents = ['new_sub' => true, 'renewal' => true];
     $eventTpl = [
         'new_sub'       => ['✅ گزارش خرید #سفارش_جدید', 'dyn_public_broadcast_new_sub_tpl'],
-        'renewal'       => ['✅ گزارش تمدید #تمدید_سرویس', 'dyn_public_broadcast_renewal_tpl'],
+        'renewal'       => ['✅ گزارش تمدید #تمدید_اشتراک', 'dyn_public_broadcast_renewal_tpl'],
         'volume_topup'  => ['✅ گزارش خرید #خرید_حجم', 'dyn_public_broadcast_volume_topup_tpl'],
         'time_extra'    => ['✅ گزارش خرید #خرید_زمان', 'dyn_public_broadcast_time_extra_tpl'],
         'wallet_deposit'=> ['✅ گزارش تراکنش #شارژ_کیف_پول', 'dyn_public_broadcast_wallet_deposit_tpl'],
@@ -1829,7 +1862,7 @@ function faoxima_public_purchase_log_event(string $eventKey, array $vars, ?array
     [$titleFallback, $tplKey] = $eventTpl[$eventKey];
     $footer = "📅 : {date} - ⏰ : {time}";
     $fallbackTpl = isset($configEvents[$eventKey])
-        ? "{$titleFallback}\n\n<blockquote>👤 آیدی کاربر : {user_id}</blockquote>\n<blockquote>🖥️ پنل : {panel_name}</blockquote>\n<blockquote>🏷️ دسته‌بندی : {category}</blockquote>\n<blockquote>📦 سرویس : {amount}</blockquote>\n<blockquote>💰 مبلغ پرداختی : {price} تومان</blockquote>\n\n{$footer}"
+        ? "{$titleFallback}\n\n<blockquote>👤 آیدی کاربر : {user_id}</blockquote>\n<blockquote>🖥️ پنل : {panel_name}</blockquote>\n<blockquote>🏷️ دسته‌بندی : {category}</blockquote>\n<blockquote>📦 اشتراک : {amount}</blockquote>\n<blockquote>💰 مبلغ پرداختی : {price} تومان</blockquote>\n\n{$footer}"
         : "{$titleFallback}\n\n<blockquote>👤 آیدی کاربر : {user_id}</blockquote>\n<blockquote>📦 مقدار : {amount}</blockquote>\n<blockquote>💰 مبلغ پرداختی : {price} تومان</blockquote>\n\n{$footer}";
     $vars['user_id'] = faoxima_mask_user_id($vars['user_id'] ?? '');
     $now = time();

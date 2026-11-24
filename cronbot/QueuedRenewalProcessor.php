@@ -65,14 +65,14 @@ foreach ($queuedRows as $row) {
     $rxQrAdminSource = ($rxQrFulfillment['source'] ?? '') === 'admin';
     $rxQrNotifyCustomer = !$rxQrAdminSource || ($rxQrFulfillment['notify_customer'] ?? true) !== false;
     $diagnostic = "<blockquote>شناسه رزرو : <code>{$row['id']}</code></blockquote>\n"
-        . "<blockquote>نام کاربری سرویس : <code>" . $rxQrEsc($row['username']) . "</code></blockquote>\n"
+        . "<blockquote>نام اشتراک : <code>" . $rxQrEsc($row['username']) . "</code></blockquote>\n"
         . "<blockquote>نام پنل : " . $rxQrEsc($row['name_panel']) . "</blockquote>\n"
         . "<blockquote>زمان فعال‌سازی : " . $rxQrEsc(rxReservationTriggerLabel((string) ($row['trigger_type'] ?? 'either'), $row['trigger_at'] ?? null, rxReservationRowConditions($row))) . "</blockquote>\n"
         . "<blockquote>سیاست اجرا : " . $rxQrEsc(rxRenewalPolicyLabel((string) ($row['policy'] ?? 'reset_all'), !empty($row['reset_usage']))) . "</blockquote>\n"
         . "<blockquote>تلاش : " . (int) ($fresh['attempt_count'] ?? 0) . "</blockquote>";
 
     if ($status === 'applied') {
-        $message = faoxima_render_text(faoxima_textbot_get('dyn_queued_renewal_activated_tpl', "با سلام خدمت شما کاربر گرامی 👋\n✅ رزرو اشتراک سرویس {username} فعال شد و حجم و زمان سرویس شما تمدید گردید."), [
+        $message = faoxima_render_text(faoxima_textbot_get('dyn_queued_renewal_activated_tpl', "با سلام خدمت شما کاربر گرامی 👋\n✅ رزرو اشتراک اشتراک {username} فعال شد و حجم و زمان اشتراک شما تمدید گردید."), [
             'username' => $row['username'],
         ]);
         if ($rxQrAdminSource) {
@@ -102,7 +102,7 @@ foreach ($queuedRows as $row) {
     $title = $status === 'reconciling'
         ? "⚠️ نتیجه فعال‌سازی رزرو اشتراک نامشخص است و به‌صورت خودکار بررسی می‌شود"
         : ($reasonCode === 'admin_blocked'
-            ? "⛔️ رزرو اشتراک به دلیل غیرفعال بودن سرویس توسط مدیر اجرا نشد (تا رفع محدودیت منتظر می‌ماند)"
+            ? "⛔️ رزرو اشتراک به دلیل غیرفعال بودن اشتراک توسط مدیر اجرا نشد (تا رفع محدودیت منتظر می‌ماند)"
             : "⚠️ خطای موقت فعال‌سازی رزرو اشتراک؛ تلاش مجدد خودکار");
     $rxQrReport($title . "\n\n" . $diagnostic . "\n<blockquote>دلیل : " . $rxQrEsc($outcome['reason'] ?? '') . "</blockquote>");
 }
@@ -120,7 +120,7 @@ if (!(function_exists('rx_cron_time_up') && rx_cron_time_up()) && (int) $w === 0
                 }
                 sendmessage($invoice['id_user'], $rxQrReconciledText, null, 'HTML', $invoice['bottype'] ?? null);
             }
-            $rxQrReport("✅ تمدید نامشخص پس از بررسی خودکار تأیید شد\n\n<blockquote>شناسه عملیات : <code>" . $rxQrEsc($op['op_id'] ?? '') . "</code></blockquote>\n<blockquote>نام کاربری سرویس : <code>" . $rxQrEsc($op['username'] ?? '') . "</code></blockquote>\n<blockquote>نام پنل : " . $rxQrEsc($op['name_panel'] ?? '') . "</blockquote>");
+            $rxQrReport("✅ تمدید نامشخص پس از بررسی خودکار تأیید شد\n\n<blockquote>شناسه عملیات : <code>" . $rxQrEsc($op['op_id'] ?? '') . "</code></blockquote>\n<blockquote>نام اشتراک : <code>" . $rxQrEsc($op['username'] ?? '') . "</code></blockquote>\n<blockquote>نام پنل : " . $rxQrEsc($op['name_panel'] ?? '') . "</blockquote>");
         }
     }
 }

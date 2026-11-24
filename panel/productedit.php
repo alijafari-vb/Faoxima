@@ -264,7 +264,7 @@ if ($product == false) {
                     <div class="form-group">
                         <label class="form-label">محدودیت IP</label>
                         <input type="number" name="ip_limit" id="edit_product_ip_limit" class="form-control" min="0" max="50" step="1" value="<?php echo htmlspecialchars((string)($product['ip_limit'] ?? '0'), ENT_QUOTES, 'UTF-8'); ?>">
-                        <small style="color:var(--text-muted)" id="edit_product_ip_limit_hint">مقدار ۰ به معنی بدون محدودیت است. تغییر این مقدار فقط روی خریدهای بعدی اعمال می‌شود و سرویس‌های فعال فعلی را تغییر نمی‌دهد.</small>
+                        <small style="color:var(--text-muted)" id="edit_product_ip_limit_hint">مقدار ۰ به معنی بدون محدودیت است. تغییر این مقدار فقط روی خریدهای بعدی اعمال می‌شود و اشتراک‌های فعال فعلی را تغییر نمی‌دهد.</small>
                     </div>
 
                     <div class="form-group">

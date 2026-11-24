@@ -176,8 +176,8 @@ $rxStatusOptions = [
 $rxStatus = fx_status_filter_current();
 $rxAf = fx_amount_filter_resolve();
 $rxTypeOptions = [
-    'getconfigafterpay'  => 'خرید سرویس',
-    'getextenduser'      => 'تمدید سرویس',
+    'getconfigafterpay'  => 'خرید اشتراک',
+    'getextenduser'      => 'تمدید اشتراک',
     'getextravolumeuser' => 'افزایش حجم',
     'getextratimeuser'   => 'افزایش زمان',
     'wallet'             => 'شارژ کیف پول',
@@ -360,8 +360,8 @@ $rxKeepQsString = http_build_query(array_filter($rxKeepQsArr, function ($v) { re
                             $meta = $rxStatusMeta[$st] ?? ['label' => $st, 'class' => 'badge-gray'];
                             $typeRaw = explode('|', (string) $row['id_invoice']);
                             $typeLabels = [
-                                'getconfigafterpay' => 'خرید سرویس',
-                                'getextenduser' => 'تمدید سرویس',
+                                'getconfigafterpay' => 'خرید اشتراک',
+                                'getextenduser' => 'تمدید اشتراک',
                                 'getextravolumeuser' => 'افزایش حجم',
                                 'getextratimeuser' => 'افزایش زمان',
                             ];

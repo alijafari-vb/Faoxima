@@ -34,12 +34,12 @@ if (isset($update["inline_query"])) {
 🛒 شماره سفارش  :  {$OrderUser['id_invoice']}
 🛒  وضعیت سفارش در ربات : {$OrderUser['Status']}
 🙍‍♂️ شناسه کاربر : {$OrderUser['id_user']}
-👤 نام کاربری اشتراک :  {$OrderUser['username']}
-📍 موقعیت سرویس :  {$OrderUser['Service_location']}
+👤 نام اشتراک :  {$OrderUser['username']}
+📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
 🛍 نام محصول :  {$OrderUser['name_product']}
-💰 قیمت پرداختی سرویس : {$rxFmtOrderUserPrice} تومان
-⚜️ حجم سرویس خریداری شده : {$OrderUser['Volume']}
-⏳ زمان سرویس خریداری شده : {$OrderUser['Service_time']}
+💰 قیمت پرداختی اشتراک : {$rxFmtOrderUserPrice} تومان
+⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
+⏳ زمان اشتراک خریداری شده : {$OrderUser['Service_time']}
 📆 تاریخ خرید : $datatime
 "
             ]
@@ -63,7 +63,7 @@ if (isset($update["inline_query"])) {
     ];
     $keyboardlists['inline_keyboard'][] = [
         ['text' => "عملیات", 'callback_data' => "action"],
-        ['text' => "وضعیت سرویس", 'callback_data' => "Status"],
+        ['text' => "وضعیت اشتراک", 'callback_data' => "Status"],
         ['text' => "نام کاربری", 'callback_data' => "username"],
     ];
     foreach (ServiceSearch::addPanelIds($pdo, $result->fetch_all(MYSQLI_ASSOC)) as $row) {
@@ -118,7 +118,7 @@ if (isset($update["inline_query"])) {
     ];
     $keyboardlists['inline_keyboard'][] = [
         ['text' => "عملیات", 'callback_data' => "action"],
-        ['text' => "وضعیت سرویس", 'callback_data' => "Status"],
+        ['text' => "وضعیت اشتراک", 'callback_data' => "Status"],
         ['text' => "نام کاربری", 'callback_data' => "username"],
     ];
     foreach (ServiceSearch::addPanelIds($pdo, $result->fetch_all(MYSQLI_ASSOC)) as $row) {
@@ -173,7 +173,7 @@ if (isset($update["inline_query"])) {
     ];
     $keyboardlists['inline_keyboard'][] = [
         ['text' => "عملیات", 'callback_data' => "action"],
-        ['text' => "وضعیت سرویس", 'callback_data' => "Status"],
+        ['text' => "وضعیت اشتراک", 'callback_data' => "Status"],
         ['text' => "نام کاربری", 'callback_data' => "username"],
     ];
     foreach (ServiceSearch::addPanelIds($pdo, $result->fetch_all(MYSQLI_ASSOC)) as $row) {
@@ -350,9 +350,9 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         ]
     ], JSON_UNESCAPED_UNICODE);
     if (function_exists('Editmessagetext') && isset($message_id)) {
-        Editmessagetext($from_id, $message_id, "🎨 رنگ کارت مشخصات سرویس را انتخاب کنید:", $colorKeyboard);
+        Editmessagetext($from_id, $message_id, "🎨 رنگ کارت مشخصات اشتراک را انتخاب کنید:", $colorKeyboard);
     } else {
-        nm_adminInstantReply($from_id, "🎨 رنگ کارت مشخصات سرویس را انتخاب کنید:", $colorKeyboard, 'HTML');
+        nm_adminInstantReply($from_id, "🎨 رنگ کارت مشخصات اشتراک را انتخاب کنید:", $colorKeyboard, 'HTML');
     }
 } elseif (preg_match('/^infocard_setcolor_(yellow|green|red|blue|purple|orange)$/', $datain ?? '', $colorMatch) && $adminrulecheck['rule'] == "administrator") {
     $newColor = $colorMatch[1];
@@ -400,7 +400,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         ]
     ], JSON_UNESCAPED_UNICODE);
     if (function_exists('Editmessagetext') && isset($message_id)) {
-        Editmessagetext($from_id, $message_id, "🎨 رنگ کارت مشخصات سرویس را انتخاب کنید:", $colorKeyboard);
+        Editmessagetext($from_id, $message_id, "🎨 رنگ کارت مشخصات اشتراک را انتخاب کنید:", $colorKeyboard);
     }
 } elseif ($text == "⚙️ وضعیت قابلیت ها پنل" && $adminrulecheck['rule'] == "administrator") {
     $panel = select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select");
@@ -956,7 +956,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     update("PaySetting", "ValuePay", $text, "NamePay", "chashbackstar");
 } elseif ($text == "🔋 قیمت سریع حجم") {
     nm_adminInstantReply($from_id, "📌 قبل ارسال اطلاعات متن زیر را مطالعه فرمایید .
-۱ - این قابلیت برای سرویس دلخواه می باشد.
+۱ - این قابلیت برای اشتراک دلخواه می باشد.
 ۲ - در صورتی که تمامی پنل های شما یک قیمت هستند و بجای تنظیم تک تک قیمت ها می توانید با استفاده از این قابلیت بصورت یکجا قیمت ها را تنظیم نمایید.
 ۳ - با تنظیم قیمت در این بخش قابل بازگشت نیست.
 
@@ -995,7 +995,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     step("home", $from_id);
 } elseif ($text == "⏳ قیمت سریع زمان") {
     nm_adminInstantReply($from_id, "📌 قبل ارسال اطلاعات متن زیر را مطالعه فرمایید .
-۱ - این قابلیت برای سرویس دلخواه می باشد.
+۱ - این قابلیت برای اشتراک دلخواه می باشد.
 ۲ - در صورتی که تمامی پنل های شما یک قیمت هستند و بجای تنظیم تک تک قیمت ها می توانید با استفاده از این قابلیت بصورت یکجا قیمت ها را تنظیم نمایید.
 ۳ - با تنظیم قیمت در این بخش قابل بازگشت نیست.
 
@@ -1207,7 +1207,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
         nm_adminInstantReply($from_id, "❌ سیستم ارسال هدیه درحال انجام عملیات است پس از پایان و اطلاع رسانی  می توانید پیام جدید را ارسال نمایید.", $keyboardadmin, 'HTML');
         return;
     }
-    nm_adminInstantReply($from_id, "📌 برای سرویس های کدام پنل میخواهید حجم یا زمان هدیه دهید؟", $json_list_marzban_panel, "html");
+    nm_adminInstantReply($from_id, "📌 برای اشتراک‌های کدام پنل میخواهید حجم یا زمان هدیه دهید؟", $json_list_marzban_panel, "html");
     step("getpanelgift", $from_id);
 } elseif ($user['step'] == "getpanelgift") {
     if (!isset($update['message']) && empty($text)) { return; }
@@ -1232,9 +1232,9 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     savedata("save", "typegift", $typegift);
     deletemessage($from_id, $message_id);
     if ($typegift == "volume") {
-        nm_adminInstantReply($from_id, "📌 چند گیگ حجم می خواهید به سرویس های کاربر اضافه شود", $backadmin, "html");
+        nm_adminInstantReply($from_id, "📌 چند گیگ حجم می خواهید به اشتراک‌های کاربر اضافه شود", $backadmin, "html");
     } else {
-        nm_adminInstantReply($from_id, "📌 چند روز می خواهید به سرویس های کاربران اضافه شود", $backadmin, "html");
+        nm_adminInstantReply($from_id, "📌 چند روز می خواهید به اشتراک‌های کاربران اضافه شود", $backadmin, "html");
     }
     step("getvaluegift", $from_id);
 } elseif ($user['step'] == "getvaluegift") {
@@ -1385,7 +1385,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
     $nameloc = select("invoice", "*", "id_invoice", $id_invoice, "select");
     $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
     if ($DataUserOut['status'] == "on_hold") {
-        nm_adminInstantReply($from_id, "❌ هنوز به کانفیگ متصل نشده است کانفیگ و امکان تغییر وضعیت سرویس وجود ندارد. بعد از متصل شدن به کانفیگ می توانید از این قابلیت استفاده نمایید.", null, 'html');
+        nm_adminInstantReply($from_id, "❌ هنوز به کانفیگ متصل نشده است کانفیگ و امکان تغییر وضعیت اشتراک وجود ندارد. بعد از متصل شدن به کانفیگ می توانید از این قابلیت استفاده نمایید.", null, 'html');
         return;
     }
     if ($DataUserOut['status'] == "Unsuccessful") {
@@ -1404,7 +1404,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ]
         ]);
         Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.
-⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت سرویس دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت اشتراک دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
     } else {
         $confirmdisableaccount = json_encode([
             'inline_keyboard' => [
@@ -1417,7 +1417,7 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ]
         ]);
         Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید
-⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت سرویس دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت اشتراک دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
     }
 } elseif (preg_match('/confirmaccountdisableadmin_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
@@ -1455,23 +1455,23 @@ if ($datain == "settimecornday" && $adminrulecheck['rule'] == "administrator") {
             ]
         ]
     ]);
-    Editmessagetext($from_id, $message_id, "📌 با تایید بر روی گزینه زیر این سرویس بطور کامل از دیتابیس ربات حذف خواهد شد و دیگرجزء آمار حساب نخواهد شد ( این بخش سرویس را از پنل حذف نمی کند و فقط از دیتابیس ربات حذف می کند)", $bakinfos);
+    Editmessagetext($from_id, $message_id, "📌 با تایید بر روی گزینه زیر این اشتراک بطور کامل از دیتابیس ربات حذف خواهد شد و دیگرجزء آمار حساب نخواهد شد ( این بخش اشتراک را از پنل حذف نمی کند و فقط از دیتابیس ربات حذف می کند)", $bakinfos);
 } elseif (preg_match('/confirmremovefulls-(.*)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
     $invocie = select("invoice", "*", "id_invoice", $id_invoice, "select");
     $stmt = $pdo->prepare("DELETE FROM invoice WHERE id_invoice = :id_invoice");
     $stmt->bindParam(':id_invoice', $id_invoice, PDO::PARAM_STR);
     $stmt->execute();
-    Editmessagetext($from_id, $message_id, "✅ سرویس با موفقیت حذف گردید.", json_encode(['inline_keyboard' => []]));
+    Editmessagetext($from_id, $message_id, "✅ اشتراک با موفقیت حذف گردید.", json_encode(['inline_keyboard' => []]));
     if (strlen($setting['Channel_Report']) > 0) {
         telegram('sendmessage', [
             'chat_id' => $setting['Channel_Report'],
             'message_thread_id' => $otherreport,
-            'text' => "🔗 یک ادمین یک سرویس را از دیتابیس ربات حذف کرد.
+            'text' => "🔗 یک ادمین یک اشتراک را از دیتابیس ربات حذف کرد.
 
 - آیدی عددی ادمین :‌$from_id
 - نام ادمین : $first_name
-- نام کاربری سرویس :‌ {$invocie['username']}",
+- نام اشتراک :‌ {$invocie['username']}",
             'parse_mode' => "HTML"
         ]);
     }

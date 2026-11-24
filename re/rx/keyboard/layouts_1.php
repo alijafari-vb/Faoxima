@@ -156,7 +156,7 @@ if ($table_exists) {
     }
     foreach ($data_text_bot as $item) {
         if (array_key_exists($item['id_text'], $datatextbot) || (is_string($item['text']) && trim($item['text']) !== '')) {
-            $datatextbot[$item['id_text']] = $item['text'];
+            $datatextbot[$item['id_text']] = rxSubscriptionTemplate((string) $item['id_text'], (string) $item['text']);
         }
     }
 }

@@ -56,7 +56,7 @@ $info = json_decode(file_get_contents($giftFile),true);
 if(count($userid) == 0){
     if(isset($info['id_admin'])){
     deletemessage($info['id_admin'], $info['id_message']);
-    sendmessage($info['id_admin'], faoxima_textbot_get('dyn_gift_all_done', '📌 عملیات برای تمامی سرویس های درخواستی انجام شد.'), null, 'HTML');
+    sendmessage($info['id_admin'], faoxima_textbot_get('dyn_gift_all_done', '📌 عملیات برای تمامی اشتراک‌های درخواستی انجام شد.'), null, 'HTML');
     unlink($giftFile);
     unlink($queueFile);
     @unlink($notifiedFile);
@@ -146,7 +146,7 @@ while (!empty($userid) && $processed < $batchSize) {
         if ($extra_volume['status'] == false) {
             $hadPersistentError = true;
             $extra_volume['msg'] = rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
-            $textreports = faoxima_render_text(faoxima_textbot_get('dyn_gift_error_report_tpl', "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+            $textreports = faoxima_render_text(faoxima_textbot_get('dyn_gift_error_report_tpl', "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                 'panel_name' => $marzban_list_get['name_panel'],
                 'username' => $iduser->username,
                 'reason' => $extra_volume['msg'],
@@ -187,7 +187,7 @@ while (!empty($userid) && $processed < $batchSize) {
         if ($extra_time['status'] == false) {
             $hadPersistentError = true;
             $extra_time['msg'] = rx_panel_error_text($extra_time['msg'] ?? null, $extra_time['detail'] ?? null);
-            $textreports = faoxima_render_text(faoxima_textbot_get('dyn_gift_error_report_tpl', "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+            $textreports = faoxima_render_text(faoxima_textbot_get('dyn_gift_error_report_tpl', "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                 'panel_name' => $marzban_list_get['name_panel'],
                 'username' => $iduser->username,
                 'reason' => $extra_time['msg'],
@@ -236,7 +236,7 @@ while (!empty($userid) && $processed < $batchSize) {
 if (empty($userid)) {
     if(isset($info['id_admin'])){
     deletemessage($info['id_admin'], $info['id_message']);
-    $successText = faoxima_textbot_get('dyn_gift_all_done', '📌 عملیات برای تمامی سرویس های درخواستی انجام شد.');
+    $successText = faoxima_textbot_get('dyn_gift_all_done', '📌 عملیات برای تمامی اشتراک‌های درخواستی انجام شد.');
     if (!empty($failedUsers)) {
         $failedList = implode("\n", $failedUsers);
         $successText .= faoxima_render_text(faoxima_textbot_get('dyn_gift_failed_users_suffix_tpl', "\n⚠️ کاربران با خطای اعمال هدیه:\n{list}"), ['list' => $failedList]);

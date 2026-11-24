@@ -1311,7 +1311,7 @@ if (!function_exists('rxRenewalOpReconcileOne')) {
             }
             if ($class === 'ambiguous') {
                 rx_rn_op_update($opId, ['state' => 'manual_review', 'last_error' => 'panel_state_ambiguous']);
-                rx_pf_alert_admin('renewal:' . $opId, 'وضعیت سرویس پس از تمدید نامشخص است و بررسی دستی لازم است', ['username' => (string) $op['username']]);
+                rx_pf_alert_admin('renewal:' . $opId, 'وضعیت اشتراک پس از تمدید نامشخص است و بررسی دستی لازم است', ['username' => (string) $op['username']]);
                 return ['op_id' => $opId, 'outcome' => 'manual_review', 'reason' => 'panel_state_ambiguous', 'op' => $op];
             }
             if ($class === 'target') {

@@ -156,8 +156,8 @@ if (!function_exists('rx_sbv_invoice_label')) {
         $head = $parts[0] ?? '';
         $target = explode('%', (string) ($parts[1] ?? ''), 2)[0];
         $map = [
-            'getconfigafterpay' => 'خرید سرویس',
-            'getextenduser' => 'تمدید سرویس',
+            'getconfigafterpay' => 'خرید اشتراک',
+            'getextenduser' => 'تمدید اشتراک',
             'getextravolumeuser' => 'خرید حجم اضافه',
             'getextratimeuser' => 'خرید زمان اضافه',
         ];

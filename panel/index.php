@@ -237,11 +237,11 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'search') {
         $items = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $title = (string)($r['username'] ?? '');
-            if ($title === '') $title = 'سرویس #' . (string)$r['id'];
+            if ($title === '') $title = 'اشتراک #' . (string)$r['id'];
             $sub = 'کاربر ' . (string)$r['id_user'];
             $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'service.php?q=' . urlencode($q)];
         }
-        if ($items) $groups[] = ['type' => 'services', 'label' => 'سرویس‌ها', 'icon' => icon('server', 'svg-icon'), 'items' => $items];
+        if ($items) $groups[] = ['type' => 'services', 'label' => 'اشتراک‌ها', 'icon' => icon('server', 'svg-icon'), 'items' => $items];
     } catch (\Throwable $e) { error_log('[search] services: ' . $e->getMessage()); }
     try {
         $st = $pdo->prepare("SELECT id, id_user, id_order, id_invoice, price FROM Payment_report WHERE id_user LIKE ? OR id_order LIKE ? OR id_invoice LIKE ? ORDER BY id DESC LIMIT 6");

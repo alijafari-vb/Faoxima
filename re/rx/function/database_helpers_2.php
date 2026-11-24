@@ -1194,7 +1194,7 @@ function tronadoNormalizeOrderTokenResponse($decoded)
     // A rejected GetOrderToken comes back as
     //   {"IsSuccessful":false,"Code":-31,"Message":"Please specify your Tron Wallet Address.","Data":null}
     // Data is null there, so isset() skips the branch above and the reason was dropped: the
-    // seller only ever saw the generic "پاسخ نامعتبر از سرویس ترونادو" with nothing to act on.
+    // seller only ever saw the generic "پاسخ نامعتبر از درگاه ترونادو" with nothing to act on.
     if (!array_key_exists('ErrorMessage', $decoded)
         && isset($decoded['Message'])
         && trim((string) $decoded['Message']) !== '') {
@@ -1391,7 +1391,7 @@ function trnado($order_id, $price)
     $decodedResponse = tronadoNormalizeOrderTokenResponse($rawDecodedResponse);
 
     if (!is_array($decodedResponse) || !array_key_exists('Token', $decodedResponse) || trim((string) $decodedResponse['Token']) === '') {
-        $errorText = is_array($decodedResponse) ? (string) ($decodedResponse['ErrorMessage'] ?? 'پاسخ نامعتبر از سرویس ترونادو') : 'پاسخ نامعتبر از سرویس ترونادو';
+        $errorText = is_array($decodedResponse) ? (string) ($decodedResponse['ErrorMessage'] ?? 'پاسخ نامعتبر از درگاه ترونادو') : 'پاسخ نامعتبر از درگاه ترونادو';
         if (!tronadoIsValidTronAddress($walletaddress)) {
             // Most often an address saved upper-cased by an older version; Base58 is case sensitive.
             $errorText .= ' | آدرس کیف پول ترونادو ذخیره‌شده معتبر نیست؛ از منوی ترونادو «💼 آدرس کیف پول ترونادو» آن را دوباره ثبت کنید.';
@@ -1893,7 +1893,7 @@ function tonpayCreateInvoice($order_id, $amount, $buyer_chat_id = null)
     $invoiceId = is_array($decoded) && is_scalar($decoded['invoice_id'] ?? null) ? trim((string) $decoded['invoice_id']) : '';
     $invoiceUrl = is_array($decoded) && is_scalar($decoded['invoice_url'] ?? null) ? trim((string) $decoded['invoice_url']) : '';
     if ($invoiceId === '' || $invoiceUrl === '') {
-        $errorPayload = tonpayNormalizeError($decoded, 'پاسخ نامعتبر از سرویس تون‌پی');
+        $errorPayload = tonpayNormalizeError($decoded, 'پاسخ نامعتبر از درگاه تون‌پی');
         error_log('TonPay create invoice failed: ' . json_encode([
             'order_id' => (string) $order_id,
             'status_code' => $errorPayload['status_code'],
@@ -2007,7 +2007,7 @@ function atlaspayCreateOrder($order_id, $amount, $telegramId = null)
     if (!is_array($decoded) || empty($decoded['orderId']) || empty($decoded['customerStartLink'])) {
         $errorPayload = [
             'success' => false,
-            'error' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از سرویس اطلس‌پی') : 'پاسخ نامعتبر از سرویس اطلس‌پی',
+            'error' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از درگاه اطلس‌پی') : 'پاسخ نامعتبر از درگاه اطلس‌پی',
             'raw' => $decoded,
         ];
         error_log('AtlasPay create order failed: ' . json_encode($errorPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -2169,7 +2169,7 @@ function blupalCreateInvoice($order_id, $amountToman)
     if (!is_array($decoded) || empty($decoded['success']) || empty($decoded['invoice_id']) || empty($decoded['payment_link'])) {
         $errorPayload = [
             'success' => false,
-            'error' => is_array($decoded) ? ($decoded['message'] ?? ($decoded['error'] ?? 'پاسخ نامعتبر از سرویس بلوپال')) : 'پاسخ نامعتبر از سرویس بلوپال',
+            'error' => is_array($decoded) ? ($decoded['message'] ?? ($decoded['error'] ?? 'پاسخ نامعتبر از درگاه بلوپال')) : 'پاسخ نامعتبر از درگاه بلوپال',
             'raw' => $decoded,
         ];
         error_log('BluPal create invoice failed: ' . json_encode($errorPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -2328,7 +2328,7 @@ function cubepayCreatePayment($order_id, $amount_toman, $customer_user_id = null
     if (!is_array($decoded) || empty($decoded['success']) || empty($decoded['pay_page_url'])) {
         $errorPayload = [
             'success' => false,
-            'message' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از سرویس کیوب‌پی') : 'پاسخ نامعتبر از سرویس کیوب‌پی',
+            'message' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از درگاه کیوب‌پی') : 'پاسخ نامعتبر از درگاه کیوب‌پی',
             'raw' => $decoded,
         ];
         error_log('CubePay create payment failed: ' . json_encode($errorPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
@@ -2478,7 +2478,7 @@ function varizaCreatePayment($order_id, $amount_toman)
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return [
             'success' => false,
-            'message' => 'خطا در ارتباط با سرویس واریزا',
+            'message' => 'خطا در ارتباط با اشتراک واریزا',
         ];
     }
 
@@ -2490,7 +2490,7 @@ function varizaCreatePayment($order_id, $amount_toman)
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return [
             'success' => false,
-            'message' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از سرویس واریزا') : 'پاسخ نامعتبر از سرویس واریزا',
+            'message' => is_array($decoded) ? ($decoded['message'] ?? 'پاسخ نامعتبر از درگاه واریزا') : 'پاسخ نامعتبر از درگاه واریزا',
             'raw' => $decoded,
         ];
     }
@@ -2501,7 +2501,7 @@ function varizaCreatePayment($order_id, $amount_toman)
         error_log('Variza missing slug/pay_url: ' . json_encode($decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         return [
             'success' => false,
-            'message' => 'پاسخ نامعتبر از سرویس واریزا',
+            'message' => 'پاسخ نامعتبر از درگاه واریزا',
             'raw' => $decoded,
         ];
     }
@@ -2779,13 +2779,13 @@ function rxServiceListLabel(array $invoice): string
     $username = trim((string) ($invoice['username'] ?? ''));
     $label = $username !== '' ? $username : '—';
     $id = ServiceSearch::numericId($invoice['panel_user_id'] ?? null);
-    return $id === null ? $label : $label . ' · شناسهٔ سرویس ' . $id;
+    return $id === null ? $label : $label . ' · شناسهٔ اشتراک ' . $id;
 }
 
 function rxServicePanelIdLine(array $invoice): string
 {
     $id = ServiceSearch::numericId($invoice['panel_user_id'] ?? null);
-    return $id === null ? '' : "\n🪪 شناسهٔ سرویس: <code>{$id}</code>";
+    return $id === null ? '' : "\n🪪 شناسهٔ اشتراک: <code>{$id}</code>";
 }
 
 function rxServiceListButtons(PDO $pdo, array $invoices, string $callbackPrefix, bool $withNote = false): array
@@ -2793,7 +2793,7 @@ function rxServiceListButtons(PDO $pdo, array $invoices, string $callbackPrefix,
     $buttons = [];
     foreach (ServiceSearch::addPanelIds($pdo, $invoices) as $invoice) {
         $label = rxServiceListLabel($invoice);
-        $product = trim((string) ($invoice['name_product'] ?? ''));
+        $product = rxSubscriptionCopy(trim((string) ($invoice['name_product'] ?? '')));
         $note = $withNote ? trim((string) ($invoice['note'] ?? '')) : '';
         foreach ([$product, $note] as $detail) {
             if ($detail !== '' && $detail !== ($invoice['username'] ?? '')) {
@@ -3228,7 +3228,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
             }
             $__setting = function_exists('select') ? select('setting', '*', null, null, 'select') : [];
             $__errReport = function_exists('select') ? (select('topicid', 'idreport', 'report', 'errorreport', 'select')['idreport'] ?? null) : null;
-            $__txt = "⚠️ <b>فاکتور پیدا نشد برای ساخت سرویس</b>\n"
+            $__txt = "⚠️ <b>فاکتور پیدا نشد برای ساخت اشتراک</b>\n"
                    . "<blockquote>🛒 کد سفارش: <code>{$order_id}</code></blockquote>\n"
                    . "<blockquote>👤 کاربر: <code>{$Balance_id['id']}</code></blockquote>\n"
                    . "<blockquote>🔎 username موردنظر: <code>" . htmlspecialchars($__invUsername) . "</code></blockquote>\n"
@@ -3271,7 +3271,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
             }
             $__setting2 = function_exists('select') ? select('setting', '*', null, null, 'select') : [];
             $__errReport2 = function_exists('select') ? (select('topicid', 'idreport', 'report', 'errorreport', 'select')['idreport'] ?? null) : null;
-            $__txt2 = "⚠️ <b>پنل برای ساخت سرویس پیدا نشد</b>\n"
+            $__txt2 = "⚠️ <b>پنل برای ساخت اشتراک پیدا نشد</b>\n"
                     . "<blockquote>🛒 کد سفارش: <code>{$order_id}</code></blockquote>\n"
                     . "<blockquote>👤 کاربر: <code>{$Balance_id['id']}</code></blockquote>\n"
                     . "<blockquote>📍 لوکیشن ذخیره‌شده در فاکتور: <code>" . htmlspecialchars((string)($get_invoice['Service_location'] ?? '')) . "</code></blockquote>\n"
@@ -3290,7 +3290,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
 
         // [idempotent-refund guard] اگر این فاکتور قبلاً refund خورده (نشانه auto-refund تو dec_not_confirmed)،
         // دیگه نباید دوباره کیف پول رو شارژ کنیم — همینجا برمی‌گردیم و فقط لاگ می‌زنیم.
-        // این جلوی double/triple-credit موقع retry گیر کردن سرویس رو می‌گیره.
+        // این جلوی double/triple-credit موقع retry گیر کردن اشتراک رو می‌گیره.
         $__alreadyRefunded = false;
         try {
             $__pr = select("Payment_report", "dec_not_confirmed", "id_order", $order_id, "select");
@@ -3322,7 +3322,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
         // پچ قبلی یک حلقه pre-check با DataUser داشت که باعث می‌شد:
         //   - چندین API call به panel قبل از createUser → کند و گاهی timeout
         //   - اگر createUser قبلی نیمه‌کاره موفق بوده (yوزر ساخته شده ولی bot جواب نگرفته)، DataUser می‌گفت "exists" و یوزرنیم عوض می‌شد
-        //   - هر retry یوزرنیم جدید → چندین یوزر زامبی توی پنل + سرویس نهایی هیچ‌وقت تحویل نشد
+        //   - هر retry یوزرنیم جدید → چندین یوزر زامبی توی پنل + اشتراک نهایی هیچ‌وقت تحویل نشد
         // الان فقط روی duplicate-error واقعی از createUser (در پایین) retry می‌کنیم، که هم سریع‌تر و هم دقیق‌تره.
         // این رفتار همون چیزیه که در wallet-payment موفق عمل می‌کنه.
         $date = strtotime("+" . $get_invoice['Service_time'] . "days");
@@ -3450,19 +3450,19 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
         }
         if ($dataoutput['username'] == null) {
             $dataoutput['msg'] = rx_panel_error_text($dataoutput['msg'] ?? null, $dataoutput['detail'] ?? null);
-            $__refundCu = rx_refund_payment_once($order_id, $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در ساخت سرویس', (string)$get_invoice['id_invoice']);
+            $__refundCu = rx_refund_payment_once($order_id, $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در ساخت اشتراک', (string)$get_invoice['id_invoice']);
             if ($__refundCu === 'duplicate') {
                 return rx_pf_fail($order_id, $rxToken, 'create_failed', $__refundCu);
             }
             // پیام UI fallback اگه textbotlang در دسترس نباشه (مثلاً وقتی از cron صدا زده میشه)
             $__uiErr = isset($textbotlang['users']['sell']['ErrorConfig']) && is_string($textbotlang['users']['sell']['ErrorConfig']) && trim($textbotlang['users']['sell']['ErrorConfig']) !== ''
                 ? $textbotlang['users']['sell']['ErrorConfig']
-                : "❌ متاسفانه ساخت سرویس با خطا مواجه شد. مبلغ پرداختی به کیف پول شما برگشت داده شد.";
+                : "❌ متاسفانه ساخت اشتراک با خطا مواجه شد. مبلغ پرداختی به کیف پول شما برگشت داده شد.";
             if ($__refundCu === 'refunded') {
                 sendmessage($Balance_id['id'], $__uiErr, $keyboard, 'HTML');
-                sendmessage($Balance_id['id'], "💎  کاربر عزیز بدلیل ساخته نشدن سرویس مبلغ " . rxFormatToman($Payment_report['price']) . " تومان به کیف پول شما اضافه گردید.", $keyboard, 'HTML');
+                sendmessage($Balance_id['id'], "💎  کاربر عزیز بدلیل ساخته نشدن اشتراک مبلغ " . rxFormatToman($Payment_report['price']) . " تومان به کیف پول شما اضافه گردید.", $keyboard, 'HTML');
             } else {
-                sendmessage($Balance_id['id'], "❌ ساخت سرویس با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.", $keyboard, 'HTML');
+                sendmessage($Balance_id['id'], "❌ ساخت اشتراک با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.", $keyboard, 'HTML');
             }
             $texterros = "
 ⭕️ خطا در ساخت کانفیگ
@@ -3493,7 +3493,7 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
         // invoice رو active علامت بزن. این جلوی retry بعدی توسط cron رو می‌گیره حتی اگه پیام تلگرام hang کنه.
         $__doneNote = '[service-created at ' . date('Y-m-d H:i:s') . ' username=' . $dataoutput['username'] . ']';
         $rxStatements = array_merge(
-            rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], (int) round($__walletPortion), 'خرید سرویس'),
+            rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], (int) round($__walletPortion), 'خرید اشتراک'),
             [["UPDATE Payment_report SET dec_not_confirmed = CASE WHEN dec_not_confirmed IS NULL OR dec_not_confirmed = '' THEN ? ELSE CONCAT(dec_not_confirmed, ' | ', ?) END WHERE id_order = ?", [$__doneNote, $__doneNote, $order_id]]]
         );
         if (!empty($get_invoice['id_invoice'])) {
@@ -3612,8 +3612,8 @@ function DirectPayment($order_id, $image = 'images.jpg', $rxToken = null)
 $textonebuy
 <blockquote>▫️آیدی عددی کاربر : <code>{$Balance_id['id']}</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@{$Balance_id['username']}</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
-<blockquote>▫️لوکیشن سرویس : {$get_invoice['Service_location']}</blockquote>
+<blockquote>▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️لوکیشن اشتراک : {$get_invoice['Service_location']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$get_invoice['Service_time']} روز</blockquote>
 <blockquote>▫️نام محصول خریداری شده :{$get_invoice['name_product']}</blockquote>
 <blockquote>▫️حجم خریداری شده : {$get_invoice['Volume']} GB</blockquote>
@@ -3653,9 +3653,9 @@ $textonebuy
             update("invoice", "Status", "active", "id_invoice", $get_invoice['id_invoice']);
             $rxFmtBalanceBeforeBuy = rxFormatToman($Balance_id['Balance']);
             $textconfrom = "✅ پرداخت تایید شده
-🛍خرید سرویس
-▫️نام کاربری کانفیگ :" . guardDisplayUsername($username_ac, $marzban_list_get) . "
-▫️لوکیشن سرویس : {$get_invoice['Service_location']}
+🛍خرید اشتراک
+▫️نام اشتراک :" . guardDisplayUsername($username_ac, $marzban_list_get) . "
+▫️لوکیشن اشتراک : {$get_invoice['Service_location']}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}
 ⚜️ نام کاربری: @{$Balance_id['username']}
@@ -3742,7 +3742,7 @@ $textonebuy
                 }
                 return rx_pf_fail($order_id, $rxToken, 'national_stock_empty', $__refundSt);
             }
-            $rxStatements = rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید سرویس');
+            $rxStatements = rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید اشتراک');
             update("invoice", "name_product", $prodcut['name_product'], "id_invoice", $nameloc['id_invoice']);
             update("invoice", "price_product", $prodcut['price_product'], "id_invoice", $nameloc['id_invoice']);
             update("invoice", "Volume", $prodcut['Volume_constraint'], "id_invoice", $nameloc['id_invoice']);
@@ -3752,7 +3752,7 @@ $textonebuy
             update("invoice", "user_info", $stockNew['content'], "id_invoice", $nameloc['id_invoice']);
             try { update("invoice", "source_panel_code", $marzban_list_get['code_panel'], "id_invoice", $nameloc['id_invoice']); } catch (Throwable $e) {}
             $invoiceNew = array_merge((array)$nameloc, ['name_product' => $prodcut['name_product'], 'price_product' => $prodcut['price_product'], 'Volume' => $prodcut['Volume_constraint'], 'Service_time' => $prodcut['Service_time'], 'time_sell' => time(), 'user_info' => $stockNew['content'], 'source_panel_code' => $marzban_list_get['code_panel']]);
-            if (function_exists('nmStockDeliverConfig')) nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد');
+            if (function_exists('nmStockDeliverConfig')) nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد');
             $extend = ['status' => true, 'stock' => true];
         } else {
             $ManagePanel = rxEnsureManagePanel();
@@ -3877,25 +3877,25 @@ $textonebuy
                 $rxAfterState = $rxVerify['after'];
             }
         if ($extend['status'] == false) {
-            $__refundEx = rx_refund_payment_once($Payment_report['id_order'], $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در تمدید سرویس', (string)($nameloc['id_invoice'] ?? ''));
+            $__refundEx = rx_refund_payment_once($Payment_report['id_order'], $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در تمدید اشتراک', (string)($nameloc['id_invoice'] ?? ''));
             if ($__refundEx === 'duplicate') {
                 return rx_pf_fail($order_id, $rxToken, 'renewal_failed', $__refundEx);
             }
             if ($__refundEx === 'refunded') {
                 sendmessage($Balance_id['id'], $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
-                sendmessage($Balance_id['id'], "💎  کاربر عزیز بدلیل تمدید نشدن سرویس مبلغ " . rxFormatToman($Payment_report['price']) . " تومان به کیف پول شما اضافه گردید.", $keyboard, 'HTML');
+                sendmessage($Balance_id['id'], "💎  کاربر عزیز بدلیل تمدید نشدن اشتراک مبلغ " . rxFormatToman($Payment_report['price']) . " تومان به کیف پول شما اضافه گردید.", $keyboard, 'HTML');
             } else {
-                sendmessage($Balance_id['id'], "❌ تمدید سرویس با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.", $keyboard, 'HTML');
+                sendmessage($Balance_id['id'], "❌ تمدید اشتراک با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.", $keyboard, 'HTML');
             }
-            $rxTopupExtendMsg = rxRenewalFailureText($extend, faoxima_textbot_get('dyn_errors_renewal_support_error', "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"));
+            $rxTopupExtendMsg = rxRenewalFailureText($extend, faoxima_textbot_get('dyn_errors_renewal_support_error', "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"));
             if (($extend['code'] ?? '') === 'manual_stock_empty') {
                 $rxTopupExtendMsg = "❌ موجودی انبار برای این محصول تمام شده است.";
             }
             $extend['msg'] = rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
             $textreports = "
-        خطای تمدید سرویس
+        خطای تمدید اشتراک
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>کد پیگیری پرداخت : {$order_id}</blockquote>
 <blockquote>کد خطا : " . htmlspecialchars((string) ($extend['code'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
@@ -3910,7 +3910,7 @@ $textonebuy
             }
             return rx_pf_fail($order_id, $rxToken, 'renewal_failed', $__refundEx);
         }
-            $rxStatements = array_merge($rxStatements, rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید سرویس'));
+            $rxStatements = array_merge($rxStatements, rx_ck_settlement_statements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید اشتراک'));
         }
         $rxCompletion = rx_pf_complete($order_id, $rxToken, ['operation' => 'getextenduser', 'panel' => $extend, 'target' => $rxTargetState ?? null], $rxStatements);
         if ($rxCompletion !== 'completed') {
@@ -3972,7 +3972,7 @@ $textonebuy
             || rx_shopCashbackEligible("chashbackextend", $Balance_id['register'] ?? null, "getextenduser", $Balance_id['id'] ?? null, $Payment_report['id_order'] ?? null);
         if ($renewCashbackEligible && intval($valurcashbackextend) != 0) {
             $result = (int) floor(($prodcut['price_product'] * $valurcashbackextend) / 100);
-            if (rx_cashback_credit_once($Payment_report['id_order'] ?? '', $Balance_id['id'], $result, 'chashbackextend', 'هدیه بازگشت وجه تمدید سرویس') === 'credited') {
+            if (rx_cashback_credit_once($Payment_report['id_order'] ?? '', $Balance_id['id'], $result, 'chashbackextend', 'هدیه بازگشت وجه تمدید اشتراک') === 'credited') {
                 sendmessage($Balance_id['id'], "تبریک 🎉
 📌 به عنوان هدیه تمدید مبلغ " . rxFormatToman($result) . " تومان حساب شما شارژ گردید", null, 'HTML');
             }
@@ -3982,14 +3982,14 @@ $textonebuy
             $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
             $textextend = "$rxQueuedSuccessTpl
 
-▫️نام سرویس : $usernamepanel
+▫️نام اشتراک : $usernamepanel
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
         } else {
-            $textextend = "✅ تمدید برای سرویس شما با موفقیت صورت گرفت
+            $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : $usernamepanel
+▫️نام اشتراک : $usernamepanel
 ▫️نام محصول : {$prodcut['name_product']}
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
@@ -4014,8 +4014,8 @@ $textonebuy
 
 <blockquote>▫️آیدی عددی کاربر : <code>{$Balance_id['id']}</code></blockquote>
 <blockquote>▫️نام کاربری کاربر : @{$Balance_id['username']}</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :$usernamepanel</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$nameloc['Service_location']}</blockquote>
+<blockquote>▫️نام اشتراک :$usernamepanel</blockquote>
+<blockquote>▫️موقعیت اشتراک اشتراک : {$nameloc['Service_location']}</blockquote>
 <blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>
@@ -4046,8 +4046,8 @@ $textonebuy
 
             $rxFmtBalanceBeforeExtend = rxFormatToman($Balance_id['Balance']);
             $textconfrom = "✅ پرداخت تایید شده
-🔋 تمدید سرویس
-🪪 نام کاربری کانفیگ : $usernamepanel
+🔋 تمدید اشتراک
+🪪 نام اشتراک : $usernamepanel
 🛍 نام محصول : {$prodcut['name_product']}
 🌏 نام لوکیشن : {$nameloc['Service_location']}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
@@ -4148,9 +4148,9 @@ $textonebuy
             $extra_volume['msg'] = rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
             $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
-            sendmessage($nameloc['id_user'], faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($nameloc['id_user'], faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if ($__refundVx === 'refunded') {
                 sendmessage($nameloc['id_user'], "💎  کاربر عزیز بدلیل انجام نشدن خرید حجم اضافه مبلغ " . rxFormatToman($Payment_report['price']) . " تومان به کیف پول شما اضافه گردید.", null, 'HTML');
             }
@@ -4200,9 +4200,9 @@ $textonebuy
             $scorenew = $Balance_id['score'] + 1;
             update("user", "score", $scorenew, "id", $Balance_id['id']);
         }
-        $textvolume = "✅ افزایش حجم برای سرویس شما با موفقیت صورت گرفت
+        $textvolume = "✅ افزایش حجم برای اشتراک شما با موفقیت صورت گرفت
  
-▫️نام سرویس  : {$steppay[0]}
+▫️نام اشتراک  : {$steppay[0]}
 ▫️حجم اضافه : $volume گیگ
 
 ▫️مبلغ افزایش حجم : $volumesformat تومان";
@@ -4212,7 +4212,7 @@ $textonebuy
             $textconfrom = "✅ پرداخت تایید شده
 🔋 خرید حجم اضافه
 🛍 حجم خریداری شده  : $volumes گیگ
-👤 نام کاربری کانفیگ {$steppay[0]}
+👤 نام اشتراک {$steppay[0]}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}
 ⚜️ نام کاربری: @{$Balance_id['username']}
@@ -4227,7 +4227,7 @@ $textonebuy
 <blockquote>🪪 آیدی عددی : {$Balance_id['id']}</blockquote>
 <blockquote>🛍 حجم خریداری شده  : $volumes گیگ</blockquote>
 <blockquote>💰 مبلغ پرداختی : " . rxFormatToman($Payment_report['price']) . " تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ {$steppay[0]}</blockquote>
+<blockquote>👤 نام اشتراک {$steppay[0]}</blockquote>
 <blockquote>موجودی کاربر قبل خرید : {$rxFmtBalanceBeforeVolume}</blockquote>";
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
@@ -4337,9 +4337,9 @@ $textonebuy
             $extra_time['msg'] = rx_panel_error_text($extra_time['msg'] ?? null, $extra_time['detail'] ?? null);
             $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_time['msg']}</blockquote>";
-            sendmessage($from_id, faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($from_id, faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],
@@ -4386,9 +4386,9 @@ $textonebuy
             $scorenew = $Balance_id['score'] + 1;
             update("user", "score", $scorenew, "id", $Balance_id['id']);
         }
-        $textextratime = "✅ افزایش زمان برای سرویس شما با موفقیت صورت گرفت
+        $textextratime = "✅ افزایش زمان برای اشتراک شما با موفقیت صورت گرفت
 
-▫️نام سرویس : {$steppay[0]}
+▫️نام اشتراک : {$steppay[0]}
 ▫️زمان اضافه : $tmieextra روز
 
 ▫️مبلغ افزایش زمان : $volumesformat تومان";
@@ -4398,7 +4398,7 @@ $textonebuy
             $textconfrom = "✅ پرداخت تایید شده
 🔋 خرید زمان اضافه
 🛍 زمان خریداری شده  : $volumes روز
-👤 نام کاربری کانفیگ {$steppay[0]}
+👤 نام اشتراک {$steppay[0]}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}
 ⚜️ نام کاربری: @{$Balance_id['username']}
@@ -4413,7 +4413,7 @@ $textonebuy
 <blockquote>🪪 آیدی عددی : {$Balance_id['id']}</blockquote>
 <blockquote>🛍 زمان خریداری شده  : $volumes روز</blockquote>
 <blockquote>💰 مبلغ پرداختی : " . rxFormatToman($Payment_report['price']) . " تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ {$steppay[0]}</blockquote>";
+<blockquote>👤 نام اشتراک {$steppay[0]}</blockquote>";
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],

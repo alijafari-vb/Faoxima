@@ -159,7 +159,7 @@ final class PaymentInitHandler extends BaseHandler
                     [':u' => $renewUsername, ':uid' => $this->user['id']]
                 );
                 if ($serviceExists === 0) {
-                    FaoximaResponse::fail(404, faoxima_textbot_get('dyn_paymentinit_renew_service_not_found', '❌ سرویسی برای تمدید با این نام کاربری پیدا نشد.'));
+                    FaoximaResponse::fail(404, faoxima_textbot_get('dyn_paymentinit_renew_service_not_found', '❌ اشتراکی برای تمدید با این نام کاربری پیدا نشد.'));
                 }
 
                 $tow = (string)($this->user['Processing_value_tow'] ?? '');

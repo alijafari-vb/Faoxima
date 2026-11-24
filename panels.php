@@ -29,7 +29,7 @@ if (!function_exists('rx_panel_http_status_fa')) {
             429 => 'تعداد درخواست‌ها زیاد است؛ پنل موقتاً درخواست‌ها را محدود کرده',
             500 => 'خطای داخلی پنل؛ لاگ پنل را بررسی کنید',
             502 => 'Bad Gateway؛ وب‌سرور/پروکسی جلوی پنل به خود پنل دسترسی ندارد',
-            503 => 'سرویس پنل در دسترس نیست؛ پنل در حال ری‌استارت یا از کار افتاده است',
+            503 => 'اشتراک پنل در دسترس نیست؛ پنل در حال ری‌استارت یا از کار افتاده است',
             504 => 'Gateway Timeout؛ پنل دیر پاسخ داد',
         ];
         if (isset($map[$code])) {
@@ -194,7 +194,7 @@ if (!function_exists('rx_notify_username_renamed')) {
             $old = guardDisplayUsername($old, $panel);
             $new = guardDisplayUsername($new, $panel);
         }
-        $template = "⚠️ نام کاربری «<code>{old}</code>» از قبل روی پنل وجود داشت؛ سرویس شما با نام کاربری «<code>{new}</code>» ساخته شد.";
+        $template = "⚠️ نام کاربری «<code>{old}</code>» از قبل روی پنل وجود داشت؛ اشتراک شما با نام کاربری «<code>{new}</code>» ساخته شد.";
         if (function_exists('faoxima_textbot_get')) {
             $template = faoxima_textbot_get('dyn_username_renamed_notice', $template);
         }

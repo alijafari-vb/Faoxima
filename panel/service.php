@@ -31,11 +31,11 @@ if (!empty($_POST['action']) && $_POST['action'] === 'bulk_delete') {
 $svcQ = trim((string)($_GET['q'] ?? ''));
 $df = fx_date_filter_resolve();
 $svcTypeOptions = [
-    'extend_user'          => 'تمدید سرویس',
+    'extend_user'          => 'تمدید اشتراک',
     'extend_user_by_admin' => 'تمدید توسط ادمین',
     'extra_user'           => 'حجم اضافه',
     'extra_time_user'      => 'زمان اضافه',
-    'transfertouser'       => 'انتقال سرویس',
+    'transfertouser'       => 'انتقال اشتراک',
     'extends_not_user'     => 'تمدید (خارج از لیست)',
     'change_location'      => 'تغییر لوکیشن',
 ];
@@ -133,11 +133,11 @@ $listservices = $query->fetchAll();
                             if (is_numeric($time)) $time = jdate('Y/m/d | H:i', $time);
                             $typeText = 'نامشخص'; $badgeClass = 'badge-gray';
                             switch ($list['type']) {
-                                case 'extend_user':           $typeText='تمدید سرویس';       $badgeClass='badge-success'; break;
+                                case 'extend_user':           $typeText='تمدید اشتراک';       $badgeClass='badge-success'; break;
                                 case 'extend_user_by_admin':  $typeText='تمدید توسط ادمین';   $badgeClass='badge-info';    break;
                                 case 'extra_user':            $typeText='حجم اضافه';         $badgeClass='badge-purple';  break;
                                 case 'extra_time_user':       $typeText='زمان اضافه';        $badgeClass='badge-purple';  break;
-                                case 'transfertouser':        $typeText='انتقال سرویس';      $badgeClass='badge-warning'; break;
+                                case 'transfertouser':        $typeText='انتقال اشتراک';      $badgeClass='badge-warning'; break;
                                 case 'extends_not_user':      $typeText='تمدید (خارج از لیست)'; $badgeClass='badge-gray'; break;
                                 case 'change_location':       $typeText='تغییر لوکیشن';      $badgeClass='badge-cyan';    break;
                                 default:                      $typeText=htmlspecialchars($list['type'], ENT_QUOTES, 'UTF-8');

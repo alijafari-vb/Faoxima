@@ -223,7 +223,7 @@ final class ServiceExtraHandler extends BaseHandler
             if ($balanceCharged) {
                 if (balance_atomic_credit($this->user['id'], $finalPrice)) {
                     if (function_exists('wallet_ledger_record')) {
-                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_serviceextra_refund_note', 'بازگشت وجه به دلیل خطا در سرویس اضافه'), $orderId, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_serviceextra_refund_note', 'بازگشت وجه به دلیل خطا در اشتراک اضافه'), $orderId, 'invoice', (string)($invoice['id_invoice'] ?? ''));
                     }
                 } else {
                     FaoximaLogger::error('refund credit failed', ['user' => $this->user['id'], 'amount' => $finalPrice]);
@@ -233,7 +233,7 @@ final class ServiceExtraHandler extends BaseHandler
                 ? faoxima_textbot_get('dyn_serviceextra_error_title_time', 'خطای خرید زمان اضافه')
                 : faoxima_textbot_get('dyn_serviceextra_error_title_volume', 'خطای خرید حجم اضافه');
             $this->reportError(
-                faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_error_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+                faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_error_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                     'error_title' => $errorTitle,
                     'panel_name' => $panel['name_panel'],
                     'username' => guardDisplayUsername($invoice['username'], $panel),
@@ -332,8 +332,8 @@ final class ServiceExtraHandler extends BaseHandler
         ]);
 
         $msg = $kind === 'time'
-            ? faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_success_time_tpl', '✅ {amount} روز به سرویس شما اضافه شد.'), ['amount' => $amount])
-            : faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_success_volume_tpl', '✅ {amount} گیگابایت به سرویس شما اضافه شد.'), ['amount' => $amount]);
+            ? faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_success_time_tpl', '✅ {amount} روز به اشتراک شما اضافه شد.'), ['amount' => $amount])
+            : faoxima_render_text(faoxima_textbot_get('dyn_serviceextra_success_volume_tpl', '✅ {amount} گیگابایت به اشتراک شما اضافه شد.'), ['amount' => $amount]);
 
         FaoximaResponse::ok([
             'kind'          => 'done',
@@ -388,7 +388,7 @@ final class ServiceExtraHandler extends BaseHandler
 
 
         if ($kind === 'time' && ($invoice['name_product'] ?? '') === 'سرویس تست') {
-            FaoximaResponse::fail(409, faoxima_textbot_get('dyn_serviceextra_test_service_unavailable', '❌ این قابلیت برای سرویس تست در دسترس نیست'));
+            FaoximaResponse::fail(409, faoxima_textbot_get('dyn_serviceextra_test_service_unavailable', '❌ این قابلیت برای اشتراک تست در دسترس نیست'));
         }
 
         $agent = (string)($this->user['agent'] ?? 'f');

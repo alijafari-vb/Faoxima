@@ -281,7 +281,7 @@ final class ServiceRenewConfirmHandler extends BaseHandler
             $newBalance = $charge['new_balance'];
             $balanceCharged = true;
             if (function_exists('wallet_ledger_record')) {
-                wallet_ledger_record($this->user['id'], 'debit', $finalPrice, 'service_action', faoxima_textbot_get('dyn_renewconfirm_ledger_debit_note', 'تمدید سرویس'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                wallet_ledger_record($this->user['id'], 'debit', $finalPrice, 'service_action', faoxima_textbot_get('dyn_renewconfirm_ledger_debit_note', 'تمدید اشتراک'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
             }
         } else {
             $newBalance = $balance;
@@ -344,7 +344,7 @@ final class ServiceRenewConfirmHandler extends BaseHandler
             }
 
             $this->reportSuccess(
-                faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_national_stock_report_tpl', "✅ <b>تمدید سرویس (انبار شبکه‌ملی)</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام کاربری سرویس : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
+                faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_national_stock_report_tpl', "✅ <b>تمدید اشتراک (انبار شبکه‌ملی)</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام اشتراک : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
                     'user_id' => $this->user['id'],
                     'username' => $invoice['username'],
                     'product_name' => $product['name_product'],
@@ -364,7 +364,7 @@ final class ServiceRenewConfirmHandler extends BaseHandler
 
             FaoximaResponse::ok([
                 'kind'          => 'done',
-                'message'       => faoxima_textbot_get('dyn_renewconfirm_national_stock_success', '✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد.'),
+                'message'       => faoxima_textbot_get('dyn_renewconfirm_national_stock_success', '✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد.'),
                 'cashback'      => $cashback,
                 'balance_after' => $newBalance,
                 'product'       => [
@@ -407,13 +407,13 @@ final class ServiceRenewConfirmHandler extends BaseHandler
             if ($balanceCharged) {
                 if (balance_atomic_credit($this->user['id'], $finalPrice)) {
                     if (function_exists('wallet_ledger_record')) {
-                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید سرویس'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید اشتراک'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
                     }
                 } else {
                     FaoximaLogger::error('refund credit failed', ['user' => $this->user['id'], 'amount' => $finalPrice]);
                 }
             }
-            FaoximaResponse::fail(502, faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+            FaoximaResponse::fail(502, faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
         }
 
 
@@ -430,14 +430,14 @@ final class ServiceRenewConfirmHandler extends BaseHandler
             if ($balanceCharged) {
                 if (balance_atomic_credit($this->user['id'], $finalPrice)) {
                     if (function_exists('wallet_ledger_record')) {
-                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید سرویس'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                        wallet_ledger_record($this->user['id'], 'credit', $finalPrice, 'refund', faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید اشتراک'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
                     }
                 } else {
                     FaoximaLogger::error('refund credit failed', ['user' => $this->user['id'], 'amount' => $finalPrice]);
                 }
             }
             $this->reportError(
-                faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_extend_failed_report_tpl', "خطای تمدید سرویس\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+                faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_extend_failed_report_tpl', "خطای تمدید اشتراک\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                     'panel_name' => $panel['name_panel'],
                     'username' => guardDisplayUsername($invoice['username'], $panel),
                     'reason' => $reason,
@@ -449,14 +449,14 @@ final class ServiceRenewConfirmHandler extends BaseHandler
             }
 
             if (is_array($extend) && ($extend['code'] ?? '') === 'queued_renewal_exists') {
-                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_renewconfirm_queued_renewal_exists', '❌ یک رزرو اشتراک برای این سرویس در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.'));
+                FaoximaResponse::fail(409, faoxima_textbot_get('dyn_renewconfirm_queued_renewal_exists', '❌ یک رزرو اشتراک برای این اشتراک در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.'));
             }
 
             if (rxRenewalFailureKnown($extend)) {
                 FaoximaResponse::fail(409, rxRenewalFailureText($extend));
             }
 
-            FaoximaResponse::fail(502, faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+            FaoximaResponse::fail(502, faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
         }
 
         if ($discountCode !== '') {
@@ -550,7 +550,7 @@ final class ServiceRenewConfirmHandler extends BaseHandler
         }
 
         $this->reportSuccess(
-            faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_report_tpl', "✅ <b>تمدید سرویس</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام کاربری سرویس : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
+            faoxima_render_text(faoxima_textbot_get('dyn_renewconfirm_report_tpl', "✅ <b>تمدید اشتراک</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام اشتراک : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
                 'user_id' => $this->user['id'],
                 'username' => guardDisplayUsername($invoice['username'], $panel),
                 'product_name' => $product['name_product'],
@@ -580,7 +580,7 @@ final class ServiceRenewConfirmHandler extends BaseHandler
         if (!empty($extend['queued'])) {
             $renewMessage = (string)($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
         } else {
-            $renewMessage = rxRenewalDecorateSuccess(faoxima_textbot_get('dyn_renewconfirm_success', '✅ سرویس شما با موفقیت تمدید شد.'), $extend, (string)$invoice['username'], (string)($panel['name_panel'] ?? ''));
+            $renewMessage = rxRenewalDecorateSuccess(faoxima_textbot_get('dyn_renewconfirm_success', '✅ اشتراک شما با موفقیت تمدید شد.'), $extend, (string)$invoice['username'], (string)($panel['name_panel'] ?? ''));
         }
 
         FaoximaResponse::ok([

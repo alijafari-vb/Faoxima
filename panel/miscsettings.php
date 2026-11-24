@@ -92,7 +92,7 @@ function faoxima_misc_enabled($value): bool
                         <?php echo icon('sliders', 'svg-icon svg-lg'); ?>
                         تنظیمات متفرقه
                     </div>
-                    <div class="page-head__sub">تنظیم رفتار گزارش رسید و تحویل لینک سرویس</div>
+                    <div class="page-head__sub">تنظیم رفتار گزارش رسید و تحویل لینک اشتراک</div>
                 </div>
             </div>
             <?php if (isset($_GET['saved'])): ?>

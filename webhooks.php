@@ -73,22 +73,22 @@ if($data['action'] == "reached_usage_percent"){
     $Response = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => "💊 تمدید سرویس", 'callback_data' => 'extend_' . $invoice['id_invoice']],
+                ['text' => "💊 تمدید اشتراک", 'callback_data' => 'extend_' . $invoice['id_invoice']],
             ],
         ]
     ]);
     $text = "با سلام خدمت شما کاربر گرامی 👋
-🚨 از حجم سرویس $line تنها $RemainingVolume باقی مانده است. لطفاً در صورت تمایل برای تمدید سرویستون از طریق بخش «{$textservice}» اقدام بفرمایین";
+🚨 از حجم اشتراک $line تنها $RemainingVolume باقی مانده است. لطفاً در صورت تمایل برای تمدید اشتراکتون از طریق بخش «{$textservice}» اقدام بفرمایین";
 if(intval($user['status_cron']) != 0){
     sendmessage($invoice['id_user'], $text, $Response, 'HTML');
 }
     $text_report = "📌 اطلاعیه کرون حجم
 
-<blockquote>نام کاربری سرویس :‌ <code>$line</code></blockquote>
+<blockquote>نام اشتراک :‌ <code>$line</code></blockquote>
 <blockquote>آیدی عددی کاربر :‌ <code>{$invoice['id_user']}</code></blockquote>
-<blockquote>وضعیت سرویس : {$data['status']}</blockquote>
+<blockquote>وضعیت اشتراک : {$data['status']}</blockquote>
 <blockquote>حجم باقی مانده : $RemainingVolume</blockquote>
-<blockquote>حجم کل سرویس : $data_limit</blockquote>";
+<blockquote>حجم کل اشتراک : $data_limit</blockquote>";
     if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage',[
                 'chat_id' => $setting['Channel_Report'],
@@ -120,20 +120,20 @@ elseif ($data['action'] == "reached_days_left"){
     $Response = json_encode([
         'inline_keyboard' => [
             [
-                ['text' => "💊 تمدید سرویس", 'callback_data' => 'extend_' . $invoice['id_invoice']],
+                ['text' => "💊 تمدید اشتراک", 'callback_data' => 'extend_' . $invoice['id_invoice']],
             ],
         ]
     ]);
     $text = "با سلام خدمت شما کاربر گرامی 👋
-📌 از مهلت زمانی استفاده از سرویس {$invoice['username']} فقط $day باقی مانده است. لطفاً در صورت تمایل برای تمدید این سرویس، از طریق بخش «{$textservice}» اقدام بفرمایین. با تشکر از همراهی شما";
+📌 از مهلت زمانی استفاده از اشتراک {$invoice['username']} فقط $day باقی مانده است. لطفاً در صورت تمایل برای تمدید این اشتراک، از طریق بخش «{$textservice}» اقدام بفرمایین. با تشکر از همراهی شما";
 if(intval($user['status_cron']) != 0){
     sendmessage($invoice['id_user'], $text, $Response, 'HTML');
 }
     $text_report = "📌 اطلاعیه کرون زمان
 
-<blockquote>نام کاربری سرویس :‌ <code>{$data['username']}</code></blockquote>
+<blockquote>نام اشتراک :‌ <code>{$data['username']}</code></blockquote>
 <blockquote>آیدی عددی کاربر :‌ <code>{$invoice['id_user']}</code></blockquote>
-<blockquote>وضعیت سرویس : {$data['status']}</blockquote>
+<blockquote>وضعیت اشتراک : {$data['status']}</blockquote>
 <blockquote>تعداد روز باقی مانده ‌:‌$day</blockquote>";
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage',[

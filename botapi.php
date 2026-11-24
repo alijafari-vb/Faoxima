@@ -2365,7 +2365,7 @@ if (!function_exists('rx_getKeyboardDefaultStyles')) {
                 "🔐 ویرایش رمز عبور"                  => 'primary',
                 "👤 ویرایش نام"                => 'primary',
                 "🔗 ویرایش آدرس پنل"                  => 'primary',
-                "🔋 روش تمدید سرویس"                  => 'success',
+                "🔋 روش تمدید اشتراک"                  => 'success',
                 "💡 ساخت نام کاربری"              => 'primary',
                 "🚨 محدودیت اکانت"               => 'success',
                 "📍 تغییر گروه"                => 'primary',
@@ -2391,7 +2391,7 @@ if (!function_exists('rx_getKeyboardDefaultStyles')) {
             $cache['admin_panel_guard'] = $rxPanelReplyCommon + [
                 "🔐 ویرایش کلید"                => 'primary',
                 "⁉️ اتصال به پنل"       => 'primary',
-                "⚙️ تنظیم سرویس ها"            => 'success',
+                "⚙️ تنظیم اشتراک‌ها"            => 'success',
             ];
             $cache['admin_panel_pasarguard'] = $rxPanelReplyCommon + [
                 "🔐 ویرایش کلید"                => 'primary',
@@ -2477,7 +2477,7 @@ if (!function_exists('rx_kb_guess_style_from_text')) {
                     'خرید',
                     'پرداخت کردم', 'پرداخت و',
                     'انجام دادم',
-                    'دریافت هدیه', 'دریافت سرویس',
+                    'دریافت هدیه', 'دریافت اشتراک',
                     'ثبت کد', 'ثبت و',
                     'تایید پرداخت', 'تایید و',
                     'کش‌بک', 'کش بک',
