@@ -1859,7 +1859,7 @@ $text_porsant
     $page = max(1, min($totalPages, $requestedPage));
     $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a');
 
-    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'renewtable', 'extend_');
+    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'renewtable', 'extend_', neutralRows: true);
     if ($rows === []) {
         $tableText = $textbotlang['users']['extend']['emptyServiceforExtend'];
     } else {

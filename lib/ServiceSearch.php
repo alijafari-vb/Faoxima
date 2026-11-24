@@ -251,32 +251,47 @@ final class ServiceSearch
         return false;
     }
 
-    /** Online membership comes from Rebecca and is matched by both panel and username. */
-    public static function rebeccaOnlineScope(PDO $pdo): array
+    /** Match reported online accounts by both panel and username. */
+    public static function onlineScope(PDO $pdo): array
     {
-        $panels = $pdo->query("SELECT DISTINCT Service_location FROM invoice WHERE Status IN ('active', 'sendedwarn')
-            AND Service_location IN (SELECT name_panel FROM marzban_panel WHERE type = 'rebecca')")->fetchAll(PDO::FETCH_COLUMN);
+        $panels = $pdo->query("SELECT * FROM marzban_panel WHERE name_panel IN (
+            SELECT Service_location FROM invoice WHERE Status IN ('active', 'sendedwarn'))")->fetchAll(PDO::FETCH_ASSOC);
         $conditions = [];
         $params = [];
         $unavailable = 0;
         foreach ($panels as $index => $panel) {
-            $config = getRebeccaPanelConfig($panel);
-            $response = ($config['status'] ?? false)
-                ? rebeccaDecodeResponse(rebeccaApiRequest($config, 'GET', '/api/users/onlines', redactUrl: true, timeout: 2), true)
-                : [];
-            $users = $response['data'] ?? null;
-            if (($response['status'] ?? false) !== true || !is_array($users) || !array_is_list($users)) {
+            $users = self::onlineUsernames($panel);
+            if ($users === null) {
                 $unavailable++;
                 continue;
             }
-            $users = array_values(array_filter($users, 'is_string'));
             if ($users !== []) {
                 $conditions[] = "(Service_location = :online_panel_$index AND JSON_CONTAINS(:online_users_$index, JSON_QUOTE(username)) = 1)";
-                $params[":online_panel_$index"] = $panel;
+                $params[":online_panel_$index"] = $panel['name_panel'];
                 $params[":online_users_$index"] = json_encode($users, JSON_INVALID_UTF8_SUBSTITUTE);
             }
         }
         return [$conditions === [] ? '0 = 1' : "Status IN ('active', 'sendedwarn') AND (" . implode(' OR ', $conditions) . ')', $params, $unavailable];
+    }
+
+    private static function onlineUsernames(array $panel): ?array
+    {
+        if ($panel['type'] === 'rebecca') {
+            $config = getRebeccaPanelConfig($panel['name_panel']);
+            $response = ($config['status'] ?? false)
+                ? rebeccaDecodeResponse(rebeccaApiRequest($config, 'GET', '/api/users/onlines', redactUrl: true, timeout: 2), true)
+                : [];
+            $users = $response['data'] ?? null;
+        } elseif ($panel['type'] === 'x-ui_single') {
+            $response = xui_clients_onlines($panel, 2);
+            $users = $response['emails'] ?? null;
+        } else {
+            return null;
+        }
+        if (($response['status'] ?? false) !== true || !is_array($users) || !array_is_list($users)) {
+            return null;
+        }
+        return array_values(array_filter($users, 'is_string'));
     }
 
     public static function invoicePage(PDO $pdo, string $scope, array $params, int $limit, int $offset, ?string $sort = null, bool $ascending = false, string $columns = '*', bool $liveUsage = true): array
@@ -318,7 +333,10 @@ final class ServiceSearch
     {
         $cached = json_decode((string) ($row['user_info'] ?? ''), true);
         $info = ($row['panel_usage'] ?? []) + (is_array($cached) ? $cached : []);
-        $onHold = in_array($info['status'] ?? $row['Status'], ['on_hold', 'send_on_hold'], true);
+        $status = $row['panel_usage']['status'] ?? $row['Status'];
+        $onHold = in_array($status, ['on_hold', 'send_on_hold'], true);
+        $expired = in_array($status, ['expired', 'end_of_time'], true);
+        $depleted = in_array($status, ['limited', 'end_of_volume'], true);
         $expires = !$onHold && array_key_exists('expire', $info) && ($info['expire'] === null || is_numeric($info['expire']))
             ? max(0, (int) $info['expire']) : null;
         $limit = array_key_exists('data_limit', $info) && ($info['data_limit'] === null || is_numeric($info['data_limit']))
@@ -326,8 +344,8 @@ final class ServiceSearch
         $used = is_numeric($info['used_traffic'] ?? null) ? max(0, (int) $info['used_traffic']) : null;
         return [
             'expires_at' => $expires,
-            'days_remaining' => $expires === null ? null : ($expires === 0 ? -1 : (int) ceil(max(0, $expires - $now) / 86400)),
-            'remaining_bytes' => $limit === 0 ? -1 : ($limit > 0 && $used !== null ? max(0, $limit - $used) : null),
+            'days_remaining' => $expired ? 0 : ($expires === null ? null : ($expires === 0 ? -1 : (int) ceil(max(0, $expires - $now) / 86400))),
+            'remaining_bytes' => $depleted ? 0 : ($limit === 0 ? -1 : ($limit > 0 && $used !== null ? max(0, $limit - $used) : null)),
         ];
     }
 

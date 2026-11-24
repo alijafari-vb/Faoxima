@@ -145,9 +145,10 @@ if (!function_exists('xuisingle_cookie_path')) {
     }
 }
 
-function panel_login_cookie($code_panel)
+function panel_login_cookie($code_panel, ?int $timeout = null)
 {
     $panel = select("marzban_panel", "*", "code_panel", $code_panel, "select");
+    $timeout = $timeout ?? faoxima_panel_timeout();
     $curl = curl_init();
     if (function_exists('faoxima_apply_curl_proxy')) faoxima_apply_curl_proxy($curl, 'panel');
     curl_setopt_array($curl, array(
@@ -155,8 +156,8 @@ function panel_login_cookie($code_panel)
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => faoxima_panel_timeout_info()['timeout'],
-        CURLOPT_CONNECTTIMEOUT => faoxima_panel_timeout_info()['connect_timeout'],
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_CONNECTTIMEOUT => faoxima_panel_connect_timeout($timeout),
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
@@ -872,12 +873,34 @@ if (!function_exists('xui_clients_summary')) {
 }
 
 if (!function_exists('xui_clients_onlines')) {
-    function xui_clients_onlines($panel)
+    function xui_clients_onlines($panel, int $timeout = 8)
     {
-        if (!xui_panel_uses_token($panel)) {
-            return array('status' => false, 'msg' => 'token mode required');
+        if (xui_panel_uses_token($panel)) {
+            $resp = xui_api_token_request($panel, 'POST', '/panel/api/clients/onlines', array(), $timeout, 'xui_clients_onlines');
+        } elseif (($panel['xui_api_mode'] ?? '') === 'token' || empty($panel['code_panel'])) {
+            return array('status' => false, 'msg' => 'panel authentication unavailable');
+        } else {
+            $cookie = xuisingle_cookie_path();
+            if (is_file($cookie)) {
+                unlink($cookie);
+            }
+            try {
+                $login = panel_login_cookie($panel['code_panel'], $timeout);
+                $session = is_string($login) ? json_decode($login, true) : null;
+                if (empty($session['success']) || !is_file($cookie)) {
+                    return array('status' => false, 'msg' => 'panel login failed');
+                }
+                $req = new CurlRequest(rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/onlines');
+                $req->setHeaders(['Accept: application/json']);
+                $req->setCookie($cookie);
+                $req->setTimeout($timeout);
+                $resp = $req->post('');
+            } finally {
+                if (is_file($cookie)) {
+                    unlink($cookie);
+                }
+            }
         }
-        $resp = xui_api_token_request($panel, 'POST', '/panel/api/clients/onlines', array(), 8, 'xui_clients_onlines');
         if (!empty($resp['error'])) {
             return array('status' => false, 'msg' => $resp['error']);
         }
@@ -888,8 +911,11 @@ if (!function_exists('xui_clients_onlines')) {
         if (!is_array($decoded) || empty($decoded['success'])) {
             return array('status' => false, 'msg' => 'invalid response');
         }
-        $obj = $decoded['obj'] ?? array();
-        return array('status' => true, 'emails' => is_array($obj) ? $obj : array());
+        $emails = $decoded['obj'] ?? [];
+        if (!is_array($emails) || !array_is_list($emails)) {
+            return array('status' => false, 'msg' => 'invalid online client list');
+        }
+        return array('status' => true, 'emails' => $emails);
     }
 }
 

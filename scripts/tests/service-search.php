@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Start the Rebecca fixture in a separate terminal:
+// Start the panel fixture in a separate terminal:
 // php -S 127.0.0.1:43497 scripts/tests/service-search.php
 // Then run against a disposable MariaDB/MySQL database with CREATE TEMPORARY TABLE privileges:
 // FAOXIMA_TEST_DSN='mysql:host=127.0.0.1;dbname=faoxima_test;charset=utf8mb4' php scripts/tests/service-search.php
@@ -10,12 +10,25 @@ declare(strict_types=1);
 
 if (PHP_SAPI === 'cli-server') {
     header('Content-Type: application/json');
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($path === '/xui-legacy/login' && ($_POST['username'] ?? '') === 'fixture-admin' && ($_POST['password'] ?? '') === 'fixture-password') {
+        setcookie('session', 'fixture-session', 0, '/xui-legacy');
+        echo '{"success":true}';
+        return;
+    }
+    if ($path === '/xui-legacy/panel/api/inbounds/onlines' && ($_COOKIE['session'] ?? '') === 'fixture-session') {
+        echo '{"success":true,"obj":["legacy-account"]}';
+        return;
+    }
     if (($_SERVER['HTTP_AUTHORIZATION'] ?? '') !== 'Bearer fixture-api-key') {
         http_response_code(401);
         echo '{}';
         return;
     }
-    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($path === '/xui-token/panel/api/clients/onlines') {
+        echo '{"success":true,"obj":["same-name"]}';
+        return;
+    }
     $panel = explode('/', $path)[1];
     if ($path === "/$panel/api/users/onlines") {
         echo $panel === 'east' ? '["same-name","deleted"]' : '[]';
@@ -237,10 +250,16 @@ same(
     'only the relevant finite days or traffic cells turn red below their thresholds'
 );
 same(['🟢 same-name (91)', '1GB', '4'], array_column($table[1], 'text'), 'warnings preserve short labels and username space');
+same(['<1GB', 'تمام', '∞', '—'], array_column(array_column(array_slice($table, 2), 1), 'text'), 'traffic distinguishes near-threshold, depleted, unlimited, and unknown values');
+same(['منقضی', '∞', '—'], array_column(array_column(array_slice($table, 3), 2), 'text'), 'days distinguish expired, unlimited, and unknown values');
 same(array_fill(0, 3, 'quickview_e123'), array_column($table[1], 'callback_data'), 'warning cells still open subscription details');
-$renewalTable = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'renewtable', 'extend_');
+$renewalTable = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'renewtable', 'extend_', neutralRows: true);
 same(['text' => 'روز مانده ↑', 'callback_data' => 'renewtable:days_remaining:d:1'], $renewalTable[0][2], 'renewal uses the same headers with its own reversible sorting');
 same(array_fill(0, 3, 'extend_e123'), array_column($renewalTable[1], 'callback_data'), 'all renewal cells select the same invoice for renewal');
+same(true, isset($renewalTable[1][0]['_rxap'], $renewalTable[1][1]['_rxap']), 'normal renewal cells opt out of the cron renewal color');
+$backCallback = 'admsub:online:remaining_bytes:a:2';
+same('manageinvoice_e123:' . $backCallback, rxAdminSubscriptionDetailsCallback('e123', $backCallback), 'management detail callback retains its originating page');
+same('manageinvoice_' . str_repeat('a', 40), rxAdminSubscriptionDetailsCallback(str_repeat('a', 40), $backCallback), 'long IDs fall back to the existing detail callback');
 
 $pdo->exec("ALTER TABLE invoice ADD time_sell bigint DEFAULT 0");
 $pdo->prepare('UPDATE invoice SET user_info = :info WHERE id_invoice = :id')
@@ -261,9 +280,27 @@ same('https://shop.example.test/sub/e123', $selected['subscription_url'] ?? null
 $legacy = $panel->DataUser('east', 'same-name');
 same('https://shop.example.test/sub/later-order', $legacy['subscription_url'] ?? null, 'legacy callers resolve the latest order in their panel');
 $pdo->exec("UPDATE invoice SET Status = 'active' WHERE id_invoice = 'w123'");
-[$onlineScope, $onlineParams, $unavailable] = ServiceSearch::rebeccaOnlineScope($pdo);
+$pdo->exec("ALTER TABLE marzban_panel ADD code_panel varchar(20), ADD xui_api_mode varchar(20), ADD xui_api_token varchar(50), ADD username_panel varchar(50), ADD password_panel varchar(50)");
+$pdo->exec("INSERT INTO marzban_panel (id, name_panel, type, url_panel, code_panel, xui_api_mode, xui_api_token, username_panel, password_panel) VALUES
+    (4, 'xui-token', 'x-ui_single', 'http://127.0.0.1:43497/xui-token', 'xui-token', 'token', 'fixture-api-key', NULL, NULL),
+    (5, 'xui-legacy', 'x-ui_single', 'http://127.0.0.1:43497/xui-legacy', 'xui-legacy', 'legacy', NULL, 'fixture-admin', 'fixture-password'),
+    (6, 'xui-failed', 'x-ui_single', 'http://127.0.0.1:43497/xui-failed', 'xui-failed', 'token', 'fixture-api-key', NULL, NULL)");
+$pdo->exec("INSERT INTO invoice (id_invoice, id_user, username, Service_location, Status, time_sell) VALUES
+    ('token-online', '100', 'same-name', 'xui-token', 'active', 0),
+    ('legacy-online', '100', 'legacy-account', 'xui-legacy', 'active', 0),
+    ('failed-panel', '100', 'same-name', 'xui-failed', 'active', 0),
+    ('disabled-xui', '100', 'same-name', 'xui-token', 'disabled', 0)");
+[$onlineScope, $onlineParams, $unavailable] = ServiceSearch::onlineScope($pdo);
 $online = ServiceSearch::invoicePage($pdo, $onlineScope, $onlineParams, 10, 0, 'username', true, liveUsage: false);
-same(0, $unavailable, 'Rebecca panels return online membership');
-same(['later-order', 'e123'], array_column($online, 'id_invoice'), 'live online status is scoped to the correct panel and visible invoices');
-same([null, null], array_column($online, 'remaining_bytes'), 'global list sorting uses cached quota and does not fan out for live usage');
+same(2, $unavailable, 'unsupported and failed panels are reported separately from online matches');
+same(['legacy-online', 'later-order', 'token-online', 'e123'], array_column($online, 'id_invoice'), 'Rebecca and both 3x-ui modes match exactly by panel and username');
+same([null, null, null, null], array_column($online, 'remaining_bytes'), 'global list sorting uses cached quota and does not fan out for live usage');
+$pdo->exec("INSERT INTO invoice (id_invoice, username, Service_location, Status, user_info) VALUES
+    ('usage-hours', 'hours', 'manual', 'active', '{\"expire\":" . (time() + 1800) . ",\"data_limit\":1024,\"used_traffic\":1025}'),
+    ('usage-expired', 'expired', 'manual', 'end_of_time', NULL),
+    ('usage-limited', 'limited', 'manual', 'end_of_volume', NULL),
+    ('usage-hold', 'hold', 'manual', 'send_on_hold', '{\"expire\":0,\"data_limit\":0}')");
+$usage = ServiceSearch::invoicePage($pdo, "id_invoice LIKE 'usage-%'", [], 4, 0, 'username', true, liveUsage: false);
+same([0, null, 1, null], array_column($usage, 'days_remaining'), 'expired, on hold, below one day, and unknown dates remain distinct');
+same([null, -1, 0, 0], array_column($usage, 'remaining_bytes'), 'depleted and overspent traffic resolve to zero, while unlimited is distinct');
 echo "$tested service search checks passed.\n";

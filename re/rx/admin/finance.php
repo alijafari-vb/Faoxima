@@ -2605,9 +2605,8 @@ $iduser  در ربات  رفع مسدود گردید
 } elseif ($datain === 'admin_subscriptions' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
     $buttons = [
         [['text' => 'همهٔ اشتراک‌ها', 'callback_data' => 'admsub:all:recent:d:1']],
-        [['text' => 'اشتراک‌های آنلاین ربکا', 'callback_data' => 'admsub:online:recent:d:1']],
+        [['text' => 'اشتراک‌های آنلاین', 'callback_data' => 'admsub:online:recent:d:1']],
         [['text' => 'جستجوی اشتراک', 'callback_data' => 'admin_sub_search']],
-        [['text' => 'جستجو در بایگانی سفارش‌ها', 'callback_data' => 'searchorder']],
         [['text' => '🔙 منوی مدیریت', 'callback_data' => 'adm_hub_main']],
     ];
     step('home', $from_id);
@@ -2619,7 +2618,7 @@ $iduser  در ربات  رفع مسدود گردید
         telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id]);
     }
     [$scope, $params, $unavailable] = $mode === 'online'
-        ? ServiceSearch::rebeccaOnlineScope($pdo) : [ServiceSearch::VISIBLE_STATUS, [], 0];
+        ? ServiceSearch::onlineScope($pdo) : [ServiceSearch::VISIBLE_STATUS, [], 0];
     $count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE $scope");
     $count->execute($params);
     $total = (int) $count->fetchColumn();
@@ -2629,31 +2628,16 @@ $iduser  در ربات  رفع مسدود گردید
     $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a',
         columns: 'id_invoice, username, Status, Service_location, time_sell, user_info', liveUsage: false);
 
-    $title = $mode === 'online' ? 'اشتراک‌های آنلاین ربکا' : 'همهٔ اشتراک‌ها';
+    $title = $mode === 'online' ? 'اشتراک‌های آنلاین' : 'همهٔ اشتراک‌ها';
     $message = "🛍 <b>$title</b>\n$total نتیجه · صفحه $page از $pages";
     if ($unavailable > 0) {
-        $message .= "\nوضعیت آنلاین در $unavailable پنل ربکا قابل دریافت نبود.";
+        $message .= "\nوضعیت آنلاینِ $unavailable پنل در دسترس نبود.";
     }
-    $buttons = [];
+    $listCallback = "admsub:$mode:$sort:$direction:$page";
+    $buttons = rxServiceTableButtons($rows, $sort, $direction, "admsub:$mode",
+        static fn(array $row): string => rxAdminSubscriptionDetailsCallback((string) $row['id_invoice'], $listCallback));
     if ($rows !== []) {
         $message .= "\nحجم و روز از آخرین اطلاعات ثبت‌شده‌اند.";
-        $headings = [];
-        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
-            $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
-            $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
-            $headings[] = ['text' => $label . $arrow, 'callback_data' => "admsub:$mode:$field:$nextDirection:1"];
-        }
-        $buttons[] = $headings;
-        foreach ($rows as $row) {
-            $label = rxServiceListLabel($row) . ' · ' . $row['Service_location'];
-            $days = match ($row['days_remaining']) { null => '—', -1 => '∞', default => (string) $row['days_remaining'] };
-            $details = 'manageinvoice_' . $row['id_invoice'];
-            $buttons[] = [
-                ['text' => $label, 'callback_data' => $details],
-                ['text' => rxServiceTableTraffic($row['remaining_bytes']), 'callback_data' => $details],
-                ['text' => $days, 'callback_data' => $details],
-            ];
-        }
         $navigation = [];
         if ($page > 1) {
             $navigation[] = ['text' => '« قبلی', 'callback_data' => "admsub:$mode:$sort:$direction:" . ($page - 1)];
@@ -2678,12 +2662,14 @@ $iduser  در ربات  رفع مسدود گردید
 } elseif ($datain === 'searchorder' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
     nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backadmin, 'HTML');
     step('GetusernameconfigAndOrdedrs', $from_id);
-} elseif (preg_match('/^manageinvoice_([A-Za-z0-9_-]+)$/D', $datain, $invoiceMatch) || (($adminrulecheck['rule'] ?? '') === 'administrator' && (
+} elseif (preg_match('/^manageinvoice_([A-Za-z0-9_-]+)(?::(admin_sub_search|admsub:(?:all|online):(?:recent|username|remaining_bytes|days_remaining):[ad]:[1-9][0-9]{0,6}))?$/D', $datain, $invoiceMatch) || (($adminrulecheck['rule'] ?? '') === 'administrator' && (
     preg_match('/^\/config(?:@\w+)?\s+(.+)$/D', $text, $configMatch)
     || (in_array($user['step'], ['GetusernameconfigAndOrdedrs', 'admin_sub_search_wait'], true) && $datain === '' && trim($text) !== '')
 ))) {
     rxArDraftResetIfAny($from_id, $user);
+    $isAdministrator = ($adminrulecheck['rule'] ?? '') === 'administrator';
     $subscriptionSearch = empty($invoiceMatch) && empty($configMatch) && $user['step'] === 'admin_sub_search_wait';
+    $subscriptionBack = $invoiceMatch[2] ?? ($subscriptionSearch ? 'admin_sub_search' : 'admin_subscriptions');
     if (!empty($invoiceMatch)) {
         $stmt = $pdo->prepare('SELECT * FROM invoice WHERE id_invoice = :order_id');
         $stmt->execute([':order_id' => $invoiceMatch[1]]);
@@ -2701,7 +2687,9 @@ $iduser  در ربات  رفع مسدود گردید
         foreach (ServiceSearch::addPanelIds($pdo, array_slice($rows, 0, 50)) as $row) {
             $buttons[] = [[
                 'text' => rxServiceListLabel($row) . ' | ' . $row['Service_location'] . ' | ' . $row['Status'],
-                'callback_data' => 'manageinvoice_' . $row['id_invoice'],
+                'callback_data' => $subscriptionSearch
+                    ? rxAdminSubscriptionDetailsCallback((string) $row['id_invoice'], $subscriptionBack)
+                    : 'manageinvoice_' . $row['id_invoice'],
             ]];
         }
         $buttons[] = [['text' => $textbotlang['users']['search']['title'], 'callback_data' => $subscriptionSearch ? 'admin_sub_search' : 'searchorder']];
@@ -2717,18 +2705,25 @@ $iduser  در ربات  رفع مسدود گردید
     $OrderUser = $rows[0] ?? null;
     if (!$OrderUser) {
         $emptyMenu = $subscriptionSearch ? json_encode(['inline_keyboard' => [[['text' => 'جستجوی دوباره', 'callback_data' => 'admin_sub_search'], ['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']]]]) : null;
+        if (!empty($invoiceMatch)) {
+            $emptyMenu = json_encode(['inline_keyboard' => [[['text' => '🔙 بازگشت', 'callback_data' => $isAdministrator ? $subscriptionBack : 'adm_hub_main']]]]);
+        }
         nm_adminInstantReply($from_id, $subscriptionSearch ? '❌ اشتراکی پیدا نشد.' : $textbotlang['Admin']['order']['notfound'], $emptyMenu, 'HTML');
         return;
     }
     $keyboardlists = [
         'inline_keyboard' => [],
     ];
+    $backRow = [[
+        'text' => '🔙 بازگشت',
+        'callback_data' => $isAdministrator ? $subscriptionBack : 'vieworderuser_' . $OrderUser['id_user'],
+    ]];
+    $refreshCallback = $invoiceMatch[0] ?? ($subscriptionSearch
+        ? rxAdminSubscriptionDetailsCallback((string) $OrderUser['id_invoice'], $subscriptionBack)
+        : 'manageinvoice_' . $OrderUser['id_invoice']);
     $keyboardlists['inline_keyboard'][] = [
-        ['text' => "♻️ بروزرسانی", 'callback_data' => "manageinvoice_" . $OrderUser['id_invoice']],
+        ['text' => "♻️ بروزرسانی", 'callback_data' => $refreshCallback],
     ];
-    if (($adminrulecheck['rule'] ?? '') === 'administrator') {
-        $keyboardlists['inline_keyboard'][] = [['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']];
-    }
     $keyboardlists['inline_keyboard'][] = [
         ['text' => $textbotlang['Admin']['ManageUser']['removeservice'], 'callback_data' => "removeservice-" . $OrderUser['id_invoice']],
         ['text' => $textbotlang['Admin']['ManageUser']['removeserviceandback'], 'callback_data' => "removeserviceandback-" . $OrderUser['id_invoice']],
@@ -2780,6 +2775,7 @@ $iduser  در ربات  رفع مسدود گردید
 ";
     $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username'], 'links', (string) $OrderUser['id_invoice']);
     if ($DataUserOut['status'] == "Unsuccessful") {
+        $keyboardlists['inline_keyboard'][] = $backRow;
         $keyboard_json = json_encode($keyboardlists);
         nm_adminInstantReply($from_id, "کاربر در پنل وجود ندارد", $keyboardadmin, 'html');
         nm_adminInstantReply($from_id, $text_order, $keyboard_json, 'HTML');
@@ -2853,6 +2849,7 @@ $iduser  در ربات  رفع مسدود گردید
     $keyboardlists['inline_keyboard'][] = [
         ['text' => $namestatus, 'callback_data' => 'changestatusadmin_' . $OrderUser['id_invoice']],
     ];
+    $keyboardlists['inline_keyboard'][] = $backRow;
     $keyboard_json = json_encode($keyboardlists);
     nm_adminInstantReply($from_id, $text_order, $keyboard_json, 'HTML');
     $stmt = $pdo->prepare("SELECT * FROM service_other s WHERE username = :uc AND (status = 'paid' OR status IS NULL)");

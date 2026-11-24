@@ -2820,6 +2820,9 @@ function rxServiceTableTraffic(?int $bytes): string
         $unit = max(3, $unit);
     }
     $size = round($bytes / (1024 ** $unit), 1);
+    if ($unit === 3 && $size === 1.0 && $bytes < 1024 ** 3) {
+        return '<1GB';
+    }
     if ($size === 1024.0) {
         $size = 1;
         $unit++;
@@ -2827,7 +2830,7 @@ function rxServiceTableTraffic(?int $bytes): string
     return $size . ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'][$unit];
 }
 
-function rxServiceTableButtons(array $rows, string $sort, string $direction, string $tablePrefix, string $detailsPrefix): array
+function rxServiceTableButtons(array $rows, string $sort, string $direction, string $tablePrefix, string|callable $detailsCallback, bool $neutralRows = false): array
 {
     if ($rows === []) {
         return [];
@@ -2859,24 +2862,27 @@ function rxServiceTableButtons(array $rows, string $sort, string $direction, str
         $days = $row['days_remaining'];
         $bytes = $row['remaining_bytes'];
         $daysLabel = match ($days) {
-            null => '—', -1 => '∞', default => $days > 999 ? '999+' : (string) $days,
+            null => '—', -1 => '∞', 0 => 'منقضی', default => $days > 999 ? '999+' : (string) $days,
         };
-        $details = $detailsPrefix . $row['id_invoice'];
-        $trafficButton = ['text' => rxServiceTableTraffic($bytes), 'callback_data' => $details];
-        $daysButton = ['text' => $daysLabel, 'callback_data' => $details];
-        if ($bytes !== null && $bytes >= 0 && $bytes < 1024 ** 3) {
-            $trafficButton['style'] = 'danger';
-        }
-        if ($days !== null && $days >= 0 && $days < 5) {
-            $daysButton['style'] = 'danger';
-        }
+        $details = is_string($detailsCallback) ? $detailsCallback . $row['id_invoice'] : $detailsCallback($row);
+        $normal = $neutralRows ? ['_rxap' => 1] : [];
+        $warning = ['style' => 'danger', '_rxkeep' => 1];
         $buttons[] = [
-            ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details],
-            $trafficButton,
-            $daysButton,
+            ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details] + $normal,
+            ['text' => $bytes === 0 ? 'تمام' : rxServiceTableTraffic($bytes), 'callback_data' => $details]
+                + ($bytes !== null && $bytes >= 0 && $bytes < 1024 ** 3 ? $warning : $normal),
+            ['text' => $daysLabel, 'callback_data' => $details]
+                + ($days !== null && $days >= 0 && $days < 5 ? $warning : $normal),
         ];
     }
     return $buttons;
+}
+
+function rxAdminSubscriptionDetailsCallback(string $id, string $backCallback): string
+{
+    $details = 'manageinvoice_' . $id;
+    $withBack = $details . ':' . $backCallback;
+    return strlen($withBack) <= 64 ? $withBack : $details;
 }
 
 function rxServiceListLabel(array $invoice): string
