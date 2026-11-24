@@ -1029,7 +1029,6 @@ if (false) {
                 ['text' => "لیست کل کاربران", 'callback_data' => "alllistusers"],
             ],
             [
-                ...(($adminrulecheck['rule'] ?? '') === 'administrator' ? [['text' => '🛍 جستجو سفارش', 'callback_data' => 'searchorder']] : []),
                 ['text' => "👥 شارژ همگانی", 'callback_data' => "balanceaddall"],
             ],
             [
@@ -2603,21 +2602,96 @@ $iduser  در ربات  رفع مسدود گردید
     nm_adminInstantReply($from_id, "تغییرات با موفقیت اعمال شد", $keyboardadmin, 'HTML');
     update("user", "maxbuyagent", $text, "id", $user['Processing_value']);
     step('home', $from_id);
+} elseif ($datain === 'admin_subscriptions' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
+    $buttons = [
+        [['text' => 'همهٔ اشتراک‌ها', 'callback_data' => 'admsub:all:recent:d:1']],
+        [['text' => 'اشتراک‌های آنلاین ربکا', 'callback_data' => 'admsub:online:recent:d:1']],
+        [['text' => 'جستجوی اشتراک', 'callback_data' => 'admin_sub_search']],
+        [['text' => 'جستجو در بایگانی سفارش‌ها', 'callback_data' => 'searchorder']],
+        [['text' => '🔙 منوی مدیریت', 'callback_data' => 'adm_hub_main']],
+    ];
+    step('home', $from_id);
+    Editmessagetext($from_id, $message_id, '🛍 <b>مدیریت اشتراک‌ها</b>', json_encode(['inline_keyboard' => $buttons]), 'HTML');
+} elseif (($adminrulecheck['rule'] ?? '') === 'administrator'
+    && preg_match('/^admsub:(all|online):(recent|username|remaining_bytes|days_remaining):([ad]):([1-9][0-9]{0,6})$/D', $datain, $subscriptionPage)) {
+    [, $mode, $sort, $direction, $page] = $subscriptionPage;
+    if (!empty($callback_query_id)) {
+        telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id]);
+    }
+    [$scope, $params, $unavailable] = $mode === 'online'
+        ? ServiceSearch::rebeccaOnlineScope($pdo) : [ServiceSearch::VISIBLE_STATUS, [], 0];
+    $count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE $scope");
+    $count->execute($params);
+    $total = (int) $count->fetchColumn();
+    $limit = 8;
+    $pages = max(1, (int) ceil($total / $limit));
+    $page = min((int) $page, $pages);
+    $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a',
+        columns: 'id_invoice, username, Status, Service_location, time_sell, user_info', liveUsage: false);
+
+    $title = $mode === 'online' ? 'اشتراک‌های آنلاین ربکا' : 'همهٔ اشتراک‌ها';
+    $message = "🛍 <b>$title</b>\n$total نتیجه · صفحه $page از $pages";
+    if ($unavailable > 0) {
+        $message .= "\nوضعیت آنلاین در $unavailable پنل ربکا قابل دریافت نبود.";
+    }
+    $buttons = [];
+    if ($rows !== []) {
+        $message .= "\nحجم و روز از آخرین اطلاعات ثبت‌شده‌اند.";
+        $headings = [];
+        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
+            $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
+            $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
+            $headings[] = ['text' => $label . $arrow, 'callback_data' => "admsub:$mode:$field:$nextDirection:1"];
+        }
+        $buttons[] = $headings;
+        foreach ($rows as $row) {
+            $label = rxServiceListLabel($row) . ' · ' . $row['Service_location'];
+            $days = match ($row['days_remaining']) { null => '—', -1 => '∞', default => (string) $row['days_remaining'] };
+            $details = 'manageinvoice_' . $row['id_invoice'];
+            $buttons[] = [
+                ['text' => $label, 'callback_data' => $details],
+                ['text' => rxServiceTableTraffic($row['remaining_bytes']), 'callback_data' => $details],
+                ['text' => $days, 'callback_data' => $details],
+            ];
+        }
+        $navigation = [];
+        if ($page > 1) {
+            $navigation[] = ['text' => '« قبلی', 'callback_data' => "admsub:$mode:$sort:$direction:" . ($page - 1)];
+        }
+        if ($page < $pages) {
+            $navigation[] = ['text' => 'بعدی »', 'callback_data' => "admsub:$mode:$sort:$direction:" . ($page + 1)];
+        }
+        if ($navigation !== []) {
+            $buttons[] = $navigation;
+        }
+    }
+    $buttons[] = [
+        ['text' => 'جستجوی اشتراک', 'callback_data' => 'admin_sub_search'],
+        ['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions'],
+    ];
+    step('home', $from_id);
+    Editmessagetext($from_id, $message_id, $message, json_encode(['inline_keyboard' => $buttons], JSON_INVALID_UTF8_SUBSTITUTE), 'HTML');
+} elseif ($datain === 'admin_sub_search' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
+    $backSubscriptions = json_encode(['inline_keyboard' => [[['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']]]]);
+    nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backSubscriptions, 'HTML');
+    step('admin_sub_search_wait', $from_id);
 } elseif ($datain === 'searchorder' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
     nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backadmin, 'HTML');
     step('GetusernameconfigAndOrdedrs', $from_id);
 } elseif (preg_match('/^manageinvoice_([A-Za-z0-9_-]+)$/D', $datain, $invoiceMatch) || (($adminrulecheck['rule'] ?? '') === 'administrator' && (
     preg_match('/^\/config(?:@\w+)?\s+(.+)$/D', $text, $configMatch)
-    || ($user['step'] === 'GetusernameconfigAndOrdedrs' && $datain === '' && trim($text) !== '')
+    || (in_array($user['step'], ['GetusernameconfigAndOrdedrs', 'admin_sub_search_wait'], true) && $datain === '' && trim($text) !== '')
 ))) {
     rxArDraftResetIfAny($from_id, $user);
+    $subscriptionSearch = empty($invoiceMatch) && empty($configMatch) && $user['step'] === 'admin_sub_search_wait';
     if (!empty($invoiceMatch)) {
         $stmt = $pdo->prepare('SELECT * FROM invoice WHERE id_invoice = :order_id');
         $stmt->execute([':order_id' => $invoiceMatch[1]]);
     } else {
         $search = $configMatch[1] ?? $text;
-        [$condition, $params] = ServiceSearch::condition($pdo, $search, '1=1', [], ['username', 'note', 'id_invoice']);
-        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 51");
+        $scope = $subscriptionSearch ? ServiceSearch::VISIBLE_STATUS : '1=1';
+        [$condition, $params] = ServiceSearch::condition($pdo, $search, $scope, [], ['username', 'note', 'id_invoice']);
+        $stmt = $pdo->prepare("SELECT * FROM invoice WHERE ($scope) AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 51");
         $stmt->execute($params);
     }
     step('home', $from_id);
@@ -2630,7 +2704,10 @@ $iduser  در ربات  رفع مسدود گردید
                 'callback_data' => 'manageinvoice_' . $row['id_invoice'],
             ]];
         }
-        $buttons[] = [['text' => $textbotlang['users']['search']['title'], 'callback_data' => 'searchorder']];
+        $buttons[] = [['text' => $textbotlang['users']['search']['title'], 'callback_data' => $subscriptionSearch ? 'admin_sub_search' : 'searchorder']];
+        if ($subscriptionSearch) {
+            $buttons[] = [['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']];
+        }
         $resultText = count($rows) > 50
             ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ اشتراک را بفرستید.'
             : '🛍 چند اشتراک پیدا شد. اشتراک موردنظر را انتخاب کنید.';
@@ -2639,7 +2716,8 @@ $iduser  در ربات  رفع مسدود گردید
     }
     $OrderUser = $rows[0] ?? null;
     if (!$OrderUser) {
-        nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['notfound'], null, 'HTML');
+        $emptyMenu = $subscriptionSearch ? json_encode(['inline_keyboard' => [[['text' => 'جستجوی دوباره', 'callback_data' => 'admin_sub_search'], ['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']]]]) : null;
+        nm_adminInstantReply($from_id, $subscriptionSearch ? '❌ اشتراکی پیدا نشد.' : $textbotlang['Admin']['order']['notfound'], $emptyMenu, 'HTML');
         return;
     }
     $keyboardlists = [
@@ -2648,6 +2726,9 @@ $iduser  در ربات  رفع مسدود گردید
     $keyboardlists['inline_keyboard'][] = [
         ['text' => "♻️ بروزرسانی", 'callback_data' => "manageinvoice_" . $OrderUser['id_invoice']],
     ];
+    if (($adminrulecheck['rule'] ?? '') === 'administrator') {
+        $keyboardlists['inline_keyboard'][] = [['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']];
+    }
     $keyboardlists['inline_keyboard'][] = [
         ['text' => $textbotlang['Admin']['ManageUser']['removeservice'], 'callback_data' => "removeservice-" . $OrderUser['id_invoice']],
         ['text' => $textbotlang['Admin']['ManageUser']['removeserviceandback'], 'callback_data' => "removeserviceandback-" . $OrderUser['id_invoice']],

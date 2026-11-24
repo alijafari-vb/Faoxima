@@ -251,7 +251,35 @@ final class ServiceSearch
         return false;
     }
 
-    public static function invoicePage(PDO $pdo, string $scope, array $params, int $limit, int $offset, ?string $sort = null, bool $ascending = false, string $columns = '*'): array
+    /** Online membership comes from Rebecca and is matched by both panel and username. */
+    public static function rebeccaOnlineScope(PDO $pdo): array
+    {
+        $panels = $pdo->query("SELECT DISTINCT Service_location FROM invoice WHERE Status IN ('active', 'sendedwarn')
+            AND Service_location IN (SELECT name_panel FROM marzban_panel WHERE type = 'rebecca')")->fetchAll(PDO::FETCH_COLUMN);
+        $conditions = [];
+        $params = [];
+        $unavailable = 0;
+        foreach ($panels as $index => $panel) {
+            $config = getRebeccaPanelConfig($panel);
+            $response = ($config['status'] ?? false)
+                ? rebeccaDecodeResponse(rebeccaApiRequest($config, 'GET', '/api/users/onlines', redactUrl: true, timeout: 2), true)
+                : [];
+            $users = $response['data'] ?? null;
+            if (($response['status'] ?? false) !== true || !is_array($users) || !array_is_list($users)) {
+                $unavailable++;
+                continue;
+            }
+            $users = array_values(array_filter($users, 'is_string'));
+            if ($users !== []) {
+                $conditions[] = "(Service_location = :online_panel_$index AND JSON_CONTAINS(:online_users_$index, JSON_QUOTE(username)) = 1)";
+                $params[":online_panel_$index"] = $panel;
+                $params[":online_users_$index"] = json_encode($users, JSON_INVALID_UTF8_SUBSTITUTE);
+            }
+        }
+        return [$conditions === [] ? '0 = 1' : "Status IN ('active', 'sendedwarn') AND (" . implode(' OR ', $conditions) . ')', $params, $unavailable];
+    }
+
+    public static function invoicePage(PDO $pdo, string $scope, array $params, int $limit, int $offset, ?string $sort = null, bool $ascending = false, string $columns = '*', bool $liveUsage = true): array
     {
         $sqlOrder = 'time_sell DESC, id_invoice DESC';
         if ($sort === 'username') {
@@ -268,7 +296,10 @@ final class ServiceSearch
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         }
         $stmt->execute();
-        $rows = self::addPanelIds($pdo, $stmt->fetchAll(PDO::FETCH_ASSOC), includeUsage: $sort !== null);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($liveUsage) {
+            $rows = self::addPanelIds($pdo, $rows, includeUsage: $sort !== null);
+        }
         if ($sort !== null) {
             $now = time();
             foreach ($rows as &$row) {
@@ -280,7 +311,7 @@ final class ServiceSearch
                 $rows = array_slice($rows, $offset, $limit);
             }
         }
-        return $rows;
+        return $liveUsage ? $rows : self::addPanelIds($pdo, $rows);
     }
 
     private static function usage(array $row, int $now): array

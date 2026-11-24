@@ -18,6 +18,12 @@ if (isset($datain) && in_array((string)$datain, ['backadmin', 'admin'], true) &&
 }
 
 $rx_pem_entry_step = (isset($user) && is_array($user) && isset($user['step'])) ? (string) $user['step'] : '';
+if ($rx_pem_entry_step === 'show_info' && empty($datain)
+    && (isset($update['message']['forward_origin']) || isset($update['message']['forward_from'])
+        || isset($update['message']['forward_sender_name']) || isset($update['message']['forward_from_chat']))) {
+    // A forwarded message is a lookup input, even if its body matches an admin command.
+    $text = '';
+}
 
 $rx_nav_is_backmenu = false;
 

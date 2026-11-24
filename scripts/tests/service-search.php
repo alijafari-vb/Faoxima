@@ -17,6 +17,10 @@ if (PHP_SAPI === 'cli-server') {
     }
     $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $panel = explode('/', $path)[1];
+    if ($path === "/$panel/api/users/onlines") {
+        echo $panel === 'east' ? '["same-name","deleted"]' : '[]';
+        return;
+    }
     $base = 'https://' . $panel . '.subscriptions.test' . ($panel === 'west' ? '/west' : '') . '/sub';
     $key = $panel === 'east' ? 'aaaabbbbccccddddeeeeffff00001111' : 'aaaabbbbccccddddeeeeffff00002222';
     $user = [
@@ -150,6 +154,15 @@ same('دلخواه نامحدود', rxPlanLabel(['Volume' => 0, 'Service_time' =
 same('دلخواه 20 گیگ 30 روز', rxPlanLabel(['Volume' => 20, 'Service_time' => 30, 'pricing_snapshot' => '{"product":"customvolume"}']), 'the stored product code also identifies custom invoices');
 same('تست 250 مگ 4 ساعت', rxPlanLabel(['Volume' => 250, 'Service_time' => 4, 'name_product' => 'سرویس تست']), 'test invoices use the original hours and MB units');
 same(null, rxPlanLabel(['Service_time' => '60']), 'incomplete legacy plans keep their existing label');
+$pdo->exec("CREATE TEMPORARY TABLE user (id varchar(30) PRIMARY KEY, username varchar(100))");
+$pdo->exec("INSERT INTO user VALUES ('100','BuyerName'), ('200','sameHandle'), ('300','SameHandle'), ('400','NOT_USERNAME')");
+same('100', rxFindTelegramUserId($pdo, '@buyername'), 'Telegram username lookup is exact and case insensitive');
+same(null, rxFindTelegramUserId($pdo, '@sameHandle'), 'ambiguous stored Telegram usernames require a numeric ID');
+same(null, rxFindTelegramUserId($pdo, '@NOT_USERNAME'), 'the no-username marker is not a Telegram account');
+same('100', rxFindTelegramUserId($pdo, '۱۰۰'), 'Telegram numeric IDs accept Persian digits');
+same('200', rxFindTelegramUserId($pdo, '@BuyerName', ['forward_origin' => ['type' => 'user', 'sender_user' => ['id' => 200]]]), 'forwarded identity comes from Telegram metadata, not message contents');
+same('300', rxFindTelegramUserId($pdo, '', ['forward_from' => ['id' => 300]]), 'legacy Telegram forwards work');
+same(null, rxFindTelegramUserId($pdo, '@BuyerName', ['forward_origin' => ['type' => 'hidden_user', 'sender_user_name' => 'BuyerName']]), 'a hidden forward cannot resolve another user from its text');
 same(['e123'], search($pdo, '۹۱', '100'), 'Persian numeric ID / buyer');
 same(['w123'], search($pdo, '#٩١', '200'), 'Arabic digits / second owner');
 same(['e123', 'w123'], search($pdo, '91', null), 'same numeric ID on two panels / administrator');
@@ -227,4 +240,10 @@ $selected = $panel->DataUser('east', 'same-name', 'links', 'e123');
 same('https://shop.example.test/sub/e123', $selected['subscription_url'] ?? null, 'selected order has its own Faoxima subscription link');
 $legacy = $panel->DataUser('east', 'same-name');
 same('https://shop.example.test/sub/later-order', $legacy['subscription_url'] ?? null, 'legacy callers resolve the latest order in their panel');
+$pdo->exec("UPDATE invoice SET Status = 'active' WHERE id_invoice = 'w123'");
+[$onlineScope, $onlineParams, $unavailable] = ServiceSearch::rebeccaOnlineScope($pdo);
+$online = ServiceSearch::invoicePage($pdo, $onlineScope, $onlineParams, 10, 0, 'username', true, liveUsage: false);
+same(0, $unavailable, 'Rebecca panels return online membership');
+same(['later-order', 'e123'], array_column($online, 'id_invoice'), 'live online status is scoped to the correct panel and visible invoices');
+same([null, null], array_column($online, 'remaining_bytes'), 'global list sorting uses cached quota and does not fan out for live usage');
 echo "$tested service search checks passed.\n";

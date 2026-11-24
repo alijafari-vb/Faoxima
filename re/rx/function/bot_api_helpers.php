@@ -1651,7 +1651,7 @@ function rxSubscriptionCopy(string $text): string
         'شناسهٔ سرویس' => 'شناسهٔ اشتراک',
         'شناسه سرویس' => 'شناسهٔ اشتراک',
     ]);
-    $text = preg_replace('~نام اشتراک\s*:\s*(\{(?:name_service|product|product_name)\})~u', 'نام پلن: $1', $text) ?? $text;
+    $text = preg_replace('~نام اشتراک\s*:\s*(\{(?:name_service|product|product_name|name_product)\})~u', 'نام پلن: $1', $text) ?? $text;
     if (!str_contains($text, 'سرویس')) {
         return $text;
     }

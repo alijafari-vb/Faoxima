@@ -2782,6 +2782,34 @@ function rxPlanLabel(array $row): ?string
     return $prefix . ' ' . ($traffic === $time ? $traffic : "$traffic $time");
 }
 
+function rxFindTelegramUserId(PDO $pdo, string $input, array $message = []): ?string
+{
+    if (isset($message['forward_origin'])) {
+        $origin = $message['forward_origin'];
+        return ($origin['type'] ?? '') === 'user' ? ServiceSearch::numericId($origin['sender_user']['id'] ?? null) : null;
+    }
+    if (isset($message['forward_from'])) {
+        return ServiceSearch::numericId($message['forward_from']['id'] ?? null);
+    }
+    if (isset($message['forward_sender_name']) || isset($message['forward_from_chat'])) {
+        return null;
+    }
+
+    $input = trim($input);
+    $id = ServiceSearch::numericId($input);
+    if ($id !== null) {
+        return $id;
+    }
+    if (!preg_match('/^@?([a-z0-9_]{1,32})$/iD', $input, $match)
+        || in_array(strtolower($match[1]), ['not_username', 'none'], true)) {
+        return null;
+    }
+    $stmt = $pdo->prepare('SELECT id FROM user WHERE BINARY LOWER(username) = BINARY LOWER(:username) LIMIT 2');
+    $stmt->execute([':username' => $match[1]]);
+    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    return count($ids) === 1 ? (string) $ids[0] : null;
+}
+
 function rxServiceTableTraffic(?int $bytes): string
 {
     if ($bytes === null || $bytes === -1 || $bytes === 0) {

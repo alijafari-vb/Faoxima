@@ -640,7 +640,7 @@ if (in_array($text, $textadmin) || $datain == "admin") {
         $userSteps = [
             'accountwallet', 'add_dec', 'addbalancemanual', 'addbalanceuser',
             'addbalanceusercurrent', 'adddecriptionblock', 'getuserhide',
-            'getuserhideforremove', 'addadmin', 'getrule', 'GetusernameconfigAndOrdedrs',
+            'getuserhideforremove', 'addadmin', 'getrule', 'GetusernameconfigAndOrdedrs', 'admin_sub_search_wait',
             'antispam_get_count', 'antispam_get_mute', 'antispam_get_seconds',
             'getbtnresponseforward', 'getmessageAsAdmin', 'getmessageforward',
             'sendmessagetext', 'sendmessagetid', 'getcountcreate', 'getagentpanel',
@@ -6062,22 +6062,29 @@ $caption";
         ]);
     }
 } elseif ($datain == "searchuser" || $datain == "support_search" || $text == "👁‍🗨 جستجو کاربر") {
-    nm_adminInstantReply($from_id, $textbotlang['Admin']['ManageUser']['GetIdUserunblock'], $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, '🔍 شناسهٔ عددی یا نام کاربری تلگرام (مثل <code>@username</code>) را بفرستید، یا پیامی از همان کاربر فوروارد کنید.', $backadmin, 'HTML');
     step('show_info', $from_id);
-} elseif ($user['step'] == "show_info" || preg_match('/manageuser_(\w+)/', $datain, $dataget) || preg_match('/updateinfouser_(\w+)/', $datain, $dataget) || (is_string($datain) && preg_match('/^toggle_user_cardpayment_(\d+)$/', $datain)) || strpos($text, "/user ") !== false || strpos($text, "/id ") !== false) {
+} elseif (($user['step'] === 'show_info' && $datain === '' && isset($update['message']))
+    || preg_match('/^(?:manageuser|updateinfouser)_(\d+)$/D', $datain, $userProfileMatch)
+    || preg_match('/^toggle_user_cardpayment_\d+$/D', $datain)
+    || preg_match('/^\/(?:user|id)(?:@\w+)?\s+(.+)$/D', $text, $userSearchCommand)) {
     $rxCardpayToggle = is_string($datain) && preg_match('/^toggle_user_cardpayment_(\d+)$/', $datain, $rxCardpayMatch);
     $rxCardpayNotice = null;
     if ($rxCardpayToggle) {
         $id_user = $rxCardpayMatch[1];
-    } elseif ($user['step'] == "show_info") {
-        if (!isset($update['message']) && empty($text)) { return; }
-        $id_user = $text;
-    } elseif (explode(" ", $text)[0] == "/user") {
-        $id_user = explode(" ", $text)[1];
-    } elseif (explode(" ", $text)[0] == "/id") {
-        $id_user = explode(" ", $text)[1];
+    } elseif (!empty($userProfileMatch[1])) {
+        $id_user = $userProfileMatch[1];
     } else {
-        $id_user = $dataget[1];
+        preg_match('/^\/(?:user|id)(?:@\w+)?\s+(.+)$/D', $text, $userSearchCommand);
+        $telegramMessage = $update['message'] ?? [];
+        $id_user = rxFindTelegramUserId($pdo, $userSearchCommand[1] ?? $text, $telegramMessage);
+        if ($id_user === null) {
+            $failure = isset($telegramMessage['forward_origin']) || isset($telegramMessage['forward_sender_name']) || isset($telegramMessage['forward_from_chat'])
+                ? 'تلگرام شناسهٔ فرستنده را در این پیام ارائه نکرده است. شناسهٔ عددی یا نام کاربری او را بفرستید.'
+                : 'کاربر با این نام پیدا نشد یا نام یکتا نبود. شناسهٔ عددی، نام کاربری دقیق یا فوروارد پیام کاربر را بفرستید.';
+            nm_adminInstantReply($from_id, '❌ ' . $failure, $backadmin, 'HTML');
+            return;
+        }
     }
     if (!userExists($id_user)) {
         nm_adminInstantReply($from_id, $textbotlang['Admin']['not-user'], null, 'HTML');

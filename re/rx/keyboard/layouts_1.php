@@ -504,6 +504,7 @@ $keyboardadmin = rx_kb_encode([
             rx_kb_style(['text' => "💎 مالی و گزارشات", 'callback_data' => 'admin_finance'], 'admin_finance', $_rx_adm_styles)
         ],
         [rx_kb_style(['text' => "👥 مدیریت کاربران", 'callback_data' => 'admin_usershub'], 'admin_usershub', $_rx_adm_styles)],
+        [rx_kb_style(['text' => '🛍 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions'], 'admin_subscriptions', $_rx_adm_styles)],
         [
             rx_kb_style(['text' => "🤙 بخش پشتیبانی", 'callback_data' => 'admin_support'], 'admin_support', $_rx_adm_styles),
             rx_kb_style(['text' => "📚 بخش آموزش", 'callback_data' => 'admin_help'], 'admin_help', $_rx_adm_styles)

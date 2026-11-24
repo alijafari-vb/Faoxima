@@ -1214,7 +1214,7 @@ if ($text == "version") {
     if ($rows === []) {
         $tableText .= "\n\n" . $textbotlang['users']['sell']['service_not_available'];
     } else {
-        $tableText .= "\nعنوان ستون را برای مرتب‌سازی بزنید.";
+        $tableText .= "\nبرای مدیریت، روی ردیف اشتراک بزنید. برای مرتب‌سازی، عنوان ستون را بزنید.\nبرای یافتن اشتراک، «جستجو سریع» را بزنید.";
         $headings = [];
         foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
             $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
