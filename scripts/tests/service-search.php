@@ -221,6 +221,26 @@ same(
     array_map('rxServiceTableTraffic', [null, -1, 0, 512, 512 * 1024 ** 2, 21 * 1024 ** 3, 1319413953331, 1024 ** 4 - 1]),
     'Telegram traffic cells stay short without changing stored usage values'
 );
+$oneGigabyte = 1024 ** 3;
+$baseRow = ['id_invoice' => 'e123', 'username' => 'same-name', 'panel_user_id' => '91', 'Status' => 'active'];
+$warningRows = array_map(static fn(array $usage): array => $baseRow + $usage, [
+    ['days_remaining' => 4, 'remaining_bytes' => $oneGigabyte],
+    ['days_remaining' => 5, 'remaining_bytes' => $oneGigabyte - 1],
+    ['days_remaining' => 0, 'remaining_bytes' => 0],
+    ['days_remaining' => -1, 'remaining_bytes' => -1],
+    ['days_remaining' => null, 'remaining_bytes' => null],
+]);
+$table = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'svctable', 'quickview_');
+same(
+    [[null, null, 'danger'], [null, 'danger', null], [null, 'danger', 'danger'], [null, null, null], [null, null, null]],
+    array_map(static fn(array $row): array => array_map(static fn(array $button): ?string => $button['style'] ?? null, $row), array_slice($table, 1)),
+    'only the relevant finite days or traffic cells turn red below their thresholds'
+);
+same(['🟢 same-name (91)', '1GB', '4'], array_column($table[1], 'text'), 'warnings preserve short labels and username space');
+same(array_fill(0, 3, 'quickview_e123'), array_column($table[1], 'callback_data'), 'warning cells still open subscription details');
+$renewalTable = rxServiceTableButtons($warningRows, 'days_remaining', 'a', 'renewtable', 'extend_');
+same(['text' => 'روز مانده ↑', 'callback_data' => 'renewtable:days_remaining:d:1'], $renewalTable[0][2], 'renewal uses the same headers with its own reversible sorting');
+same(array_fill(0, 3, 'extend_e123'), array_column($renewalTable[1], 'callback_data'), 'all renewal cells select the same invoice for renewal');
 
 $pdo->exec("ALTER TABLE invoice ADD time_sell bigint DEFAULT 0");
 $pdo->prepare('UPDATE invoice SET user_info = :info WHERE id_invoice = :id')

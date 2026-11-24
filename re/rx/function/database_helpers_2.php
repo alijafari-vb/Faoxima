@@ -2827,6 +2827,58 @@ function rxServiceTableTraffic(?int $bytes): string
     return $size . ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'][$unit];
 }
 
+function rxServiceTableButtons(array $rows, string $sort, string $direction, string $tablePrefix, string $detailsPrefix): array
+{
+    if ($rows === []) {
+        return [];
+    }
+
+    $headings = [];
+    foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
+        $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
+        $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
+        $headings[] = ['text' => $label . $arrow, 'callback_data' => "$tablePrefix:$field:$nextDirection:1"];
+    }
+    $buttons = [$headings];
+    foreach ($rows as $row) {
+        $status = match ($row['panel_usage']['status'] ?? $row['Status']) {
+            'disabled', 'disablebyadmin' => '🔴',
+            'end_of_time', 'expired' => '⌛',
+            'end_of_volume', 'limited' => '📉',
+            'send_on_hold', 'on_hold' => '⏸',
+            'sendedwarn' => '⚠️',
+            'active' => '🟢',
+            default => '⚪',
+        };
+        $username = trim((string) $row['username']);
+        $id = $row['panel_user_id'] ?? null;
+        if ($id !== null) {
+            $username .= ' (' . (strlen($id) > 5 ? '…' . substr($id, -5) : $id) . ')';
+        }
+
+        $days = $row['days_remaining'];
+        $bytes = $row['remaining_bytes'];
+        $daysLabel = match ($days) {
+            null => '—', -1 => '∞', default => $days > 999 ? '999+' : (string) $days,
+        };
+        $details = $detailsPrefix . $row['id_invoice'];
+        $trafficButton = ['text' => rxServiceTableTraffic($bytes), 'callback_data' => $details];
+        $daysButton = ['text' => $daysLabel, 'callback_data' => $details];
+        if ($bytes !== null && $bytes >= 0 && $bytes < 1024 ** 3) {
+            $trafficButton['style'] = 'danger';
+        }
+        if ($days !== null && $days >= 0 && $days < 5) {
+            $daysButton['style'] = 'danger';
+        }
+        $buttons[] = [
+            ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details],
+            $trafficButton,
+            $daysButton,
+        ];
+    }
+    return $buttons;
+}
+
 function rxServiceListLabel(array $invoice): string
 {
     $username = trim((string) ($invoice['username'] ?? ''));

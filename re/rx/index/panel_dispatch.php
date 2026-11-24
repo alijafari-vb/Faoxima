@@ -1838,97 +1838,54 @@ $text_porsant
     }
     $price = $rates['USD'];
     sendmessage($from_id, sprintf($textbotlang['users']['pricearze']['tether-price'], $price), null, 'HTML');
-} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_extend']) || $datain == "extendbtn") {
-    $items_per_page = 20;
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :owner
-        AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')
-        ORDER BY time_sell DESC, id_invoice DESC LIMIT $items_per_page");
-    $stmt->execute([':owner' => $from_id]);
-    $serviceRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ($serviceRows === []) {
-        sendmessage($from_id, $textbotlang['users']['extend']['emptyServiceforExtend'], null, 'html');
-        return;
+} elseif (($text !== '' && rxSubscriptionCopy($text) == $datatextbot['text_extend']) || $datain === 'extendbtn'
+    || in_array($datain, ['next_page_extends', 'previous_page_extends'], true)
+    || preg_match('/^renewtable:(recent|username|remaining_bytes|days_remaining):([ad]):([0-9]{1,9})$/D', $datain, $renewTable)) {
+    $sort = $renewTable[1] ?? 'recent';
+    $direction = $renewTable[2] ?? 'd';
+    $limit = 6;
+    $scope = "id_user = :owner AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')";
+    $params = [':owner' => (string) $from_id];
+    if (!empty($callback_query_id)) {
+        telegram('answerCallbackQuery', ['callback_query_id' => $callback_query_id]);
     }
-    rx_section_media_enter('extend', $from_id, $datain, $message_id, ['extendbtn']);
-    update("user", "pagenumber", 1, "id", $from_id);
-    $keyboardlists = ['inline_keyboard' => rxServiceListButtons($pdo, $serviceRows, 'extend_', !empty($statusnote))];
-    $pagination_buttons = [
-        [
-            'text' => $textbotlang['users']['page']['next'],
-            'callback_data' => 'next_page_extends'
-        ]
-    ];
-    $_rx_nav_s = (isset($_rx_nav_styles) && is_array($_rx_nav_styles)) ? $_rx_nav_styles : [];
-    $backuser = [
-        rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser'], 'backuser', $_rx_nav_s)
-    ];
-    $keyboardlists['inline_keyboard'][] = $pagination_buttons;
-    $keyboardlists['inline_keyboard'][] = $backuser;
-    $keyboard_json = json_encode($keyboardlists);
-    if ($datain == "backorder") {
-        Editmessagetext($from_id, $message_id, $textbotlang['users']['extend']['selectOrderDirect'], $keyboard_json);
+    $count = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE $scope");
+    $count->execute($params);
+    $totalPages = max(1, (int) ceil($count->fetchColumn() / $limit));
+    $requestedPage = match ($datain) {
+        'next_page_extends', 'previous_page_extends' => (int) ($user['pagenumber'] ?? 1) + ($datain === 'next_page_extends' ? 1 : -1),
+        default => (int) ($renewTable[3] ?? 1),
+    };
+    $page = max(1, min($totalPages, $requestedPage));
+    $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a');
+
+    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'renewtable', 'extend_');
+    if ($rows === []) {
+        $tableText = $textbotlang['users']['extend']['emptyServiceforExtend'];
     } else {
-        sendmessage($from_id, $textbotlang['users']['extend']['selectOrderDirect'], $keyboard_json, 'html');
+        rx_section_media_enter('extend', $from_id, $datain, $message_id, ['extendbtn']);
+        $tableText = $textbotlang['users']['extend']['selectOrderDirect'] . "\nبرای مرتب‌سازی، عنوان ستون را بزنید.";
+        if ($totalPages > 1) {
+            $tableText .= "\nصفحه $page از $totalPages";
+            $navigation = [];
+            if ($page > 1) {
+                $navigation[] = ['text' => $textbotlang['users']['page']['previous'], 'callback_data' => "renewtable:$sort:$direction:" . ($page - 1)];
+            }
+            if ($page < $totalPages) {
+                $navigation[] = ['text' => $textbotlang['users']['page']['next'], 'callback_data' => "renewtable:$sort:$direction:" . ($page + 1)];
+            }
+            $buttons[] = $navigation;
+        }
     }
-} elseif ($datain == 'next_page_extends') {
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM invoice WHERE id_user = :owner AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')");
-    $countStmt->execute([':owner' => $from_id]);
-    $page = max(1, (int) $user['pagenumber']);
-    $items_per_page = 20;
-    $next_page = $page * $items_per_page >= (int) $countStmt->fetchColumn() ? 1 : $page + 1;
-    $start_index = ($next_page - 1) * $items_per_page;
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :owner
-        AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')
-        ORDER BY time_sell DESC, id_invoice DESC LIMIT $start_index, $items_per_page");
-    $stmt->execute([':owner' => $from_id]);
-    $keyboardlists = ['inline_keyboard' => rxServiceListButtons($pdo, $stmt->fetchAll(PDO::FETCH_ASSOC), 'extend_', !empty($statusnote))];
-    $pagination_buttons = [
-        [
-            'text' => $textbotlang['users']['page']['next'],
-            'callback_data' => 'next_page_extends'
-        ],
-        [
-            'text' => $textbotlang['users']['page']['previous'],
-            'callback_data' => 'previous_page_extends'
-        ]
+    $buttons[] = [
+        rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser'], 'backuser', is_array($_rx_nav_styles ?? null) ? $_rx_nav_styles : []),
     ];
-    $_rx_nav_s = (isset($_rx_nav_styles) && is_array($_rx_nav_styles)) ? $_rx_nav_styles : [];
-    $backuser = [
-        rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser'], 'backuser', $_rx_nav_s)
-    ];
-    $keyboardlists['inline_keyboard'][] = $pagination_buttons;
-    $keyboardlists['inline_keyboard'][] = $backuser;
-    $keyboard_json = json_encode($keyboardlists);
-    update("user", "pagenumber", $next_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, $textbotlang['users']['extend']['selectOrderDirect'], $keyboard_json);
-} elseif ($datain == 'previous_page_extends') {
-    $previous_page = max(1, (int) $user['pagenumber'] - 1);
-    $items_per_page = 20;
-    $start_index = ($previous_page - 1) * $items_per_page;
-    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE id_user = :owner
-        AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold')
-        ORDER BY time_sell DESC, id_invoice DESC LIMIT $start_index, $items_per_page");
-    $stmt->execute([':owner' => $from_id]);
-    $keyboardlists = ['inline_keyboard' => rxServiceListButtons($pdo, $stmt->fetchAll(PDO::FETCH_ASSOC), 'extend_', !empty($statusnote))];
-    $pagination_buttons = [
-        [
-            'text' => $textbotlang['users']['page']['next'],
-            'callback_data' => 'next_page_extends'
-        ],
-        [
-            'text' => $textbotlang['users']['page']['previous'],
-            'callback_data' => 'previous_page_extends'
-        ]
-    ];
-    $_rx_nav_s = (isset($_rx_nav_styles) && is_array($_rx_nav_styles)) ? $_rx_nav_styles : [];
-    $backuser = [
-        rx_kb_style(['text' => $textbotlang['users']['backbtn'], 'callback_data' => 'backuser'], 'backuser', $_rx_nav_s)
-    ];
-    $keyboardlists['inline_keyboard'][] = $pagination_buttons;
-    $keyboardlists['inline_keyboard'][] = $backuser;
-    $keyboard_json = json_encode($keyboardlists);
-    update("user", "pagenumber", $previous_page, "id", $from_id);
-    Editmessagetext($from_id, $message_id, $textbotlang['users']['extend']['selectOrderDirect'], $keyboard_json);
+    $keyboard_json = json_encode(['inline_keyboard' => $buttons], JSON_INVALID_UTF8_SUBSTITUTE);
+    if (!empty($renewTable) || in_array($datain, ['next_page_extends', 'previous_page_extends'], true)) {
+        Editmessagetext($from_id, $message_id, $tableText, $keyboard_json, 'HTML');
+    } else {
+        sendmessage($from_id, $tableText, $keyboard_json, 'HTML');
+    }
 } elseif (preg_match('/changenote_(\w+)/', $datain, $dataget)) {
     $id_invoice = $dataget[1];
     $rxNoteCheck = select("invoice", "id_user", "id_invoice", $id_invoice, "select");

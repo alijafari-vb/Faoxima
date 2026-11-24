@@ -1209,45 +1209,12 @@ if ($text == "version") {
     $rows = ServiceSearch::invoicePage($pdo, $scope, $params, $limit, ($page - 1) * $limit, $sort, $direction === 'a');
 
     rx_section_media_enter('services', $from_id, $datain, $message_id, ['myservicesbtn'], ['myservicesbtn']);
-    $buttons = [];
+    $buttons = rxServiceTableButtons($rows, $sort, $direction, 'svctable', 'quickview_');
     $tableText = "🛍 <b>اشتراک‌های من</b>";
     if ($rows === []) {
         $tableText .= "\n\n" . $textbotlang['users']['sell']['service_not_available'];
     } else {
         $tableText .= "\nبرای مدیریت، روی ردیف اشتراک بزنید. برای مرتب‌سازی، عنوان ستون را بزنید.\nبرای یافتن اشتراک، «جستجو سریع» را بزنید.";
-        $headings = [];
-        foreach (['username' => 'نام اشتراک', 'remaining_bytes' => 'حجم مانده', 'days_remaining' => 'روز مانده'] as $field => $label) {
-            $nextDirection = $field === $sort ? ($direction === 'a' ? 'd' : 'a') : ($field === 'username' ? 'a' : 'd');
-            $arrow = $field === $sort ? ($direction === 'a' ? ' ↑' : ' ↓') : '';
-            $headings[] = ['text' => $label . $arrow, 'callback_data' => "svctable:$field:$nextDirection:1"];
-        }
-        $buttons[] = $headings;
-        foreach ($rows as $row) {
-            $status = match ($row['panel_usage']['status'] ?? $row['Status']) {
-                'disabled', 'disablebyadmin' => '🔴',
-                'end_of_time', 'expired' => '⌛',
-                'end_of_volume', 'limited' => '📉',
-                'send_on_hold', 'on_hold' => '⏸',
-                'sendedwarn' => '⚠️',
-                'active' => '🟢',
-                default => '⚪',
-            };
-            $username = trim((string) $row['username']);
-            $id = $row['panel_user_id'] ?? null;
-            if ($id !== null) {
-                $username .= ' (' . (strlen($id) > 5 ? '…' . substr($id, -5) : $id) . ')';
-            }
-            $days = match ($row['days_remaining']) {
-                null => '—', -1 => '∞', default => $row['days_remaining'] > 999 ? '999+' : (string) $row['days_remaining'],
-            };
-            $details = 'quickview_' . $row['id_invoice'];
-            $buttons[] = [
-                ['text' => $status . ' ' . ($username !== '' ? $username : '—'), 'callback_data' => $details],
-                ['text' => rxServiceTableTraffic($row['remaining_bytes']), 'callback_data' => $details],
-                ['text' => $days, 'callback_data' => $details],
-            ];
-        }
-
         if ($totalPages > 1) {
             $tableText .= "\nصفحه $page از $totalPages";
             $navigation = [];
