@@ -8,8 +8,8 @@ elif locale -a 2>/dev/null | grep -qi '^C\.UTF-8$'; then
     export LC_ALL=C.UTF-8
 fi
 
-readonly FAOXIMA_VERSION="1.2.0"
-readonly FAOXIMA_REPO="Mmd-Amir/Faoxima"
+readonly FAOXIMA_VERSION="1.2.1"
+readonly FAOXIMA_REPO="alijafari-vb/Faoxima"
 readonly FAOXIMA_GITHUB="https://github.com/${FAOXIMA_REPO}"
 readonly FAOXIMA_TELEGRAM="https://t.me/faoxima"
 
@@ -4541,16 +4541,12 @@ change_domain() {
     fresh_cert_enddate=$(get_cert_enddate "$new_domain")
     [ -n "$fresh_cert_enddate" ] && cache_set "cert_enddate" "$fresh_cert_enddate"
 
-    local bot_token webhook_url webhook_response
-    bot_token=$(env_get TELEGRAM_BOT_TOKEN)
+    local webhook_url webhook_response
     webhook_url="https://${new_domain}/faoxima/index.php"
-    local secret_token
-    secret_token=$(printf '%s' "${bot_token}_faoxima_webhook_secret" | sha256sum | awk '{print $1}')
-    webhook_response=$(curl -s -X POST "https://api.telegram.org/bot${bot_token}/setWebhook" -F "url=${webhook_url}" -F "secret_token=${secret_token}")
-    if echo "$webhook_response" | grep -q '"ok":true'; then
-        log_info "Telegram webhook updated successfully for ${new_domain}."
+    if webhook_response=$(dc exec -T app php "${CONTAINER_APP_DIR}/scripts/telegram-polling.php" sync-webhook "$webhook_url" 2>&1); then
+        log_info "$webhook_response"
     else
-        log_warn "Webhook update returned a warning: ${webhook_response}"
+        log_warn "Failed to synchronize the main bot webhook for ${new_domain}: ${webhook_response}"
     fi
 
     local attempt http_status=""
@@ -4567,7 +4563,7 @@ change_domain() {
 
         if [ -d "$BOTS_DIR" ]; then
             local bot_ok=() bot_failed=()
-            local d name bot_token_extra bot_webhook_url bot_webhook_response bot_status bot_secret_token
+            local d name bot_webhook_url bot_webhook_response bot_status bot_token_extra bot_secret_token
             for d in "${BOTS_DIR}"/*/; do
                 [ -f "${d}.env" ] || continue
                 name=$(basename "$d")
@@ -4581,15 +4577,23 @@ change_domain() {
                         -e 's/^(\$domainhosts[[:space:]]*=[[:space:]]*)['"'"'"][^'"'"'"]*['"'"'"](;.*)$/\1'"'${new_domain}'"'\2/' \
                         "${d}config.php" || ui_warn "Failed to update \$domainhosts in ${d}config.php for '${name}'."
                 fi
-                bot_token_extra=$(grep -E '^TELEGRAM_BOT_TOKEN=' "${d}.env" | tail -1 | cut -d'=' -f2-)
                 bot_webhook_url="https://${new_domain}/${name}/index.php"
-                if [ -n "$bot_token_extra" ]; then
-                    bot_secret_token=$(printf '%s' "${bot_token_extra}_faoxima_webhook_secret" | sha256sum | awk '{print $1}')
-                    bot_webhook_response=$(curl -s -F "url=${bot_webhook_url}" -F "secret_token=${bot_secret_token}" "https://api.telegram.org/bot${bot_token_extra}/setWebhook")
-                    if ! echo "$bot_webhook_response" | grep -q '"ok":true'; then
-                        ui_warn "Failed to update webhook for additional bot '${name}': ${bot_webhook_response}"
+                if [ -f "${d}scripts/telegram-polling.php" ]; then
+                    if ! bot_webhook_response=$(dc exec -T "app_${name}" php "${CONTAINER_APP_DIR}/scripts/telegram-polling.php" sync-webhook "$bot_webhook_url" 2>&1); then
+                        ui_warn "Failed to synchronize webhook for additional bot '${name}': ${bot_webhook_response}"
                         bot_failed+=("$name")
                         continue
+                    fi
+                else
+                    bot_token_extra=$(grep -E '^TELEGRAM_BOT_TOKEN=' "${d}.env" | tail -1 | cut -d'=' -f2-)
+                    if [ -n "$bot_token_extra" ]; then
+                        bot_secret_token=$(printf '%s' "${bot_token_extra}_faoxima_webhook_secret" | sha256sum | awk '{print $1}')
+                        bot_webhook_response=$(curl -s --max-time 10 -F "url=${bot_webhook_url}" -F "secret_token=${bot_secret_token}" "https://api.telegram.org/bot${bot_token_extra}/setWebhook")
+                        if ! grep -q '"ok":true' <<< "$bot_webhook_response"; then
+                            ui_warn "Failed to update webhook for legacy bot '${name}'."
+                            bot_failed+=("$name")
+                            continue
+                        fi
                     fi
                 fi
                 bot_status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$bot_webhook_url")

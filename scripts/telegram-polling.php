@@ -117,7 +117,7 @@ function runTelegramUpdate(string $botId, array $job, int $workerConnection): in
     }
 }
 
-function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId): void
+function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId, bool $drain = false): void
 {
     $inbox->recoverInterrupted();
     $workerConnection = (int) $db->query('SELECT CONNECTION_ID()')->fetchColumn();
@@ -128,12 +128,21 @@ function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId):
             $nextPrune = time() + ($pruned === 1000 ? 10 : 3600);
         }
         $settings = FaoximaTelegramTransport::settings($db);
-        if (!$settings || !$settings['polling'] || time() - (int) $settings['last_poll_ok'] > 60) {
+        if (!$settings || !$settings['polling'] || (!$drain && time() - (int) $settings['last_poll_ok'] > 60)) {
+            if ($drain) {
+                throw new RuntimeException('Long polling must remain enabled while draining the inbox.');
+            }
             usleep(500000);
             continue;
         }
         $job = $inbox->next();
         if ($job === null) {
+            if ($drain) {
+                if ($inbox->counts() !== []) {
+                    throw new RuntimeException('The inbox has rows that require review.');
+                }
+                return;
+            }
             usleep(100000);
             continue;
         }
@@ -151,6 +160,9 @@ function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId):
         $ms = (int) ((hrtime(true) - $start) / 1000000);
         if ($exit !== 0 || $ms >= 1000) {
             fwrite(STDERR, "Telegram update {$job['update_id']} {$state} after {$ms} ms.\n");
+        }
+        if ($drain && $exit !== 0) {
+            throw new RuntimeException('Drain stopped after a dispatch failure. Check the inbox.');
         }
         if ($exit === 75) {
             sleep(2);
@@ -170,8 +182,21 @@ try {
         $inbox->install();
         exit(0);
     }
-    if ($role === 'detach-webhook' || $role === 'attach-webhook') {
+    if ($role === 'status') {
         $settings = FaoximaTelegramTransport::settings($pdo);
+        echo json_encode([
+            'polling' => !empty($settings['polling']),
+            'state' => $settings['poll_state'] ?? 'idle',
+            'counts' => $settings === null ? [] : $inbox->counts(),
+        ], JSON_THROW_ON_ERROR) . PHP_EOL;
+        exit(0);
+    }
+    if (in_array($role, ['detach-webhook', 'attach-webhook', 'sync-webhook'], true)) {
+        $settings = FaoximaTelegramTransport::settings($pdo);
+        if ($role === 'sync-webhook' && !empty($settings['polling'])) {
+            fwrite(STDOUT, "Telegram polling is enabled. Webhook synchronization skipped.\n");
+            exit(0);
+        }
         $proxy = $settings['proxy_url'] ?? '';
         $detach = $role === 'detach-webhook';
         if ($detach !== !empty($settings['polling'])) {
@@ -182,12 +207,12 @@ try {
         }
         $parameters = ['drop_pending_updates' => 'false'];
         if (!$detach) {
-            if ($inbox->counts() !== []) {
+            if ($settings !== null && $inbox->counts() !== []) {
                 fwrite(STDERR, "Drain or review the local Telegram inbox before attaching the webhook.\n");
                 exit(1);
             }
-            $url = 'https://' . $domainhosts . '/index.php';
-            if ($domainhosts === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+            $url = $role === 'sync-webhook' ? ($argv[2] ?? '') : ('https://' . $domainhosts . '/index.php');
+            if (!str_starts_with($url, 'https://') || !filter_var($url, FILTER_VALIDATE_URL)) {
                 fwrite(STDERR, "The Faoxima webhook URL is invalid. Check the domain in config.php.\n");
                 exit(1);
             }
@@ -213,8 +238,21 @@ try {
         fwrite(STDOUT, "Update moved to {$target}.\n");
         exit(0);
     }
+    if ($role === 'drain') {
+        $settings = FaoximaTelegramTransport::settings($pdo);
+        if (empty($settings['polling']) || !$inbox->lock('poll') || !$inbox->lock('work', 5)) {
+            throw new RuntimeException('Stop the polling and worker services and keep polling enabled in the panel.');
+        }
+        $probe = FaoximaTelegramTransport::control($token, 'getMe', [], 10, null, $settings['proxy_url']);
+        if (($probe['body']['ok'] ?? false) !== true) {
+            throw new RuntimeException('The Telegram proxy must be reachable to drain the inbox.');
+        }
+        runTelegramWorker($inbox, $pdo, $botId, true);
+        fwrite(STDOUT, "The local Telegram inbox is empty.\n");
+        exit(0);
+    }
     if (!in_array($role, ['poll', 'work'], true)) {
-        fwrite(STDERR, "Usage: php scripts/telegram-polling.php init|poll|work|detach-webhook|attach-webhook|retry ROW|resolve ROW\n");
+        fwrite(STDERR, "Usage: php scripts/telegram-polling.php init|poll|work|status|drain|detach-webhook|attach-webhook|sync-webhook URL|retry ROW|resolve ROW\n");
         exit(2);
     }
     if (!$inbox->lock($role, $role === 'work' ? 5 : 0)) {
@@ -227,6 +265,9 @@ try {
         runTelegramWorker($inbox, $pdo, $botId);
     }
 } catch (Throwable $error) {
-    fwrite(STDERR, 'Telegram service stopped (' . get_class($error) . ', code ' . $error->getCode() . "). Check configuration and database.\n");
+    $message = get_class($error) === RuntimeException::class
+        ? $error->getMessage()
+        : 'Telegram service stopped (' . get_class($error) . ', code ' . $error->getCode() . '). Check configuration and database.';
+    fwrite(STDERR, $message . PHP_EOL);
     exit(1);
 }
