@@ -9,8 +9,9 @@ define('FAOXIMA_LAZY_MYSQLI', true);
 require dirname(__DIR__) . '/config.php';
 require dirname(__DIR__) . '/lib/TelegramInbox.php';
 require dirname(__DIR__) . '/lib/WebhookAuth.php';
+require dirname(__DIR__) . '/lib/RebeccaTelegramLifecycle.php';
 
-function runTelegramPoller(FaoximaTelegramInbox $inbox, PDO $db, string $token): void
+function runTelegramPoller(FaoximaTelegramInbox $inbox, PDO $db, string $token, ?FaoximaRebeccaTelegramLifecycle $rebecca): void
 {
     $handle = curl_init();
     $offset = 0;
@@ -33,7 +34,18 @@ function runTelegramPoller(FaoximaTelegramInbox $inbox, PDO $db, string $token):
             $lastState = null;
         }
 
-        $timeout = $firstRequest || $failures > 0 ? 0 : 25;
+        if ($rebecca !== null && !$rebecca->isReady()) {
+            if ($lastState !== 'app_paused') {
+                $inbox->pollStatus($revision, 'app_paused');
+                fwrite(STDERR, "Rebecca local route is unavailable. Telegram polling paused.\n");
+            }
+            $lastState = 'app_paused';
+            $offset = 0;
+            sleep(2);
+            continue;
+        }
+        // Start with an immediate request when recovering from a local pause.
+        $timeout = $firstRequest || $failures > 0 || $lastState === 'app_paused' ? 0 : 25;
         $result = FaoximaTelegramTransport::control(
             $token, 'getUpdates', ['timeout' => $timeout, 'offset' => $offset],
             $timeout + 10, $handle, $settings['proxy_url']
@@ -57,6 +69,29 @@ function runTelegramPoller(FaoximaTelegramInbox $inbox, PDO $db, string $token):
         // Re-fetch any unconfirmed updates instead of reusing a stale offset.
         $offset = 0;
         $code = (int) ($body['error_code'] ?? $result['code']);
+        if ($code === 409 && $rebecca !== null) {
+            $recovery = $rebecca->recoverWebhook(
+                $token, $settings['proxy_url'], $handle,
+                static function () use ($db, $revision): bool {
+                    $current = FaoximaTelegramTransport::settings($db);
+                    return !empty($current['polling']) && (int) $current['revision'] === $revision;
+                }
+            );
+            $state = $recovery['state'];
+            if ($state === 'recovered') {
+                $inbox->pollStatus($revision, 'rebecca_webhook');
+                fwrite(STDERR, "Rebecca webhook detached. Pending updates kept.\n");
+            } elseif ($lastState !== $state) {
+                $inbox->pollStatus($revision, $state);
+                fwrite(STDERR, "Telegram polling: {$state}.\n");
+            }
+            $lastState = $state;
+            $failures = 1;
+            if ($recovery['delay'] > 0) {
+                sleep($recovery['delay']);
+            }
+            continue;
+        }
         $state = match ($code) {
             401, 404 => 'token_error',
             409 => 'conflict',
@@ -117,7 +152,7 @@ function runTelegramUpdate(string $botId, array $job, int $workerConnection): in
     }
 }
 
-function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId, bool $drain = false): void
+function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId, ?FaoximaRebeccaTelegramLifecycle $rebecca, bool $drain = false): void
 {
     $inbox->recoverInterrupted();
     $workerConnection = (int) $db->query('SELECT CONNECTION_ID()')->fetchColumn();
@@ -128,9 +163,11 @@ function runTelegramWorker(FaoximaTelegramInbox $inbox, PDO $db, string $botId, 
             $nextPrune = time() + ($pruned === 1000 ? 10 : 3600);
         }
         $settings = FaoximaTelegramTransport::settings($db);
-        if (!$settings || !$settings['polling'] || (!$drain && time() - (int) $settings['last_poll_ok'] > 60)) {
+        if (!$settings || !$settings['polling']
+            || ($rebecca !== null && !$rebecca->isReady())
+            || (!$drain && time() - (int) $settings['last_poll_ok'] > 60)) {
             if ($drain) {
-                throw new RuntimeException('Long polling must remain enabled while draining the inbox.');
+                throw new RuntimeException('Keep long polling enabled and the local app reachable while draining the inbox.');
             }
             usleep(500000);
             continue;
@@ -178,6 +215,16 @@ try {
     $botId = FaoximaTelegramInbox::botId($token);
     $inbox = new FaoximaTelegramInbox($pdo, $botId);
     $role = $argv[1] ?? '';
+    $rebecca = getenv('FAOXIMA_REBECCA_MODE') === '1' && in_array($role, ['poll', 'work', 'drain', 'check-rebecca'], true)
+        ? new FaoximaRebeccaTelegramLifecycle((string) $domainhosts)
+        : null;
+    if ($role === 'check-rebecca') {
+        if ($rebecca === null || !$rebecca->isReady()) {
+            throw new RuntimeException('The local Rebecca route is unavailable. Check mode, HTTPS and the app path.');
+        }
+        fwrite(STDOUT, "The local Rebecca route is ready.\n");
+        exit(0);
+    }
     if ($role === 'init') {
         $inbox->install();
         exit(0);
@@ -247,12 +294,12 @@ try {
         if (($probe['body']['ok'] ?? false) !== true) {
             throw new RuntimeException('The Telegram proxy must be reachable to drain the inbox.');
         }
-        runTelegramWorker($inbox, $pdo, $botId, true);
+        runTelegramWorker($inbox, $pdo, $botId, $rebecca, true);
         fwrite(STDOUT, "The local Telegram inbox is empty.\n");
         exit(0);
     }
     if (!in_array($role, ['poll', 'work'], true)) {
-        fwrite(STDERR, "Usage: php scripts/telegram-polling.php init|poll|work|status|drain|detach-webhook|attach-webhook|sync-webhook URL|retry ROW|resolve ROW\n");
+        fwrite(STDERR, "Usage: php scripts/telegram-polling.php init|poll|work|status|check-rebecca|drain|detach-webhook|attach-webhook|sync-webhook URL|retry ROW|resolve ROW\n");
         exit(2);
     }
     if (!$inbox->lock($role, $role === 'work' ? 5 : 0)) {
@@ -260,9 +307,9 @@ try {
         exit(1);
     }
     if ($role === 'poll') {
-        runTelegramPoller($inbox, $pdo, $token);
+        runTelegramPoller($inbox, $pdo, $token, $rebecca);
     } else {
-        runTelegramWorker($inbox, $pdo, $botId);
+        runTelegramWorker($inbox, $pdo, $botId, $rebecca);
     }
 } catch (Throwable $error) {
     $message = get_class($error) === RuntimeException::class

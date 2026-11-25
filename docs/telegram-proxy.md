@@ -54,4 +54,6 @@ socks5h://127.0.0.1:1070
 TELEGRAM_TEST_DSN='mysql:host=localhost;dbname=faoxima_test' TELEGRAM_TEST_USER='tester' php scripts/tests/telegram-inbox.php
 ```
 
-[راهنمای ارتقای ۱.۲.۱ در ربکا و برگشت به ریلهٔ قبلی](rebecca-upgrade-v1.2.1.md)
+[راهنمای ارتقای ۱.۲.۲ در ربکا و برگشت به ریلهٔ قبلی](rebecca-upgrade-v1.2.2.md)
+
+حالت ویژهٔ ربکا را با `FAOXIMA_REBECCA_MODE=1` برای هر دو واحد فعال کنید. این حالت روی مسیر محلی HTTPS اپ وضعیت فعال بودن را کنترل می‌کند و در صورت بازگشت وب‌هوک، فقط نشانی دقیق همین نصب را با حفظ آپدیت‌ها جدا می‌کند.

@@ -78,6 +78,9 @@ try {
 $status = match (true) {
     empty($settings['polling']) => 'وب‌هوک',
     (int) $settings['last_poll_ok'] >= time() - 60 => 'لانگ‌پولینگ متصل',
+    ($settings['poll_state'] ?? '') === 'app_paused' => 'اپ ربکا یا مسیر محلی آن در دسترس نیست',
+    ($settings['poll_state'] ?? '') === 'rebecca_webhook' => 'در حال بازیابی اتصال پس از ثبت وب‌هوک ربکا',
+    ($settings['poll_state'] ?? '') === 'unexpected_webhook' => 'وب‌هوک روی نشانی دیگری ثبت شده است',
     ($settings['poll_state'] ?? '') === 'conflict' => 'تداخل با وب‌هوک یا دریافت‌کنندهٔ دیگر',
     ($settings['poll_state'] ?? '') === 'rate_limited' => 'محدودیت موقت تلگرام',
     ($settings['poll_state'] ?? '') === 'token_error' => 'خطای توکن',

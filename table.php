@@ -3285,18 +3285,18 @@ try {
 
 
 
-if (empty(FaoximaTelegramTransport::currentSettings()['polling'])) {
-    $hookParams = [
-        'url' => "https://$domainhosts/index.php",
-    ];
-    $secretTok = function_exists('getTelegramExpectedSecretToken') ? getTelegramExpectedSecretToken() : '';
-    if ($secretTok !== '') {
-        $hookParams['secret_token'] = $secretTok;
-    }
-    $rxSetHookResp = telegram('setwebhook', $hookParams);
-    if (!is_array($rxSetHookResp) || empty($rxSetHookResp['ok'])) {
-        error_log('setwebhook FAILED: ' . json_encode($rxSetHookResp));
-    }
+$hookParams = [
+    'url' => "https://$domainhosts/index.php",
+];
+$secretTok = function_exists('getTelegramExpectedSecretToken') ? getTelegramExpectedSecretToken() : '';
+if ($secretTok !== '') {
+    $hookParams['secret_token'] = $secretTok;
+}
+$rxSetHookResp = !empty(FaoximaTelegramTransport::currentSettings()['polling'])
+    ? ['ok' => true]
+    : telegram('setwebhook', $hookParams);
+if (!is_array($rxSetHookResp) || empty($rxSetHookResp['ok'])) {
+    error_log('setwebhook FAILED: ' . json_encode($rxSetHookResp));
 }
 
 
