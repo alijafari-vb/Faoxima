@@ -78,6 +78,9 @@ export async function buy(view) {
     let step = computeStep(draft);
 
     function render() {
+        const firstStep = draft.panelAutoSelected ? 1 : 0;
+        const progressSteps = STEPS.slice(firstStep);
+        const progressIndex = step - firstStep;
         view.innerHTML = `
             <article class="card card-window card-bare">
                 <header class="card-window-bar">
@@ -85,14 +88,14 @@ export async function buy(view) {
                     <span class="window-url">faoxima/buy</span>
                 </header>
                 <div class="card-body">
-                    <div class="buy-progress">
+                    <div class="buy-progress"${step === 0 ? ' hidden' : ''}>
                         <div class="buy-progress-top">
                             <span class="buy-progress-label">${escapeHtml(STEPS[step].label)}</span>
-                            <span class="buy-progress-count">مرحله <b>${FA_NUMS[step]}</b> از ${FA_NUMS[STEPS.length - 1]}</span>
+                            <span class="buy-progress-count">مرحله <b>${FA_NUMS[progressIndex]}</b> از ${FA_NUMS[progressSteps.length - 1]}</span>
                         </div>
                         <div class="buy-progress-track">
-                            ${STEPS.map((s, i) => `
-                                <span class="buy-progress-seg ${i < step ? 'is-done' : ''} ${i === step ? 'is-active' : ''}"></span>
+                            ${progressSteps.map((_, i) => `
+                                <span class="buy-progress-seg ${i < progressIndex ? 'is-done' : ''} ${i === progressIndex ? 'is-active' : ''}"></span>
                             `).join('')}
                         </div>
                     </div>
@@ -129,6 +132,12 @@ export async function buy(view) {
             break;
         }
 
+        if (target === 0 && draft.panelAutoSelected) {
+            clearBuyDraft();
+            view.replaceChildren();
+            window.location.hash = '#/';
+            return;
+        }
 
         if (target <= 3) {
             delete draft.product;
@@ -149,25 +158,45 @@ export async function buy(view) {
         render();
     }
 
+    function selectPanel(panel, automatic = false) {
+        draft.panel = {
+            id: String(panel.id),
+            name: panel.name,
+            is_custom: !!panel.is_custom,
+            is_username: !!panel.is_username,
+            is_username_required: !!panel.is_username_required,
+            is_username_random: !!panel.is_username_random,
+            is_note: !!panel.is_note,
+        };
+        draft.panelAutoSelected = automatic;
+        persistAndNext();
+    }
 
     async function renderPanelStep(host) {
-        host.innerHTML = `
-            <p class="section-title">انتخاب موقعیت</p>
-            <h2 class="section-headline">اشتراک شما کجا ارائه شود؟</h2>
-            <div id="panel-list" class="list mt-md">${skeletonList(4)}</div>
-        `;
+        host.innerHTML = `<div class="list mt-md">${skeletonList(2)}</div>`;
         try {
             const res = await call('countries');
+            if (!host.isConnected) return;
             const list = Array.isArray(res?.obj) ? res.obj : [];
-            const $list = host.querySelector('#panel-list');
-            if (!list.length) {
-                $list.innerHTML = emptyState('پنلی موجود نیست', 'در حال حاضر هیچ موقعیتی برای خرید فعال نیست.');
+            if (list.length === 1) {
+                selectPanel(list[0], true);
                 return;
             }
+            if (!list.length) {
+                host.innerHTML = emptyState('پنلی موجود نیست', 'در حال حاضر هیچ موقعیتی برای خرید فعال نیست.');
+                return;
+            }
+            host.parentElement.querySelector('.buy-progress').hidden = false;
+            host.innerHTML = `
+                <p class="section-title">انتخاب موقعیت</p>
+                <h2 class="section-headline">اشتراک شما کجا ارائه شود؟</h2>
+                <div id="panel-list" class="list mt-md"></div>
+            `;
+            const $list = host.querySelector('#panel-list');
             $list.innerHTML = list.map((p) => `
-                <button class="plan" data-id="${escapeHtml(p.id)}" data-custom="${p.is_custom ? '1' : '0'}" data-username="${p.is_username ? '1' : '0'}" data-username-required="${p.is_username_required ? '1' : '0'}" data-username-random="${p.is_username_random ? '1' : '0'}" data-note="${p.is_note ? '1' : '0'}" data-name="${escapeHtml(p.plan_label || p.name)}">
+                <button class="plan" data-id="${escapeHtml(p.id)}">
                     <div class="plan-info">
-                        <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
+                        <div class="plan-title">${escapeHtml(p.name)}</div>
                         <div class="plan-meta">
                             ${p.is_custom ? `<span><span class="mono gold">~</span> حجم سفارشی</span>` : ''}
                             ${p.is_username ? `<span><span class="mono gold">@</span> نام کاربری دلخواه${p.is_username_required ? ' (ضروری)' : ''}</span>` : ''}
@@ -179,23 +208,14 @@ export async function buy(view) {
                 </button>
             `).join('');
 
-            $list.querySelectorAll('.plan').forEach((btn) => {
+            $list.querySelectorAll('.plan').forEach((btn, index) => {
                 btn.addEventListener('click', () => {
                     hapticImpact('light');
-                    draft.panel = {
-                        id: btn.dataset.id,
-                        name: btn.dataset.name,
-                        is_custom: btn.dataset.custom === '1',
-                        is_username: btn.dataset.username === '1',
-                        is_username_required: btn.dataset.usernameRequired === '1',
-                        is_username_random: btn.dataset.usernameRandom === '1',
-                        is_note: btn.dataset.note === '1',
-                    };
-                    persistAndNext();
+                    selectPanel(list[index]);
                 });
             });
         } catch (err) {
-            host.querySelector('#panel-list').innerHTML = errorBlock(err);
+            if (host.isConnected) host.innerHTML = errorBlock(err);
         }
     }
 
@@ -210,6 +230,7 @@ export async function buy(view) {
 
         try {
             const res = await call('categories', { params: { country_id: draft.panel.id } });
+            if (!host.isConnected) return;
             const list = Array.isArray(res?.obj) ? res.obj : [];
             const $list = host.querySelector('#cat-list');
 
@@ -238,7 +259,7 @@ export async function buy(view) {
                 });
             });
         } catch (err) {
-            host.querySelector('#cat-list').innerHTML = errorBlock(err);
+            if (host.isConnected) host.querySelector('#cat-list').innerHTML = errorBlock(err);
         }
     }
 
@@ -253,6 +274,7 @@ export async function buy(view) {
 
         try {
             const res = await call('time_ranges', { params: { country_id: draft.panel.id } });
+            if (!host.isConnected) return;
             const list = Array.isArray(res?.obj) ? res.obj : [];
             const $list = host.querySelector('#time-list');
 
@@ -279,7 +301,7 @@ export async function buy(view) {
                 });
             });
         } catch (err) {
-            host.querySelector('#time-list').innerHTML = errorBlock(err);
+            if (host.isConnected) host.querySelector('#time-list').innerHTML = errorBlock(err);
         }
     }
 
@@ -332,10 +354,7 @@ export async function buy(view) {
                         ${list.map((p) => `
                             <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.plan_label || p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
-                                    <div class="plan-meta plan-terms">
-                                        <span>${icon('box')} ${escapeHtml(Number(p.traffic_gb) === 0 ? 'حجم نامحدود' : fmtGb(p.traffic_gb))}</span>
-                                        <span>${icon('calendar')} ${escapeHtml(Number(p.time_days) === 0 ? 'زمان نامحدود' : fmtDays(p.time_days))}</span>
-                                    </div>
+                                    <div class="plan-title">${escapeHtml(catalogPlanTitle(p))}</div>
                                 </div>
                                 <div class="plan-price">
                                     <span class="amt">${escapeHtml(fmtPrice(p.price))}</span>
@@ -839,6 +858,13 @@ export async function buy(view) {
     return () => {
 
     };
+}
+
+function catalogPlanTitle({ traffic_gb, time_days }) {
+    const volume = Number(traffic_gb);
+    const traffic = volume === 0 ? 'حجم نامحدود' : (Number.isFinite(volume) ? `${fmtNumber(volume)} گیگ` : 'حجم نامشخص');
+    const duration = Number(time_days) === 0 ? 'زمان نامحدود' : fmtDays(time_days);
+    return `${traffic} · ${duration}`;
 }
 
 function computeStep(d) {
