@@ -355,6 +355,11 @@ export async function buy(view) {
                             <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.plan_label || p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
                                     <div class="plan-title">${escapeHtml(catalogPlanTitle(p))}</div>
+                                    <div class="plan-meta">
+                                        <span>${icon('box')} ${escapeHtml(fmtGb(p.traffic_gb))}</span>
+                                        <span>${icon('calendar')} ${escapeHtml(fmtDays(p.time_days))}</span>
+                                        ${fmtSymbolicLimit(p) ? `<span>${icon('users')} ${escapeHtml(fmtSymbolicLimit(p))}</span>` : (p.ip_limit_guard_active ? `<span>${icon('users')} ${escapeHtml(fmtIpLimit(p.ip_limit))}</span>` : '')}
+                                    </div>
                                 </div>
                                 <div class="plan-price">
                                     <span class="amt">${escapeHtml(fmtPrice(p.price))}</span>
@@ -860,7 +865,10 @@ export async function buy(view) {
     };
 }
 
-function catalogPlanTitle({ traffic_gb, time_days }) {
+function catalogPlanTitle({ plan_label, name, traffic_gb, time_days }) {
+    const title = String(plan_label || name || '').replace(/^\s*پیش[\s\u200c-]*فرض(?:\s+|$)/u, '');
+    if (title) return title;
+
     const volume = Number(traffic_gb);
     const traffic = volume === 0 ? 'حجم نامحدود' : (Number.isFinite(volume) ? `${fmtNumber(volume)} گیگ` : 'حجم نامشخص');
     const duration = Number(time_days) === 0 ? 'زمان نامحدود' : fmtDays(time_days);
