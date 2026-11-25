@@ -2926,11 +2926,9 @@ $nameconfig";
                 $result['price_product'] = $result['price_product'] - $resultper;
             }
             $result['price_product'] = fx_finalize_amount($result['price_product'], $marzban_list_get, 'product');
-            if ($statusshowprice == "offshowprice") {
-                $namekeyboard = $result['name_product'];
-            } else {
-                $result['price_product'] = number_format($result['price_product']);
-                $namekeyboard = $result['name_product'] . " - " . $result['price_product'] . "تومان";
+            $namekeyboard = rxPlanOfferText($result);
+            if ($statusshowprice === "onshowprice") {
+                $namekeyboard .= ' · ' . rxFormatToman($result['price_product']) . ' تومان';
             }
             $productextend['inline_keyboard'][] = [
                 ['text' => $namekeyboard, 'callback_data' => "serviceextendselect_" . $result['code_product']]
@@ -3001,11 +2999,9 @@ $nameconfig";
             $result['price_product'] = $result['price_product'] - $resultper;
         }
         $result['price_product'] = fx_finalize_amount($result['price_product'], $marzban_list_get, 'product');
-        if ($statusshowprice == "offshowprice") {
-            $namekeyboard = $result['name_product'];
-        } else {
-            $result['price_product'] = number_format($result['price_product']);
-            $namekeyboard = $result['name_product'] . " - " . $result['price_product'] . "تومان";
+        $namekeyboard = rxPlanOfferText($result);
+        if ($statusshowprice === "onshowprice") {
+            $namekeyboard .= ' · ' . rxFormatToman($result['price_product']) . ' تومان';
         }
         $productextend['inline_keyboard'][] = [
             ['text' => $namekeyboard, 'callback_data' => "serviceextendselect_" . $result['code_product']]
@@ -3122,7 +3118,7 @@ $nameconfig";
         $pricelastextend = number_format($product['price_product']);
     }
     fx_quote_store($from_id, fx_quote_context_key('renew', (string) $nameloc['id_invoice'] . '|' . (string) $product['code_product']), fx_finalize_amount(fx_apply_user_discount($product['price_product'], $user['pricediscount']), $marzban_list_get, $fxRenewKinds), $marzban_list_get, $fxRenewKinds);
-    $volumeextend = intval($product['Volume_constraint']) == 0 ? $textbotlang['users']['stateus']['Unlimited'] : $product['Volume_constraint'] . ' گیگ';
+    [$volume, $duration] = rxPlanTerms($product);
     $rxReservationUi = rxReservationUiEnabled($marzban_list_get);
     $rxRenewPreview = rxRenewalPreviewForService($ManagePanel, $marzban_list_get, (string) $nameloc['username'], $product['Volume_constraint'], $product['Service_time'], ['id_invoice' => (string) $nameloc['id_invoice'], 'stage' => 'telegram_preview']);
     if ($rxReservationUi && empty($rxRenewPreview['blocked'])) {
@@ -3139,10 +3135,9 @@ $nameconfig";
     }
     $textextend = "📜 فاکتور تمدید شما برای نام کاربری {$nameloc['username']} ایجاد شد.
 
-🛍 نام پلن :{$product['name_product']}
 💸 مبلغ تمدید : $pricelastextend تومان
-⏱ مدت زمان تمدید :{$product['Service_time']} روز
-🔋 حجم تمدید :$volumeextend
+⏱ مدت زمان تمدید : $duration
+🔋 حجم تمدید : $volume
 ✍️ توضیحات : {$product['note']}
 💸 موجودی کیف پول : " . rxFormatToman($user['Balance']) . "
 " . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n\n" : '') . (empty($rxRenewPreview['blocked']) ? "✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید" : '');
@@ -3226,10 +3221,7 @@ $nameconfig";
     if (rxReservationUiEnabled($marzban_list_get) && empty($rxRenewPreview['blocked'])) {
         $rxRenewPreview['text'] = '';
     }
-    if (intval($info_product['Service_time']) == 0)
-        $info_product['Service_time'] = $textbotlang['users']['stateus']['Unlimited'];
-    if (intval($info_product['Volume_constraint']) == 0)
-        $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
+    [$volume, $duration] = rxPlanTerms($info_product);
     if ($info_product['price_product'] < 0)
         $info_product['price_product'] = 0;
     $info_product['price_product'] = fx_finalize_amount($info_product['price_product'], $marzban_list_get, $fxRenewKinds);
@@ -3237,10 +3229,9 @@ $nameconfig";
     $rxFmtExtendUserBalance = rxFormatToman($user['Balance']);
     $textextend = "📜 فاکتور تمدید شما برای نام کاربری {$nameloc['username']} ایجاد شد.
 
-🛍 نام پلن :{$info_product['name_product']}
 💸 مبلغ تمدید :{$rxFmtExtendInfoProductPrice}
-⏱ مدت زمان تمدید :{$info_product['Service_time']} روز
-🔋 حجم تمدید :{$info_product['Volume_constraint']} گیگ
+⏱ مدت زمان تمدید : $duration
+🔋 حجم تمدید : $volume
 ✍️ توضیحات : {$info_product['note']}
 💸 موجودی کیف پول : {$rxFmtExtendUserBalance}
 " . ($rxRenewPreview['text'] !== '' ? "\n" . $rxRenewPreview['text'] . "\n" : '') . (empty($rxRenewPreview['blocked']) ? "\n✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید" : '');
@@ -3562,19 +3553,22 @@ $nameconfig";
     $balanceformatsell = number_format(select("user", "Balance", "id", $from_id, "select")['Balance'], 0);
     $balanceformatsellbefore = number_format($user['Balance'], 0);
     $rxFmtProdcutPriceExtend = rxFormatToman($prodcut['price_product']);
+    [$volume, $duration] = rxPlanTerms($prodcut);
     if (!empty($extend['queued'])) {
         $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
         $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : {$nameloc['username']}
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
     } else {
         $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : {$nameloc['username']}
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
         $textextend = rxRenewalDecorateSuccess($textextend, $extend, (string) $nameloc['username'], (string) ($marzban_list_get['name_panel'] ?? ''));

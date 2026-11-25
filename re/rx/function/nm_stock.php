@@ -62,13 +62,7 @@ function nmStockExtendProductKeyboard(array $invoice, array $userRow, array $pan
     foreach ($products as $product) {
         $code = trim((string)($product['code_product'] ?? ''));
         $token = ($code !== '' && strlen('nmstocksel_' . $code . '_' . $invoiceId) <= 64) ? $code : 'pid_' . (string)($product['id'] ?? '0');
-        $name = trim((string)($product['name_product'] ?? 'محصول'));
-        $price = number_format((float)($product['price_product'] ?? 0));
-        $vol = trim((string)($product['Volume_constraint'] ?? ''));
-        $volLabel = ($vol !== '' && intval($vol) === 0) ? 'نامحدود' : ($vol !== '' ? "{$vol}GB" : '');
-        $days = trim((string)($product['Service_time'] ?? ''));
-        $label = $name . " - {$price} تومان";
-        if ($vol !== '' || $days !== '') $label .= " ({$volLabel} / {$days} روز)";
+        $label = rxPlanOfferText($product) . ' · ' . rxFormatToman($product['price_product'] ?? 0) . ' تومان';
         $rows[] = [rx_kb_style(['text' => $label, 'callback_data' => 'nmstocksel_' . $token . '_' . $invoiceId], 'nmstock_actions', $styles)];
     }
     $rows[] = [rx_kb_style(['text' => '🏠 بازگشت به لیست اشتراک‌ها', 'callback_data' => 'backorder'], 'backorder', $styles)];
@@ -390,13 +384,13 @@ function nmMaybeHandleStockCallback($datain,$chatId,$messageId=null,$callbackQue
         if(!$product){ sendmessage($chatId,'❌ محصول تمدید پیدا نشد.',$keyboard??null,'HTML'); return true; }
         if($action==='select_extend'){
             $price=number_format((float)($product['price_product']??0));
+            [$volume, $duration] = rxPlanTerms($product);
             $txt="📜 فاکتور تمدید اشتراک
 
 👤 اشتراک: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>
-🛍 محصول: {$product['name_product']}
 💰 مبلغ: {$price} تومان
-⏳ مدت: {$product['Service_time']} روز
-🗜 حجم: {$product['Volume_constraint']} گیگ";
+⏳ مدت: $duration
+🗜 حجم: $volume";
             $kbd=json_encode(['inline_keyboard'=>[[['text'=>'✅ تایید تمدید','callback_data'=>'nmstockok_'.$token.'_'.$iid]],[['text'=>'🏠 بازگشت به لیست اشتراک‌ها','callback_data'=>'backorder']]]],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
             if(!empty($messageId)&&function_exists('Editmessagetext')) Editmessagetext($chatId,$messageId,$txt,$kbd,'HTML'); else sendmessage($chatId,$txt,$kbd,'HTML');
             return true;

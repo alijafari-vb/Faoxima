@@ -332,11 +332,9 @@ export async function buy(view) {
                         ${list.map((p) => `
                             <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.plan_label || p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
-                                    <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
-                                    <div class="plan-meta">
-                                        <span>${icon('box')} ${escapeHtml(fmtGb(p.traffic_gb))}</span>
-                                        <span>${icon('calendar')} ${escapeHtml(fmtDays(p.time_days))}</span>
-                                        ${fmtSymbolicLimit(p) ? `<span>${icon('users')} ${escapeHtml(fmtSymbolicLimit(p))}</span>` : (p.ip_limit_guard_active ? `<span>${icon('users')} ${escapeHtml(fmtIpLimit(p.ip_limit))}</span>` : '')}
+                                    <div class="plan-meta plan-terms">
+                                        <span>${icon('box')} ${escapeHtml(Number(p.traffic_gb) === 0 ? 'حجم نامحدود' : fmtGb(p.traffic_gb))}</span>
+                                        <span>${icon('calendar')} ${escapeHtml(Number(p.time_days) === 0 ? 'زمان نامحدود' : fmtDays(p.time_days))}</span>
                                     </div>
                                 </div>
                                 <div class="plan-price">
@@ -479,7 +477,6 @@ export async function buy(view) {
 
             <div class="card" style="padding:16px">
                 <div class="kv"><span class="kv-label">${icon('pin')} موقعیت</span><span class="kv-value">${escapeHtml(draft.panel.name)}</span></div>
-                <div class="kv"><span class="kv-label">${icon('fileText')} نام پلن</span><span class="kv-value">${escapeHtml(p.plan_label || p.name)}</span></div>
                 <div class="kv"><span class="kv-label">${icon('box')} حجم</span><span class="kv-value">${escapeHtml(fmtGb(p.traffic_gb))}</span></div>
                 <div class="kv"><span class="kv-label">${icon('calendar')} مدت زمان</span><span class="kv-value">${escapeHtml(fmtDays(p.time_days))}</span></div>
                 ${fmtSymbolicLimit(p) ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtSymbolicLimit(p))}</span></div>` : (p.ip_limit_guard_active ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtIpLimit(p.ip_limit))}</span></div>` : '')}
@@ -552,7 +549,7 @@ export async function buy(view) {
                 return;
             }
 
-            const ok = await showConfirm(`آیا از خرید «${p.name}» با مبلغ ${fmtPrice(p.price)} مطمئن هستید؟`);
+            const ok = await showConfirm(`خرید اشتراک با حجم ${fmtGb(p.traffic_gb)} و مدت ${fmtDays(p.time_days)} به مبلغ ${fmtPrice(p.price)} تأیید شود؟`);
             if (!ok) return;
 
             $btn.disabled = true;

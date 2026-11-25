@@ -1737,28 +1737,24 @@ https://t.me/$usernamebot?start={$user['codeInvitation']}";
     }
     if (isset($username_ac))
         update("user", "Processing_value_tow", $username_ac, "id", $from_id);
-    if (intval($info_product['Volume_constraint']) == 0)
-        $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
-    if (intval($info_product['Service_time']) == 0)
-        $info_product['Service_time'] = $textbotlang['users']['stateus']['Unlimited'];
+    [$volume, $duration] = rxPlanTerms($info_product);
     $info_product_price_product = number_format($info_product['price_product']);
     $userBalance = number_format($user['Balance']);
     $replacements = [
         '{username}' => guardDisplayUsername($username_ac, $marzban_list_get),
-        '{name_product}' => $info_product['name_product'],
-        '{Service_time}' => $info_product['Service_time'],
-
+        '{name_product}' => rxPlanOfferText($info_product),
+        '{Service_time} روز' => $duration,
+        '{Service_time}' => $duration,
         '{note}' => $info_product['note'] ?? '',
         '{price}' => $info_product_price_product,
-        '{Volume}' => $info_product['Volume_constraint'],
+        '{Volume} گیگابایت' => $volume,
+        '{Volume} گیگ' => $volume,
+        '{Volume}' => $volume,
         '{userBalance}' => $userBalance
     ];
     $textin = strtr($datatextbot['text_pishinvoice'], $replacements);
     if ($usernameWasRenamed) {
         $textin = "⚠️ نام کاربری «" . guardDisplayUsername($requestedUsername_ac, $marzban_list_get) . "» قبلاً استفاده شده بود؛ نام کاربری «" . guardDisplayUsername($username_ac, $marzban_list_get) . "» برای شما در نظر گرفته شد.\n\n" . $textin;
-    }
-    if (intval($info_product['Volume_constraint']) == 0) {
-        $textin = str_replace('گیگ', "", $textin);
     }
     $previewSymbolicLimitText = faoxima_symbolic_limit_label($info_product);
     if ($previewSymbolicLimitText !== null) {
@@ -2329,14 +2325,14 @@ $textonebuy
     $rxFmtInfoProductmain = rxFormatToman($info_productmain);
     $rxFmtInfoProductPriceDiscounted = rxFormatToman($info_product['price_product']);
     $rxFmtUserBalanceInvoicePreview = rxFormatToman($user['Balance']);
+    [$volume, $duration] = rxPlanTerms($info_product);
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>{$user['Processing_value_tow']}</code>
-🔐 نام پلن: {$info_product['name_product']}
-📆 مدت اعتبار: {$info_product['Service_time']} روز
+📆 مدت اعتبار: $duration
 💶 قیمت اصلی : <del>{$rxFmtInfoProductmain} تومان</del>
 💶 قیمت با تخفیف: {$rxFmtInfoProductPriceDiscounted}  تومان
-👥 حجم اکانت: {$info_product['Volume_constraint']} گیگ
+👥 حجم اکانت: $volume
 💵 موجودی کیف پول شما : {$rxFmtUserBalanceInvoicePreview}
 
         💰 سفارش شما آماده پرداخت است.  ";
@@ -2577,13 +2573,13 @@ $textonebuy
     fx_quote_store($from_id, fx_quote_context_key('bulk', (string) $loc . '|' . (string) $user['Processing_value_four']), $info_product['price_product'], $marzban_list_get, $fxBulkKinds);
     $price_product_format = number_format($info_product['price_product']);
     $userbalancepish = number_format($user['Balance']);
+    [$volume, $duration] = rxPlanTerms($info_product);
     $textin = "
 📇 پیش فاکتور شما:
 👤 نام کاربری: <code>" . guardDisplayUsername($username_ac, $marzban_list_get) . "</code>
-🔐 نام پلن: {$info_product['name_product']}
-📆 مدت اعتبار: {$info_product['Service_time']} روز
+📆 مدت اعتبار: $duration
 💶 قیمت: $price_product_format  تومان
-👥 حجم اکانت: {$info_product['Volume_constraint']} گیگ
+👥 حجم اکانت: $volume
 💵 موجودی کیف پول شما : $userbalancepish
 ⭕️تعداد کانفیگ : {$user['Processing_value_four']}
 

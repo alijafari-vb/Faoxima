@@ -183,7 +183,7 @@ function KeyboardProduct($location,$query,$pricediscount,$datakeyboard,$statuscu
     }
     if ($statusshowprice == "onshowprice") {
         $product['inline_keyboard'][] = [
-            ['text' => $textbotlang['users']['sell']['grid_header_name'] ?? '📦 نام پلن', 'callback_data' => 'noop'],
+            ['text' => $textbotlang['users']['sell']['grid_header_volume'] ?? '📦 حجم', 'callback_data' => 'noop'],
             ['text' => $textbotlang['users']['sell']['grid_header_time'] ?? '⏳ زمان', 'callback_data' => 'noop'],
             ['text' => $textbotlang['users']['sell']['grid_header_price'] ?? '💵 قیمت', 'callback_data' => 'noop'],
         ];
@@ -220,17 +220,16 @@ function KeyboardProduct($location,$query,$pricediscount,$datakeyboard,$statuscu
             $callbackData = "{$datakeyboard}{$callbackToken}{$valuetow}";
         }
         if ($statusshowprice == "onshowprice") {
-            $days = trim((string)($result['Service_time'] ?? ''));
-            $duration = $days !== '' ? "{$days} روزه" : '-';
+            [$volume, $duration] = rxPlanTerms($result);
             $price = number_format((float)$result['price_product']) . ' تومان';
             $product['inline_keyboard'][] = [
-                ['text' => rxPlanLabel($result) ?? $result['name_product'], 'callback_data' => $callbackData],
+                ['text' => $volume, 'callback_data' => $callbackData],
                 ['text' => $duration, 'callback_data' => $callbackData],
                 ['text' => $price, 'callback_data' => $callbackData],
             ];
         } else {
             $product['inline_keyboard'][] = [
-                ['text' => rxPlanLabel($result) ?? $result['name_product'], 'callback_data' => $callbackData],
+                ['text' => rxPlanOfferText($result), 'callback_data' => $callbackData],
             ];
         }
     }

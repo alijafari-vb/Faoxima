@@ -1041,6 +1041,12 @@ img, svg { display: block; max-width: 100%; }
     font-size: 12px;
     color: var(--text-muted);
 }
+.plan-meta.plan-terms {
+    font-size: 14px;
+    font-weight: 700;
+    color: inherit;
+}
+.plan-terms > span { white-space: nowrap; }
 .plan-price {
     text-align: end;
     flex-shrink: 0;

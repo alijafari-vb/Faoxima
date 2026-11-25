@@ -1672,6 +1672,16 @@ function rxSubscriptionTemplate(string $key, string $text): string
     if ($key === 'text_service_detail') {
         return preg_replace('~شناسه[ٔ\h‌]*اشتراک(?=[\h‌]*:[\h‌]*(?:<code>)?\{username\})~u', 'نام اشتراک', $text) ?? $text;
     }
+    if ($key === 'text_pishinvoice') {
+        return preg_replace('~^[^\r\n{}]*نام پلن[^\r\n{}]*\{name_product\}(?:\h|</[a-z]+>)*(?:\R|$)~mu', '', $text) ?? $text;
+    }
+    if ($key === 'jsontext.users.extend.renewalinvoice') {
+        // Keep consuming the old plan-name argument so custom invoice placeholders keep their order.
+        $placeholder = '%(?:[1-9][0-9]*\$)?s';
+        $text = preg_replace_callback('~^[^\r\n%]*نام (?:پلن|اشتراک)[^\r\n%]*(' . $placeholder . ')(?:\h|</[a-z]+>)*(?:\R|$)~mu',
+            static fn(array $match): string => substr($match[1], 0, -1) . '.0s', $text) ?? $text;
+        return preg_replace('~(' . $placeholder . ')\h+(?:روز|گیگابایت|گیگ)(?![\p{L}‌])~u', '$1', $text) ?? $text;
+    }
     return match ($key) {
         'jsontext.users.page.notusernameme' => str_replace('نام کاربری من در لیست نیست', 'اشتراک من در لیست نیست', $text),
         'jsontext.users.stateus.notUsernameget' => str_replace('نام کاربری وجود ندارد', '❌ اشتراک موردنظر پیدا نشد.', $text),
@@ -1768,7 +1778,6 @@ function languagechange($path_dir)
                         continue;
                     }
                     if (in_array($rx_overlay_id, [
-                        'jsontext.users.sell.grid_header_name',
                         'jsontext.Admin.Product.AddProductStepOne',
                         'jsontext.Admin.managepanel.getguardservice',
                         'jsontext.Admin.managepanel.invalidserviceid',

@@ -1,7 +1,7 @@
 import { call, ApiError, configFileUrl } from '../api.js?v=0.0.53';
 import { downloadFromUrl, downloadBlob, dataUriToBlob, decodeDataUriText, isTelegramApp, tgPlatform } from '../download.js?v=0.0.52';
 import {
-    escapeHtml, subscriptionProductLabel, fmtPrice, fmtGb, fmtBytes, fmtIpLimit, skeletonList, copyToClipboard, toast, trafficPercent, serviceStatusBadge, blobToDataUrl,
+    escapeHtml, subscriptionProductLabel, fmtPrice, fmtGb, fmtDays, fmtBytes, fmtIpLimit, skeletonList, copyToClipboard, toast, trafficPercent, serviceStatusBadge, blobToDataUrl,
 } from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify, showConfirm, openLink, supportsNativeDownload, downloadFileNative } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
@@ -1408,22 +1408,19 @@ async function renderRenewPanel($panel, info, username, reload) {
     }
 
     const planRow = (p, cls = '') => {
-        const meta = [];
-        if (Number(p.volume_gb) > 0) meta.push(`<span>${icon('box','class="ico ico-sm"')} ${escapeHtml(String(p.volume_gb))} گیگابایت</span>`);
-        if (Number(p.time_days) > 0) meta.push(`<span>${icon('hourglass','class="ico ico-sm"')} ${escapeHtml(String(p.time_days))} روز</span>`);
-        if (p.ip_limit_guard_active) meta.push(`<span>${icon('users','class="ico ico-sm"')} ${escapeHtml(fmtIpLimit(p.ip_limit))}</span>`);
         const priceTag = showPrice
             ? `<span class="amt mono">${fmtNum(p.price)} <span class="muted" style="font-weight:400">تومان</span></span>`
             : `<span class="amt">${icon('select', 'class="ico ico-lg"')}</span>`;
         return `
             <button class="plan ${cls}" data-code="${escapeHtml(p.code)}"
                     data-price="${escapeHtml(String(p.price))}"
-                    data-name="${escapeHtml(p.plan_label || p.name)}"
                     data-volume="${escapeHtml(String(p.volume_gb))}"
                     data-time="${escapeHtml(String(p.time_days))}">
                 <div class="plan-info">
-                    <div class="plan-title">${escapeHtml(p.plan_label || p.name)}</div>
-                    <div class="plan-meta">${meta.join('')}</div>
+                    <div class="plan-meta plan-terms">
+                        <span>${icon('box')} ${escapeHtml(Number(p.volume_gb) === 0 ? 'حجم نامحدود' : fmtGb(p.volume_gb))}</span>
+                        <span>${icon('calendar')} ${escapeHtml(Number(p.time_days) === 0 ? 'زمان نامحدود' : fmtDays(p.time_days))}</span>
+                    </div>
                 </div>
                 <div class="plan-price">${priceTag}</div>
             </button>
@@ -1459,7 +1456,6 @@ async function renderRenewPanel($panel, info, username, reload) {
         } else {
             const choice = {
                 code: btn.dataset.code,
-                name: btn.dataset.name,
                 price: Number(btn.dataset.price || 0),
                 volume_gb: Number(btn.dataset.volume || 0),
                 time_days: Number(btn.dataset.time || 0),
@@ -1543,7 +1539,6 @@ function renderRenewCustomForm($panel, opts, username, reload) {
         const price = fxRound((v * Number(c.price_per_gb || 0)) + (d * Number(c.price_per_day || 0)));
         const choice = {
             code: '__custom__',
-            name: '⚙️ اشتراک دلخواه',
             price,
             volume_gb: v,
             time_days: d,
@@ -1558,22 +1553,17 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
     const $host = $panel.querySelector('#renew-confirm-host');
     $panel.querySelector('#renew-pay-host').innerHTML = '';
 
-    const meta = [];
-    if (choice.volume_gb > 0) meta.push(`${icon('box','class="ico ico-sm"')} حجم: ${fmtNum(choice.volume_gb)} گیگابایت`);
-    if (choice.time_days > 0) meta.push(`${icon('hourglass','class="ico ico-sm"')} زمان: ${fmtNum(choice.time_days)} روز`);
-
     $host.innerHTML = `
         <div class="card-section mt-md">
             <p class="section-title">${icon('rotate')} تأیید تمدید</p>
             <div class="kv">
-                <span class="kv-label">پلن انتخابی</span>
-                <span class="kv-value">${escapeHtml(choice.name)}</span>
+                <span class="kv-label">${icon('box')} حجم</span>
+                <span class="kv-value">${escapeHtml(fmtGb(choice.volume_gb))}</span>
             </div>
-            ${meta.map((m) => `
             <div class="kv">
-                <span class="kv-label muted" style="font-size:12px">${m.split(' ')[0]}</span>
-                <span class="kv-value mono">${escapeHtml(m.replace(/<[^>]+>/g,'').trim())}</span>
-            </div>`).join('')}
+                <span class="kv-label">${icon('calendar')} مدت زمان</span>
+                <span class="kv-value">${escapeHtml(fmtDays(choice.time_days))}</span>
+            </div>
             <div id="rc-preview" class="muted mt-sm" style="font-size:12px;white-space:pre-line">در حال دریافت پیش‌نمایش تمدید…</div>
             <div class="kv">
                 <span class="kv-label">${icon('coin')} مبلغ</span>
@@ -1665,7 +1655,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
 
     $btn.addEventListener('click', async () => {
         const shownAmount = $host.querySelector('#rc-amount')?.textContent || `${fmtNum(basePrice)} تومان`;
-        const sure = await showConfirm(`آیا از تمدید اشتراک «${choice.name}» با مبلغ ${shownAmount} مطمئن هستید؟`);
+        const sure = await showConfirm(`تمدید اشتراک با حجم ${fmtGb(choice.volume_gb)} و مدت ${fmtDays(choice.time_days)} به مبلغ ${shownAmount} تأیید شود؟`);
         if (!sure) return;
         const old = $label.textContent;
         $btn.disabled = true;

@@ -2757,11 +2757,30 @@ function formatInvoiceVolume(array $invoice, $precision = 2): string
     }
     return formatBytes(rxVolumeToBytes($value, rxInvoiceVolumeUnit($invoice)), $precision);
 }
-function rxPlanLabel(array $row): ?string
+function rxPlanTerms(array $row): array
 {
     $volume = $row['Volume_constraint'] ?? $row['Volume'] ?? null;
     $duration = $row['Service_time'] ?? null;
-    if (!is_numeric($volume) || !is_numeric($duration) || $volume < 0 || $duration < 0) {
+    $unit = rxInvoiceVolumeUnit($row) === 'MB' ? 'مگ' : 'گیگ';
+    $size = is_numeric($volume) ? rtrim(rtrim(number_format((float) $volume, 2, '.', ''), '0'), '.') : '';
+    $timeUnit = ($row['name_product'] ?? '') === 'سرویس تست' ? 'ساعت' : 'روز';
+    return [
+        !is_numeric($volume) || $volume < 0 ? '—' : ($volume > 0 ? "$size $unit" : 'نامحدود'),
+        !is_numeric($duration) || $duration < 0 ? '—' : ($duration > 0 ? (int) $duration . " $timeUnit" : 'نامحدود'),
+    ];
+}
+
+function rxPlanOfferText(array $row): string
+{
+    [$traffic, $time] = rxPlanTerms($row);
+    return ($traffic === 'نامحدود' ? 'حجم نامحدود' : $traffic) . ' · '
+        . ($time === 'نامحدود' ? 'زمان نامحدود' : $time);
+}
+
+function rxPlanLabel(array $row): ?string
+{
+    [$traffic, $time] = rxPlanTerms($row);
+    if ($traffic === '—' || $time === '—') {
         return null;
     }
 
@@ -2775,10 +2794,6 @@ function rxPlanLabel(array $row): ?string
     $isCustom = in_array($code, ['customvolume', 'custom_volume'], true)
         || in_array($name, ['⚙️ سرویس دلخواه', '🛍 حجم دلخواه', 'سرویس سفارشی'], true);
     $prefix = $isTest ? 'تست' : ($isCustom ? 'دلخواه' : 'پیش‌فرض');
-    $unit = rxInvoiceVolumeUnit($row) === 'MB' ? 'مگ' : 'گیگ';
-    $size = rtrim(rtrim(number_format((float) $volume, 2, '.', ''), '0'), '.');
-    $traffic = $volume > 0 ? "$size $unit" : 'نامحدود';
-    $time = $duration > 0 ? (int) $duration . ($isTest ? ' ساعت' : ' روز') : 'نامحدود';
     return $prefix . ' ' . ($traffic === $time ? $traffic : "$traffic $time");
 }
 
@@ -4134,19 +4149,22 @@ $textonebuy
             }
         }
         $priceproductformat = number_format($prodcut['price_product']);
+        [$volume, $duration] = rxPlanTerms($prodcut);
         if (!empty($extend['queued'])) {
             $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
             $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : $usernamepanel
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
         } else {
             $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : $usernamepanel
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید $priceproductformat تومان
 ";
             if (is_array($rxBeforeState ?? null) && is_array($rxAfterState ?? null)) {

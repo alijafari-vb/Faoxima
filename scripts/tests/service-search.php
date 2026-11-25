@@ -172,6 +172,14 @@ same("<b>نام پلن:</b> <code>{product}</code>\n🆔 نام اشتراک : <
     'saved bot detail templates label their plan and username by placeholder, preserving markup');
 same('سرویس پیش‌فرض ربکا', rxSubscriptionCopy('سرویس پیش‌فرض ربکا'), 'a provider service is distinct from a customer subscription');
 same('پیش‌فرض 20 گیگ 60 روز', rxPlanLabel(['Volume_constraint' => '20', 'Service_time' => '60']), 'standard plans are named from their limits');
+same(['20 گیگ', '60 روز'], rxPlanTerms(['name_product' => 'پیش‌فرض فروشگاه', 'Volume_constraint' => '20', 'Service_time' => '60']), 'a priced Telegram offer uses separate volume and duration cells');
+same('حجم نامحدود · زمان نامحدود', rxPlanOfferText(['Volume_constraint' => 0, 'Service_time' => 0]), 'a compact offer keeps both unlimited terms clear');
+same('1.5 گیگ · زمان نامحدود', rxPlanOfferText(['name_product' => 'پلن الف', 'Volume_constraint' => '1.50', 'Service_time' => 0]), 'a compact offer keeps decimal volume and omits the stored product name');
+same("📇 پیش فاکتور\nحجم: {Volume}\n", rxSubscriptionTemplate('text_pishinvoice', "📇 پیش فاکتور\n<b>🔐 نام سرویس:</b> {name_product}\nحجم: {Volume}\n"), 'old saved purchase templates omit the plan line');
+$legacyRenewal = rxSubscriptionTemplate('jsontext.users.extend.renewalinvoice', "اشتراک: %s\n🛍 نام پلن: %s\nقیمت: %s\nزمان: %s روز\nحجم: %s گیگ\nیادداشت: %s\nموجودی: %s");
+same("اشتراک: user\nقیمت: 500\nزمان: نامحدود\nحجم: 20 گیگ\nیادداشت: note\nموجودی: 800", sprintf($legacyRenewal, 'user', 'پیش‌فرض', '500', 'نامحدود', '20 گیگ', 'note', '800'), 'legacy renewal invoice still maps each argument correctly');
+$indexedRenewal = rxSubscriptionTemplate('jsontext.users.extend.renewalinvoice', 'اشتراک: %1$s' . "\n" . 'نام پلن: %2$s' . "\n" . 'زمان: %4$s روز');
+same("اشتراک: user\nزمان: 3 روز", sprintf($indexedRenewal, 'user', 'پیش‌فرض', '500', '3 روز'), 'renewal templates with numbered arguments keep their original positions');
 same('پیش‌فرض 20 گیگ نامحدود', rxPlanLabel(['Volume' => 20, 'Service_time' => 0]), 'unlimited time stays explicit');
 same('پیش‌فرض نامحدود 30 روز', rxPlanLabel(['Volume' => 0, 'Service_time' => 30]), 'unlimited traffic stays explicit');
 same('دلخواه نامحدود', rxPlanLabel(['Volume' => 0, 'Service_time' => 0, 'name_product' => '⚙️ سرویس دلخواه']), 'custom plans keep their prefix with a single unlimited label');

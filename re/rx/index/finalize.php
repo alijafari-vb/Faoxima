@@ -147,12 +147,12 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
             ]
         ]
     ]);
-    $prodcutVolumeLabel = intval($prodcut['Volume_constraint']) == 0 ? $textbotlang['users']['stateus']['Unlimited'] : $prodcut['Volume_constraint'];
+    [$volume, $duration] = rxPlanTerms($prodcut);
     $rxRenewPreview = rxRenewalPreviewForService($ManagePanel, select("marzban_panel", "*", "name_panel", $user['Processing_value'], "select"), (string) $username, $prodcut['Volume_constraint'], $prodcut['Service_time'], ['stage' => 'telegram_preview']);
     if (!empty($rxRenewPreview['blocked'])) {
         $keyboardextend = null;
     }
-    $rxRenewInvoiceText = sprintf($textbotlang['users']['extend']['renewalinvoice'], $username, rxPlanLabel($prodcut) ?? $prodcut['name_product'], $prodcut['price_product'], $prodcut['Service_time'], $prodcutVolumeLabel, $prodcut['note'], $user['Balance']);
+    $rxRenewInvoiceText = sprintf($textbotlang['users']['extend']['renewalinvoice'], $username, '', $prodcut['price_product'], $duration, $volume, $prodcut['note'], $user['Balance']);
     if ($rxRenewPreview['text'] !== '') {
         $rxRenewInvoiceText .= "\n\n" . $rxRenewPreview['text'];
     }
@@ -381,19 +381,22 @@ if (isset($update['pre_checkout_query']) && function_exists('rxStarsPreCheckoutV
     ]);
     $prodcut['price_product'] = number_format($prodcut['price_product']);
     $balanceformatsell = number_format(select("user", "Balance", "id", $from_id, "select")['Balance'], 0);
+    [$volume, $duration] = rxPlanTerms($prodcut);
     if (!empty($extend['queued'])) {
         $rxQueuedSuccessTpl = (string) ($extend['reservation']['confirmation'] ?? rxRenewalText('reservation_confirmed'));
         $textextend = "$rxQueuedSuccessTpl
 
 ▫️نام اشتراک : $usernamePanelExtends
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";
     } else {
         $textextend = "✅ تمدید برای اشتراک شما با موفقیت صورت گرفت
 
 ▫️نام اشتراک : $usernamePanelExtends
-▫️نام پلن : {$prodcut['name_product']}
+▫️حجم تمدید : $volume
+▫️مدت تمدید : $duration
 ▫️مبلغ تمدید {$prodcut['price_product']} تومان
 ";
         $textextend = rxRenewalDecorateSuccess($textextend, $extend, (string) $usernamePanelExtends, (string) ($marzban_list_get['name_panel'] ?? ''));
