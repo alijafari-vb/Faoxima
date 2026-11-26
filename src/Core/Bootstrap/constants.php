@@ -90,6 +90,12 @@ if (!defined('FX_PENDING_TOLERANCE_PERCENT')) {
 if (!defined('FX_PENDING_CONFIRMATIONS')) {
     define('FX_PENDING_CONFIRMATIONS', 2);
 }
+if (!defined('FX_NOBITEX_ENDPOINT')) {
+    define('FX_NOBITEX_ENDPOINT', 'https://apiv2.nobitex.ir/market/stats');
+}
+if (!defined('FX_WALLEX_ENDPOINT')) {
+    define('FX_WALLEX_ENDPOINT', 'https://api.wallex.ir/v1/depth');
+}
 if (!defined('FX_SWAPWALLET_ENDPOINT')) {
     define('FX_SWAPWALLET_ENDPOINT', 'https://swapwallet.app/api/v1/market/prices');
 }

@@ -216,7 +216,7 @@ final class ExchangeRates
 
     public static function fxRateParseMarketResponse(string $body, string $pair = FX_DEFAULT_PAIR): array
     {
-        $pair = \Faoxima\Orders\Pricing\ExchangePricing::fxNormalizePair($pair);
+        $pair = strtoupper(trim($pair));
         $data = json_decode($body, true);
         if (!is_array($data)) {
             return ['ok' => false, 'rate' => null, 'error' => 'invalid_json'];
@@ -378,15 +378,15 @@ final class ExchangeRates
         if (!($pdo instanceof PDO) || !\Faoxima\Orders\Pricing\ExchangePricing::fxEnsureSchema($pdo)) {
             return ['ok' => false, 'action' => 'db_unavailable'];
         }
-        $fetch = self::fxRateFetchSwapwallet($pair);
-        if (!$fetch['ok']) {
-            self::fxRateStoreError($pdo, $pair, (string) $fetch['error']);
+        $fetch = MarketRates::get(['USDT'])['USDT'] ?? null;
+        if ($fetch === null) {
+            self::fxRateStoreError($pdo, $pair, 'market_rates_unavailable');
             self::fxRatePublishInvalidate($pair);
             self::fxRateCheckStale($pdo, $pair);
-            return ['ok' => false, 'action' => 'fetch_failed', 'error' => $fetch['error']];
+            return ['ok' => false, 'action' => 'fetch_failed', 'error' => 'market_rates_unavailable'];
         }
         try {
-            $stored = self::fxRateStoreValid($pdo, $pair, (float) $fetch['rate'], 'swapwallet', self::fxRateMaxJumpPercent());
+            $stored = self::fxRateStoreValid($pdo, $pair, $fetch['rate'], $fetch['source'], self::fxRateMaxJumpPercent());
         } catch (Throwable $e) {
             \Faoxima\Orders\Pricing\ExchangePricing::fxLog('FX_RATE_STORE_FAILED', $e->getMessage());
             return ['ok' => false, 'action' => 'store_failed'];
