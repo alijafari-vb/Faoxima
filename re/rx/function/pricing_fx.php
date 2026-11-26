@@ -1016,18 +1016,8 @@ function fx_market_rates(array $coins): array
         return [];
     }
     $rates = [];
-    $swap = fx_market_get(FX_SWAPWALLET_ENDPOINT);
-    if ($swap !== null) {
-        foreach ($coins as $coin) {
-            $quote = fx_rate_parse_market_response($swap, $coin . '/IRT');
-            if ($quote['ok']) {
-                $rates[$coin] = ['rate' => $quote['rate'], 'source' => 'swapwallet'];
-            }
-        }
-    }
-
     // Nobitex serves these markets in rial. TON is not supported by this endpoint.
-    $nobitex = array_values(array_intersect(array_diff($coins, array_keys($rates)), ['USDT', 'TRX']));
+    $nobitex = array_intersect($coins, ['USDT', 'TRX']);
     if ($nobitex !== []) {
         $symbols = implode(',', array_map('strtolower', $nobitex));
         $data = json_decode(fx_market_get(FX_NOBITEX_ENDPOINT . '?srcCurrency=' . rawurlencode($symbols) . '&dstCurrency=rls') ?? '', true);
@@ -1037,6 +1027,19 @@ function fx_market_rates(array $coins): array
                 $rial = fx_parse_rate_value($market['latest'] ?? null);
                 if ($rial !== null && ($market['isClosed'] ?? null) === false) {
                     $rates[$coin] = ['rate' => $rial / 10, 'source' => 'nobitex'];
+                }
+            }
+        }
+    }
+
+    $missing = array_diff($coins, array_keys($rates));
+    if ($missing !== []) {
+        $swap = fx_market_get(FX_SWAPWALLET_ENDPOINT);
+        if ($swap !== null) {
+            foreach ($missing as $coin) {
+                $quote = fx_rate_parse_market_response($swap, $coin . '/IRT');
+                if ($quote['ok']) {
+                    $rates[$coin] = ['rate' => $quote['rate'], 'source' => 'swapwallet'];
                 }
             }
         }
