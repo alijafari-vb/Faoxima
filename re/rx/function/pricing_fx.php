@@ -18,6 +18,12 @@ if (!defined('FX_PENDING_CONFIRMATIONS')) {
 if (!defined('FX_SWAPWALLET_ENDPOINT')) {
     define('FX_SWAPWALLET_ENDPOINT', 'https://swapwallet.app/api/v1/market/prices');
 }
+if (!defined('FX_NOBITEX_ENDPOINT')) {
+    define('FX_NOBITEX_ENDPOINT', 'https://apiv2.nobitex.ir/market/stats');
+}
+if (!defined('FX_WALLEX_ENDPOINT')) {
+    define('FX_WALLEX_ENDPOINT', 'https://api.wallex.ir/v1/depth');
+}
 
 if (!function_exists('fx_pricing_kinds')) {
     function fx_pricing_kinds(): array
@@ -976,45 +982,82 @@ if (!function_exists('fx_parse_rate_value')) {
     }
 }
 
-if (!function_exists('fx_rate_fetch_swapwallet')) {
-    function fx_rate_fetch_swapwallet(string $pair = FX_DEFAULT_PAIR): array
-    {
-        $pair = fx_normalize_pair($pair);
-        if (!function_exists('curl_init')) {
-            return ['ok' => false, 'rate' => null, 'error' => 'curl_unavailable'];
-        }
-        $ch = curl_init(FX_SWAPWALLET_ENDPOINT);
-        if ($ch === false) {
-            return ['ok' => false, 'rate' => null, 'error' => 'curl_init_failed'];
-        }
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_FOLLOWLOCATION => false,
-            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
-            CURLOPT_USERAGENT      => 'fx-rate-sync/1.0',
-        ]);
-        $body = curl_exec($ch);
-        $errno = curl_errno($ch);
-        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if ($body === false || $errno !== 0) {
-            return ['ok' => false, 'rate' => null, 'error' => 'network_error_' . $errno];
-        }
-        if ($httpCode < 200 || $httpCode >= 300) {
-            return ['ok' => false, 'rate' => null, 'error' => 'http_status_' . $httpCode];
-        }
-        return fx_rate_parse_market_response((string) $body, $pair);
+function fx_market_get(string $url): ?string
+{
+    if (!function_exists('curl_init')) {
+        return null;
     }
+    $ch = curl_init($url);
+    if ($ch === false) {
+        return null;
+    }
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT_MS => 1500,
+        CURLOPT_TIMEOUT_MS => 3500,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_SSL_VERIFYHOST => 2,
+        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_ENCODING => '',
+        CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        CURLOPT_USERAGENT => 'Faoxima-FX/1.0',
+    ]);
+    $body = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    return is_string($body) && $status >= 200 && $status < 300 ? $body : null;
+}
+
+/** Rates are returned in toman per coin, with the source that supplied each rate. */
+function fx_market_rates(array $coins): array
+{
+    $coins = array_values(array_intersect(array_unique($coins), ['USDT', 'TRX', 'TON']));
+    if ($coins === []) {
+        return [];
+    }
+    $rates = [];
+    $swap = fx_market_get(FX_SWAPWALLET_ENDPOINT);
+    if ($swap !== null) {
+        foreach ($coins as $coin) {
+            $quote = fx_rate_parse_market_response($swap, $coin . '/IRT');
+            if ($quote['ok']) {
+                $rates[$coin] = ['rate' => $quote['rate'], 'source' => 'swapwallet'];
+            }
+        }
+    }
+
+    // Nobitex serves these markets in rial. TON is not supported by this endpoint.
+    $nobitex = array_values(array_intersect(array_diff($coins, array_keys($rates)), ['USDT', 'TRX']));
+    if ($nobitex !== []) {
+        $symbols = implode(',', array_map('strtolower', $nobitex));
+        $data = json_decode(fx_market_get(FX_NOBITEX_ENDPOINT . '?srcCurrency=' . rawurlencode($symbols) . '&dstCurrency=rls') ?? '', true);
+        if (($data['status'] ?? null) === 'ok') {
+            foreach ($nobitex as $coin) {
+                $market = $data['stats'][strtolower($coin) . '-rls'] ?? [];
+                $rial = fx_parse_rate_value($market['latest'] ?? null);
+                if ($rial !== null && ($market['isClosed'] ?? null) === false) {
+                    $rates[$coin] = ['rate' => $rial / 10, 'source' => 'nobitex'];
+                }
+            }
+        }
+    }
+
+    // Wallex's TMN order book is in toman. Both sides must be valid and close enough.
+    foreach (array_diff($coins, array_keys($rates)) as $coin) {
+        $data = json_decode(fx_market_get(FX_WALLEX_ENDPOINT . '?symbol=' . $coin . 'TMN') ?? '', true);
+        $ask = fx_parse_rate_value($data['result']['ask'][0]['price'] ?? null);
+        $bid = fx_parse_rate_value($data['result']['bid'][0]['price'] ?? null);
+        if ($ask !== null && $bid !== null && $ask >= $bid && $ask <= $bid * 1.10) {
+            $rates[$coin] = ['rate' => $bid + ($ask - $bid) / 2, 'source' => 'wallex'];
+        }
+    }
+    return $rates;
 }
 
 if (!function_exists('fx_rate_parse_market_response')) {
     function fx_rate_parse_market_response(string $body, string $pair = FX_DEFAULT_PAIR): array
     {
-        $pair = fx_normalize_pair($pair);
+        $pair = strtoupper(trim($pair));
         $data = json_decode($body, true);
         if (!is_array($data)) {
             return ['ok' => false, 'rate' => null, 'error' => 'invalid_json'];
@@ -1245,15 +1288,15 @@ if (!function_exists('fx_rate_sync')) {
         if (!($pdo instanceof PDO) || !fx_ensure_schema($pdo)) {
             return ['ok' => false, 'action' => 'db_unavailable'];
         }
-        $fetch = fx_rate_fetch_swapwallet($pair);
-        if (!$fetch['ok']) {
-            fx_rate_store_error($pdo, $pair, (string) $fetch['error']);
+        $fetch = fx_market_rates(['USDT'])['USDT'] ?? null;
+        if ($fetch === null) {
+            fx_rate_store_error($pdo, $pair, 'market_rates_unavailable');
             fx_rate_publish_invalidate($pair);
             fx_rate_check_stale($pdo, $pair);
-            return ['ok' => false, 'action' => 'fetch_failed', 'error' => $fetch['error']];
+            return ['ok' => false, 'action' => 'fetch_failed', 'error' => 'market_rates_unavailable'];
         }
         try {
-            $stored = fx_rate_store_valid($pdo, $pair, (float) $fetch['rate'], 'swapwallet', fx_rate_max_jump_percent());
+            $stored = fx_rate_store_valid($pdo, $pair, $fetch['rate'], $fetch['source'], fx_rate_max_jump_percent());
         } catch (Throwable $e) {
             fx_log('FX_RATE_STORE_FAILED', $e->getMessage());
             return ['ok' => false, 'action' => 'store_failed'];

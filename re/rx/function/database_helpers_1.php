@@ -696,118 +696,18 @@ if (!function_exists('applyConnectionPlaceholders')) {
 }
 function tronratee(array $requiredKeys = [])
 {
-    $normalizedKeys = [];
-    foreach ($requiredKeys as $key) {
-        $normalized = strtoupper(trim((string) $key));
-        if ($normalized === '') {
-            continue;
-        }
-        $normalizedKeys[$normalized] = true;
-    }
-
-    if (empty($normalizedKeys)) {
-        $normalizedKeys = ['TRX' => true, 'TON' => true, 'USD' => true];
-    }
-
-    $needsTrx = isset($normalizedKeys['TRX']);
-    $needsTon = isset($normalizedKeys['TON']);
-    $needsUsd = isset($normalizedKeys['USD']);
-
-    $context = stream_context_create([
-        'http' => [
-            'timeout' => 5,
-        ],
-    ]);
-
+    $keys = ['TRX' => ['TRX', 'TRX'], 'TON' => ['TON', 'Ton'], 'USD' => ['USDT', 'USD']];
+    $requested = array_map(static fn($key) => strtoupper(trim((string) $key)), $requiredKeys);
+    $requested = array_filter($requested, static fn($key) => $key !== '');
+    $selected = $requested === [] ? $keys : array_intersect_key($keys, array_flip($requested));
+    $rates = fx_market_rates(array_column($selected, 0));
     $result = [];
-    $missingKeys = [];
-
-    if (!$needsTrx && !$needsTon && !$needsUsd) {
-        return ['ok' => true, 'result' => $result];
-    }
-
-    $endpoint = 'https://swapwallet.app/api/v1/market/prices';
-    $response = @file_get_contents($endpoint, false, $context);
-
-    if ($response === false) {
-        error_log('Failed to fetch market prices from SwapWallet API');
-        if ($needsTrx) $missingKeys[] = 'TRX';
-        if ($needsTon) $missingKeys[] = 'Ton';
-        if ($needsUsd) $missingKeys[] = 'USD';
-        return ['ok' => empty($missingKeys), 'result' => $result];
-    }
-
-    $data = json_decode($response, true);
-    if (!is_array($data) || ($data['status'] ?? null) !== 'OK' || !isset($data['result']) || !is_array($data['result'])) {
-        error_log('Invalid response received from SwapWallet API');
-        if ($needsTrx) $missingKeys[] = 'TRX';
-        if ($needsTon) $missingKeys[] = 'Ton';
-        if ($needsUsd) $missingKeys[] = 'USD';
-        return ['ok' => empty($missingKeys), 'result' => $result];
-    }
-
-    $prices = $data['result'];
-
-    $getPair = static function (array $prices, string $base, string $quote) {
-        $target = strtoupper($base . '/' . $quote);
-        foreach ($prices as $k => $v) {
-            if (strtoupper((string) $k) !== $target) {
-                continue;
-            }
-
-            if (is_string($v)) {
-                $v = preg_replace('/[^\d\.\-]/u', '', $v);
-            }
-
-            if (!is_numeric($v)) {
-                return null;
-            }
-
-            $num = (float) $v;
-            if ($num <= 0.0 || !is_finite($num)) {
-                return null;
-            }
-
-            return $num;
-        }
-        return null;
-    };
-
-    if ($needsTrx) {
-        $trxIrt = $getPair($prices, 'TRX', 'IRT');
-        if ($trxIrt === null) {
-            error_log('Missing or invalid TRX/IRT price from SwapWallet');
-            $missingKeys[] = 'TRX';
-        } else {
-            $result['TRX'] = round($trxIrt, 2);
+    foreach ($selected as [$coin, $key]) {
+        if (isset($rates[$coin])) {
+            $result[$key] = round($rates[$coin]['rate'], 2);
         }
     }
-
-    if ($needsTon) {
-        $tonIrt = $getPair($prices, 'TON', 'IRT');
-        if ($tonIrt === null) {
-            $tonIrt = $getPair($prices, 'Ton', 'IRT');
-        }
-
-        if ($tonIrt === null) {
-            error_log('Missing or invalid TON/IRT price from SwapWallet');
-            $missingKeys[] = 'Ton';
-        } else {
-            $result['Ton'] = round($tonIrt, 2);
-        }
-    }
-
-    if ($needsUsd) {
-        $usdtIrt = $getPair($prices, 'USDT', 'IRT');
-        if ($usdtIrt === null) {
-            error_log('Missing or invalid USDT/IRT price from SwapWallet');
-            $missingKeys[] = 'USD';
-        } else {
-            $result['USD'] = round($usdtIrt, 2);
-        }
-    }
-
-    return ['ok' => empty($missingKeys), 'result' => $result];
+    return ['ok' => count($result) === count($selected), 'result' => $result];
 }
 
 function requireTronRates(array $keys = [])
