@@ -2660,7 +2660,7 @@ $iduser  در ربات  رفع مسدود گردید
     nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backSubscriptions, 'HTML');
     step('admin_sub_search_wait', $from_id);
 } elseif ($datain === 'searchorder' && ($adminrulecheck['rule'] ?? '') === 'administrator') {
-    nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backadmin, 'HTML');
+    nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'] . "\nبرای شماره سفارش از <code>order:123</code> استفاده کنید.", $backadmin, 'HTML');
     step('GetusernameconfigAndOrdedrs', $from_id);
 } elseif (preg_match('/^manageinvoice_([A-Za-z0-9_-]+)(?::(admin_sub_search|admsub:(?:all|online):(?:recent|username|remaining_bytes|days_remaining):[ad]:[1-9][0-9]{0,6}))?$/D', $datain, $invoiceMatch) || (($adminrulecheck['rule'] ?? '') === 'administrator' && (
     preg_match('/^\/config(?:@\w+)?\s+(.+)$/D', $text, $configMatch)
@@ -2676,7 +2676,8 @@ $iduser  در ربات  رفع مسدود گردید
     } else {
         $search = $configMatch[1] ?? $text;
         $scope = $subscriptionSearch ? ServiceSearch::VISIBLE_STATUS : '1=1';
-        [$condition, $params] = ServiceSearch::condition($pdo, $search, $scope, [], ['username', 'note', 'id_invoice']);
+        $columns = $subscriptionSearch ? ['username', 'note'] : ['username', 'note', 'id_invoice'];
+        [$condition, $params] = ServiceSearch::condition($pdo, $search, $scope, [], $columns);
         $stmt = $pdo->prepare("SELECT * FROM invoice WHERE ($scope) AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 51");
         $stmt->execute($params);
     }
@@ -2697,7 +2698,7 @@ $iduser  در ربات  رفع مسدود گردید
             $buttons[] = [['text' => '🔙 مدیریت اشتراک‌ها', 'callback_data' => 'admin_subscriptions']];
         }
         $resultText = count($rows) > 50
-            ? '🔎 بیش از ۵۰ نتیجه. نام کاربری کامل یا شناسهٔ اشتراک را بفرستید.'
+            ? '🔎 بیش از ۵۰ نتیجه. نام کامل اشتراک یا شناسهٔ اشتراک را بفرستید.'
             : '🛍 چند اشتراک پیدا شد. اشتراک موردنظر را انتخاب کنید.';
         nm_adminInstantReply($from_id, $resultText, json_encode(['inline_keyboard' => $buttons]), 'HTML');
         return;

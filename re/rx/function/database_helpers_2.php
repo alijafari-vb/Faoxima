@@ -2815,12 +2815,12 @@ function rxFindTelegramUserId(PDO $pdo, string $input, array $message = []): ?st
     if ($id !== null) {
         return $id;
     }
-    if (!preg_match('/^@?([a-z0-9_]{1,32})$/iD', $input, $match)
-        || in_array(strtolower($match[1]), ['not_username', 'none'], true)) {
+    $username = ServiceSearch::telegramUsername($input);
+    if ($username === null || ServiceSearch::isNumericQuery($input)) {
         return null;
     }
     $stmt = $pdo->prepare('SELECT id FROM user WHERE BINARY LOWER(username) = BINARY LOWER(:username) LIMIT 2');
-    $stmt->execute([':username' => $match[1]]);
+    $stmt->execute([':username' => $username]);
     $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
     return count($ids) === 1 ? (string) $ids[0] : null;
 }
@@ -2912,7 +2912,10 @@ function rxMissingSubscriptionOptions(string $panelKeyboard, string $query): arr
     }
     $privateReference = ServiceSearch::isPrivate($query);
     $resolveReference = $privateReference || ServiceSearch::numericId($query) !== null;
-    $plainName = !$privateReference && preg_match('/^[A-Za-z0-9_.-]{1,64}$/D', $query) ? $query : null;
+    if (ServiceSearch::isNumericQuery($query) && !$resolveReference) {
+        return [[], []];
+    }
+    $plainName = !$resolveReference && preg_match('/^@?([A-Za-z0-9_.-]{1,64})$/D', $query, $name) ? $name[1] : null;
     $buttons = [];
     $accounts = [];
     foreach (json_decode($panelKeyboard, true)['inline_keyboard'] ?? [] as $row) {

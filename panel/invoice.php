@@ -55,8 +55,8 @@ if ($lookup !== '') {
     $invQ = ($privateQuery['until'] ?? 0) >= time() ? $privateQuery['query'] : '';
 }
 $invSearchParams = $lookup !== '' ? ['lookup' => $lookup] : ['q' => $invQ !== '' ? $invQ : null];
-$invIdentifierFilter = $invCanSearchIdentifiers
-    && (ServiceSearch::isPrivate($invQ) || ServiceSearch::numericId($invQ) !== null);
+$invOrderFilter = preg_match('/^order:\h*([A-Za-z0-9_-]{1,200})$/iD', ServiceSearch::asciiDigits($invQ), $invOrderMatch);
+$invIdentifierFilter = $invCanSearchIdentifiers && (ServiceSearch::isPrivate($invQ) || ServiceSearch::isNumericQuery($invQ));
 $df = fx_date_filter_resolve();
 $invStatusOptions = [
     'unpaid'        => 'در انتظار پرداخت',
@@ -99,10 +99,12 @@ foreach (['dpreset', 'ddays', 'dfrom', 'dto'] as $invDk) {
 
 $whereSql = '1=1';
 $whereParams = [];
-if ($invQ !== '' && !$invIdentifierFilter) {
-    $invLike = '%' . $invQ . '%';
-    $whereSql .= ' AND (id_invoice LIKE :l1 OR id_user LIKE :l2 OR username LIKE :l3 OR name_product LIKE :l4)';
-    $whereParams = [':l1' => $invLike, ':l2' => $invLike, ':l3' => $invLike, ':l4' => $invLike];
+if ($invOrderFilter) {
+    $whereSql .= ' AND BINARY id_invoice = :order_filter';
+    $whereParams[':order_filter'] = $invOrderMatch[1];
+} elseif (!$invCanSearchIdentifiers && ServiceSearch::isNumericQuery($invQ)) {
+    $whereSql .= ' AND (id_invoice = :order_filter OR id_user = :telegram_filter)';
+    $whereParams[':order_filter'] = $whereParams[':telegram_filter'] = ServiceSearch::numericId($invQ);
 }
 if ($lookup !== '' && $invQ === '') {
     $whereSql .= ' AND 0 = 1';
@@ -140,6 +142,13 @@ $invExtraCriteria = array_filter([
 $invFilterCriteria = array_merge(fx_filter_delete_criteria($invStatusActive ? $invStatusOptions[$invStatus] : '', $df, $lookup !== '' ? 'شناسهٔ اشتراک یا لینک اشتراک' : $invQ), $invExtraCriteria);
 $invDeleteNote = ($invTestScope ? 'حذف فقط به رکوردهای فاکتور «اشتراک تست» مطابق فیلتر محدود است. ' : '')
     . 'این عملیات فقط رکوردهای سفارش (تاریخچه فاکتور) را از پایگاه داده ربات حذف می‌کند و هیچ اکانت یا کانفیگی از پنل خارجی حذف نمی‌شود.';
+if ($invQ !== '' && !$invOrderFilter && !$invIdentifierFilter && !ServiceSearch::isNumericQuery($invQ)) {
+    [$condition, $identifierParams] = !$invCanSearchIdentifiers && ServiceSearch::isPrivate($invQ)
+        ? ['0 = 1', []]
+        : ServiceSearch::condition($pdo, $invQ, $whereSql, $whereParams, ['id_invoice', 'id_user', 'username', 'name_product']);
+    $whereSql .= " AND $condition";
+    $whereParams += $identifierParams;
+}
 if (fx_filter_delete_requested()) {
     $fdRes = ($invFilterActive && !$invDeleteBlocked && !$invIdentifierFilter) ? fx_filter_delete_where($pdo, 'invoice', $whereSql, $whereParams) : [0, 0];
     fx_filter_delete_redirect('invoice.php', $invFilterParams, (int)$fdRes[0], (int)$fdRes[1], '', !empty($fdRes[2]));
@@ -163,7 +172,7 @@ if (!empty($_POST['action']) && $_POST['action'] === 'bulk_delete') {
 
 if ($invIdentifierFilter) {
     [$condition, $identifierParams] = ServiceSearch::condition(
-        $pdo, $invQ, $whereSql, $whereParams, ['id_invoice', 'id_user', 'username', 'name_product'], includeTextMatches: true
+        $pdo, $invQ, $whereSql, $whereParams
     );
     $whereSql .= " AND $condition";
     $whereParams += $identifierParams;
@@ -213,7 +222,7 @@ if ($invCanSearchIdentifiers) {
 
             <?php echo fx_filter_delete_flash_html(); ?>
 
-            <?php echo fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null, 'lookup' => $lookup], $invDateKeep, $invExtraKeep), $invCanSearchIdentifiers ? 'نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک' : 'جستجو در شماره سفارش، شناسهٔ تلگرام کاربر، نام اشتراک یا محصول…', 'q', $invCanSearchIdentifiers); ?>
+            <?php echo fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null, 'lookup' => $lookup], $invDateKeep, $invExtraKeep), $invCanSearchIdentifiers ? 'نام، شناسه یا لینک اشتراک، یا order:123 برای شماره سفارش' : 'جستجو در شماره سفارش، شناسهٔ تلگرام کاربر، نام اشتراک یا محصول…', 'q', $invCanSearchIdentifiers); ?>
 
             <?php echo fx_status_filter_ui('invoice.php', $invStatusOptions, $invStatus, array_merge($invSearchParams, $invDateKeep, $invExtraKeep)); ?>
 

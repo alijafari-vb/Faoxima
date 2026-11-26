@@ -51,6 +51,7 @@ if (empty($_SESSION['_session_regenerated'])) {
 require_once __DIR__ . '/../config.php';
 if (!@include_once __DIR__ . '/lib/ad_boot.php') { http_response_code(503); header('Retry-After: 3600'); exit; }
 require_once __DIR__ . '/lib/icons.php';
+require_once __DIR__ . '/lib/search_filter.php';
 require_once __DIR__ . '/../jdf.php';
 require_once __DIR__ . '/../re/rx/function/statistics_helpers.php';
 
@@ -180,8 +181,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'search') {
     $like = '%' . $q . '%';
     $groups = [];
     try {
-        $st = $pdo->prepare("SELECT id, username, namecustom, number FROM user WHERE id LIKE ? OR username LIKE ? OR namecustom LIKE ? OR number LIKE ? OR number_username LIKE ? ORDER BY (id + 0) DESC LIMIT 8");
-        $st->execute([$like, $like, $like, $like, $like]);
+        [$condition, $params] = fx_user_search_condition($pdo, $q);
+        $st = $pdo->prepare("SELECT id, username, namecustom, number FROM user WHERE $condition ORDER BY (id + 0) DESC LIMIT 8");
+        $st->execute($params);
         $items = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $uname = (string)($r['username'] ?? '');
@@ -195,15 +197,22 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'search') {
         if ($items) $groups[] = ['type' => 'users', 'label' => 'کاربران', 'icon' => icon('users', 'svg-icon'), 'items' => $items];
     } catch (\Throwable $e) { error_log('[search] users: ' . $e->getMessage()); }
     try {
-        $st = $pdo->prepare("SELECT id_invoice, id_user, username, name_product, price_product FROM invoice WHERE (id_invoice LIKE ? OR id_user LIKE ? OR username LIKE ? OR name_product LIKE ?) AND name_product != 'سرویس تست' ORDER BY (time_sell + 0) DESC LIMIT 6");
-        $st->execute([$like, $like, $like, $like]);
+        if (ServiceSearch::isNumericQuery($q)) {
+            $condition = '(id_invoice = ? OR id_user = ?)';
+            $params = array_fill(0, 2, ServiceSearch::numericId($q));
+        } else {
+            $condition = '(id_invoice LIKE ? OR id_user LIKE ? OR username LIKE ? OR name_product LIKE ?)';
+            $params = array_fill(0, 4, $like);
+        }
+        $st = $pdo->prepare("SELECT id_invoice, id_user, username, name_product, price_product FROM invoice WHERE $condition AND name_product != 'سرویس تست' ORDER BY (time_sell + 0) DESC LIMIT 6");
+        $st->execute($params);
         $items = [];
         foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
             $title = (string)$r['name_product'];
             $cfg = (string)($r['username'] ?? '');
             if ($cfg !== '') $title .= ' — ' . $cfg;
             $sub = 'سفارش: ' . (string)$r['id_invoice'] . ' — ' . number_format((float)$r['price_product']) . ' T';
-            $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'invoice.php?q=' . urlencode($q)];
+            $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'invoice.php?q=' . urlencode('order:' . $r['id_invoice'])];
         }
         if ($items) $groups[] = ['type' => 'invoices', 'label' => 'سفارشات', 'icon' => icon('receipt', 'svg-icon'), 'items' => $items];
     } catch (\Throwable $e) { error_log('[search] invoices: ' . $e->getMessage()); }

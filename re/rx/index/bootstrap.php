@@ -1442,7 +1442,7 @@ if ($text == "version") {
     if ($isServiceSearch) {
         $scope = 'id_user = :id_user AND ' . ServiceSearch::VISIBLE_STATUS;
         $params = [':id_user' => $from_id];
-        $searchColumns = $missingServiceSearch ? ['username'] : ['username', 'note', 'Volume', 'Service_time'];
+        $searchColumns = $missingServiceSearch ? ['username'] : ['username', 'note'];
         [$condition, $searchParams] = ServiceSearch::condition($pdo, $text, $scope, $params, $searchColumns);
         $stmt = $pdo->prepare("SELECT * FROM invoice WHERE $scope AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 51");
         $stmt->execute($params + $searchParams);

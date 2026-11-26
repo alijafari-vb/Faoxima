@@ -32,7 +32,7 @@ final class InvoicesHandler extends BaseHandler
         if ($all && $search === null) {
             FaoximaResponse::badRequest('عبارت جستجو را وارد کنید.');
         }
-        $where = $all ? '1=1' : 'id_user = :user_id AND ' . ServiceSearch::VISIBLE_STATUS;
+        $where = $all ? ServiceSearch::VISIBLE_STATUS : 'id_user = :user_id AND ' . ServiceSearch::VISIBLE_STATUS;
         $params = $all ? [] : [':user_id' => $this->user['id']];
 
         if ($search !== null) {

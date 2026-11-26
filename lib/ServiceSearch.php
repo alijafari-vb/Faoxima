@@ -23,14 +23,34 @@ final class ServiceSearch
         if (!is_int($value) && !is_string($value)) {
             return null;
         }
-        $digits = strtr(ltrim(trim((string) $value), '#'), [
+        $digits = self::asciiDigits(ltrim(trim((string) $value), '#'));
+        $id = ltrim($digits, '0');
+        return ctype_digit($digits) && $id !== '' && strlen($id) <= 19 ? $id : null;
+    }
+
+    public static function asciiDigits(string $value): string
+    {
+        return strtr($value, [
             '۰' => '0', '۱' => '1', '۲' => '2', '۳' => '3', '۴' => '4',
             '۵' => '5', '۶' => '6', '۷' => '7', '۸' => '8', '۹' => '9',
             '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
             '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
         ]);
-        $id = ltrim($digits, '0');
-        return ctype_digit($digits) && $id !== '' && strlen($id) <= 19 ? $id : null;
+    }
+
+    public static function isNumericQuery(string $query): bool
+    {
+        return ctype_digit(ltrim(self::asciiDigits(trim($query)), '#'));
+    }
+
+    public static function telegramUsername(string $query): ?string
+    {
+        $query = preg_replace('~^https?://(?:www\.)?(?:t\.me|telegram\.me)/([a-z0-9_]{1,32})/?$~iD', '@$1', trim($query));
+        if (!preg_match('/^@?([a-z0-9_]{1,32})$/iD', $query, $match)
+            || in_array(strtolower($match[1]), ['not_username', 'none'], true)) {
+            return null;
+        }
+        return $match[1];
     }
 
     private static function uuid($value): ?string
@@ -50,20 +70,26 @@ final class ServiceSearch
      * $scope is supplied by the authenticated entry point and is reapplied to the final invoice query.
      * Returns a WHERE fragment and its new parameters, using the unaliased invoice table.
      */
-    public static function condition(PDO $pdo, string $query, string $scope, array $scopeParams, array $textColumns = ['username'], bool $includeTextMatches = false): array
+    public static function condition(PDO $pdo, string $query, string $scope, array $scopeParams, array $textColumns = ['username']): array
     {
         $query = trim($query);
         if ($query === '' || strlen($query) > self::MAX_QUERY_LENGTH) {
             return ['0 = 1', []];
         }
 
-        $exact = [];
-        $exactParams = [];
-        $text = [];
-        $textParams = [];
+        if (preg_match('/^order:\h*([A-Za-z0-9_-]{1,200})$/iD', self::asciiDigits($query), $order)) {
+            return ['BINARY id_invoice = :svc_order', [':svc_order' => $order[1]]];
+        }
         $isUrl = preg_match('~^https?://~i', $query) === 1;
         $uuid = self::uuid($query);
         $number = $uuid === null ? self::numericId($query) : null;
+        if (!$isUrl && $uuid === null && $number === null) {
+            return self::isNumericQuery($query) ? ['0 = 1', []] : self::textCondition($pdo, $query, $scope, $scopeParams, $textColumns);
+        }
+
+        $exact = [];
+        $exactParams = [];
+        $url = null;
         if ($isUrl) {
             $url = self::url($query);
             if ($url === null) {
@@ -77,54 +103,74 @@ final class ServiceSearch
                 . "IF(JSON_VALID(user_info), user_info, NULL), '$.subscription_url')) = :svc_cached_url)";
             $exactParams[':svc_raw_url'] = $query;
             $exactParams[':svc_cached_url'] = $query;
-        } else {
-            $like = '%' . strtr($query, ['!' => '!!', '_' => '!_', '%' => '!%']) . '%';
-            foreach ($textColumns as $index => $column) {
-                $param = ':svc_text_' . $index;
-                $text[] = "$column LIKE $param ESCAPE '!'";
-                $textParams[$param] = $like;
-            }
-            if ($number !== null) {
-                $exact[] = 'id_invoice = :svc_order';
-                $exactParams[':svc_order'] = $number;
-            }
-            if ($uuid !== null) {
-                $exact[] = "(LOWER(REPLACE(uuid, '-', '')) = :svc_uuid OR "
-                    . "LOWER(REPLACE(JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(user_info), user_info, NULL), '$.uuid')), '-', '')) = :svc_cached_uuid)";
-                $exactParams[':svc_uuid'] = $uuid;
-                $exactParams[':svc_cached_uuid'] = $uuid;
-            }
+        } elseif ($uuid !== null) {
+            $exact[] = "(LOWER(REPLACE(uuid, '-', '')) = :svc_uuid OR "
+                . "LOWER(REPLACE(JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(user_info), user_info, NULL), '$.uuid')), '-', '')) = :svc_cached_uuid)";
+            $exactParams[':svc_uuid'] = $uuid;
+            $exactParams[':svc_cached_uuid'] = $uuid;
         }
 
-        if ($isUrl || $number !== null || $uuid !== null) {
-            $panels = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE ($scope)
-                AND Service_location IN (SELECT name_panel FROM marzban_panel WHERE type = 'rebecca')");
-            $panels->execute($scopeParams);
-            foreach ($panels->fetchAll(PDO::FETCH_COLUMN) as $panel) {
-                foreach (self::rebeccaMatchingUsernames($panel, $query, $url ?? null, $number, $uuid) as $username) {
-                    $index = count($exact);
-                    $exact[] = "(Service_location = :svc_panel_$index AND BINARY username = :svc_user_$index)";
-                    $exactParams[":svc_panel_$index"] = $panel;
-                    $exactParams[":svc_user_$index"] = $username;
+        $panels = $pdo->prepare("SELECT DISTINCT Service_location FROM invoice WHERE ($scope)
+            AND Service_location IN (SELECT name_panel FROM marzban_panel WHERE type = 'rebecca')");
+        $panels->execute($scopeParams);
+        foreach ($panels->fetchAll(PDO::FETCH_COLUMN) as $panel) {
+            $matches = iterator_to_array(self::rebeccaMatchingUsernames($panel, $query, $url, $number, $uuid), false);
+            if ($number !== null && $matches === []) {
+                $matches = self::rebeccaIdFromScopedNames($pdo, $panel, $number, $scope, $scopeParams);
+            }
+            foreach (array_unique($matches) as $username) {
+                $index = count($exact);
+                $exact[] = "(Service_location = :svc_panel_$index AND BINARY username = :svc_user_$index)";
+                $exactParams[":svc_panel_$index"] = $panel;
+                $exactParams[":svc_user_$index"] = $username;
+            }
+        }
+        return $exact === [] ? ['0 = 1', []] : ['(' . implode(' OR ', $exact) . ')', $exactParams];
+    }
+
+    private static function textCondition(PDO $pdo, string $query, string $scope, array $scopeParams, array $columns): array
+    {
+        $explicitName = str_starts_with($query, '@');
+        $name = $explicitName ? substr($query, 1) : $query;
+        $params = [':svc_name' => $name];
+        $condition = 'username = :svc_name';
+        if ($explicitName) {
+            return $name === '' ? ['0 = 1', []] : [$condition, $params];
+        }
+        $stmt = $pdo->prepare("SELECT 1 FROM invoice WHERE ($scope) AND $condition LIMIT 1");
+        $stmt->execute($scopeParams + $params);
+        if ($stmt->fetchColumn() !== false) {
+            return [$condition, $params];
+        }
+        $like = '%' . strtr($query, ['!' => '!!', '_' => '!_', '%' => '!%']) . '%';
+        $text = [];
+        $params = [];
+        foreach ($columns as $index => $column) {
+            $param = ':svc_text_' . $index;
+            $text[] = "$column LIKE $param ESCAPE '!'";
+            $params[$param] = $like;
+        }
+        return $text === [] ? ['0 = 1', []] : ['(' . implode(' OR ', $text) . ')', $params];
+    }
+
+    private static function rebeccaIdFromScopedNames(PDO $pdo, string $panel, string $number, string $scope, array $params): array
+    {
+        // Older Rebecca releases may only search text. Keep the compatibility lookup bounded.
+        $stmt = $pdo->prepare("SELECT DISTINCT username FROM invoice WHERE ($scope) AND Service_location = :svc_fallback_panel
+            AND username <> '' LIMIT 51");
+        $stmt->execute($params + [':svc_fallback_panel' => $panel]);
+        $names = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        if (count($names) <= 50) {
+            foreach (array_chunk($names, 25) as $batch) {
+                foreach (rebeccaListUsers($panel, usernames: $batch) as $user) {
+                    $username = $user['username'] ?? null;
+                    if (in_array($username, $batch, true) && self::numericId($user['id'] ?? null) === $number) {
+                        return [$username];
+                    }
                 }
             }
         }
-        if ($exact !== []) {
-            if ($includeTextMatches && !$isUrl) {
-                return ['(' . implode(' OR ', array_merge($exact, $text)) . ')', $exactParams + $textParams];
-            }
-            $condition = '(' . implode(' OR ', $exact) . ')';
-            if ($isUrl) {
-                return [$condition, $exactParams];
-            }
-            // Keep the text search for numeric usernames, notes and volumes when no ID matches.
-            $match = $pdo->prepare("SELECT 1 FROM invoice WHERE ($scope) AND $condition LIMIT 1");
-            $match->execute($scopeParams + $exactParams);
-            if ($match->fetchColumn() !== false) {
-                return [$condition, $exactParams];
-            }
-        }
-        return ['(' . implode(' OR ', $text) . ')', $textParams];
+        return [];
     }
 
     /** Resolve a reference on a configured panel for the optional lookup outside the invoice list. */

@@ -41,7 +41,7 @@ if (PHP_SAPI === 'cli-server') {
     $base = 'https://' . $panel . '.subscriptions.test' . ($panel === 'west' ? '/west' : '') . '/sub';
     $key = $panel === 'east' ? 'aaaabbbbccccddddeeeeffff00001111' : 'aaaabbbbccccddddeeeeffff00002222';
     $user = [
-        'id' => 91, 'username' => 'same-name',
+        'id' => $panel === 'legacy-id' ? 11 : 91, 'username' => 'same-name',
         'status' => 'active', 'expire' => 2000000000, 'data_limit' => 500, 'used_traffic' => 250,
         'subscription_url' => $base . '/same-name/' . $key,
         'subscription_urls' => [
@@ -141,11 +141,11 @@ function same($expected, $actual, string $label): void
     $tested++;
 }
 
-function search(PDO $pdo, string $query, ?string $owner, bool $includeTextMatches = false): array
+function search(PDO $pdo, string $query, ?string $owner): array
 {
     $scope = $owner === null ? '1=1' : 'id_user = :owner AND ' . ServiceSearch::VISIBLE_STATUS;
     $params = $owner === null ? [] : [':owner' => $owner];
-    [$where, $extra] = ServiceSearch::condition($pdo, $query, $scope, $params, ['username', 'note', 'Volume'], $includeTextMatches);
+    [$where, $extra] = ServiceSearch::condition($pdo, $query, $scope, $params, ['username', 'note', 'Volume']);
     $stmt = $pdo->prepare("SELECT id_invoice FROM invoice WHERE $scope AND $where ORDER BY id_invoice");
     $stmt->execute($params + $extra);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -189,16 +189,46 @@ same(null, rxPlanLabel(['Service_time' => '60']), 'incomplete legacy plans keep 
 $pdo->exec("CREATE TEMPORARY TABLE user (id varchar(30) PRIMARY KEY, username varchar(100))");
 $pdo->exec("INSERT INTO user VALUES ('100','BuyerName'), ('200','sameHandle'), ('300','SameHandle'), ('400','NOT_USERNAME')");
 same('100', rxFindTelegramUserId($pdo, '@buyername'), 'Telegram username lookup is exact and case insensitive');
+same('100', rxFindTelegramUserId($pdo, 'https://t.me/BuyerName'), 'official Telegram profile links resolve as exact usernames');
+same(null, rxFindTelegramUserId($pdo, '@buyer'), 'a partial handle cannot open an unrelated user');
 same(null, rxFindTelegramUserId($pdo, '@sameHandle'), 'ambiguous stored Telegram usernames require a numeric ID');
 same(null, rxFindTelegramUserId($pdo, '@NOT_USERNAME'), 'the no-username marker is not a Telegram account');
 same('100', rxFindTelegramUserId($pdo, '۱۰۰'), 'Telegram numeric IDs accept Persian digits');
 same('200', rxFindTelegramUserId($pdo, '@BuyerName', ['forward_origin' => ['type' => 'user', 'sender_user' => ['id' => 200]]]), 'forwarded identity comes from Telegram metadata, not message contents');
 same('300', rxFindTelegramUserId($pdo, '', ['forward_from' => ['id' => 300]]), 'legacy Telegram forwards work');
 same(null, rxFindTelegramUserId($pdo, '@BuyerName', ['forward_origin' => ['type' => 'hidden_user', 'sender_user_name' => 'BuyerName']]), 'a hidden forward cannot resolve another user from its text');
+require_once dirname(__DIR__, 2) . '/panel/lib/search_filter.php';
+$pdo->exec('ALTER TABLE user ADD namecustom varchar(100), ADD number varchar(30), ADD number_username varchar(30)');
+$pdo->exec("INSERT INTO user VALUES ('11', 'owner11', NULL, '09123456789', NULL), ('111', 'BuyerName11', 'BuyerName', '09123456780', NULL)");
+foreach ([
+    '۱۱' => ['11'], 'buyername' => ['100'], 'https://t.me/BuyerName' => ['100'], '@buyer' => [],
+    '+98 912 345 6789' => ['11'], '789' => [], 'BuyerName%' => [],
+] as $query => $ids) {
+    [$where, $params] = fx_user_search_condition($pdo, (string) $query);
+    $stmt = $pdo->prepare("SELECT id FROM user WHERE $where ORDER BY id");
+    $stmt->execute($params);
+    same($ids, $stmt->fetchAll(PDO::FETCH_COLUMN), 'web user search: ' . $query);
+}
 same(['e123'], search($pdo, '۹۱', '100'), 'Persian numeric ID / buyer');
 same(['w123'], search($pdo, '#٩١', '200'), 'Arabic digits / second owner');
 same(['e123', 'w123'], search($pdo, '91', null), 'same numeric ID on two panels / administrator');
-same(['e123', 'm123', 'w123'], search($pdo, '91', null, true), 'web orders retain existing numeric text matches');
+$insert->execute(['91', '100', 'sample-911', 'manual', 'active', 'same-name 91 11', '91', null, '{}']);
+$insert->execute(['lookup-external-11', '100', '11', 'manual', 'active', 'same-name', '11', null, '{}']);
+same(['e123', 'w123'], search($pdo, '91', null), 'numeric matches never include similarly named subscriptions or a matching invoice number');
+same(['e123'], search($pdo, '#۹۱', '100'), 'numeric matching observes the customer scope and Persian digits');
+same([], search($pdo, '11', null), 'missing panel IDs do not match an incidental number or numeric username');
+same(['lookup-external-11'], search($pdo, '@11', '100'), 'an explicitly supplied numeric username is matched exactly');
+same(['91'], search($pdo, 'order:۹۱', '100'), 'an explicitly supplied order number is distinct from a subscription ID');
+same([], search($pdo, 'order:91', '200'), 'exact order lookup observes ownership');
+same(['e123'], search($pdo, 'same-name', '100'), 'the exact name takes priority over notes');
+$pdo->exec("INSERT INTO marzban_panel (id, name_panel, type, url_panel, api_key) VALUES
+    (4, 'legacy-id', 'rebecca', 'http://127.0.0.1:43497/legacy-id', 'fixture-api-key')");
+$insert->execute(['actual-id-11', '100', 'same-name', 'legacy-id', 'active', null, '5', null, '{}']);
+same(['actual-id-11'], search($pdo, '11', null), 'a legacy panel without ID search still resolves the exact numeric match by scoped username');
+same([], search($pdo, '11', '200'), 'compatibility lookup only searches panels from the caller scope');
+$pdo->exec("DELETE FROM invoice WHERE id_invoice = 'actual-id-11'");
+$pdo->exec("DELETE FROM marzban_panel WHERE name_panel = 'legacy-id'");
+$pdo->exec("DELETE FROM invoice WHERE id_invoice IN ('91','lookup-external-11')");
 same(['m123'], search($pdo, 'literal_%', '100'), 'literal SQL LIKE metacharacters');
 same(['e123'], search($pdo, 'same-name', '100'), 'partial username under owner');
 same([], search($pdo, 'match', '300'), 'no search across other owners');

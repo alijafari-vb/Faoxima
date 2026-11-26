@@ -1,13 +1,12 @@
 <?php
 
 if (isset($update["inline_query"])) {
-    $sql = "SELECT * FROM invoice WHERE (username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%') OR Volume LIKE CONCAT('%',:Volume, '%') OR Service_time LIKE CONCAT('%',:Service_time, '%')) AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')";
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':username', $query, PDO::PARAM_STR);
-    $stmt->bindParam(':Service_time', $query, PDO::PARAM_STR);
-    $stmt->bindParam(':Volume', $query, PDO::PARAM_STR);
-    $stmt->bindParam(':notes', $query, PDO::PARAM_STR);
-    $stmt->execute();
+    $allSubscriptions = ($adminrulecheck['rule'] ?? '') === 'administrator';
+    $scope = $allSubscriptions ? ServiceSearch::VISIBLE_STATUS : 'id_user = :inline_owner AND ' . ServiceSearch::VISIBLE_STATUS;
+    $params = $allSubscriptions ? [] : [':inline_owner' => $from_id];
+    [$condition, $searchParams] = ServiceSearch::condition($pdo, (string) $query, $scope, $params, ['username', 'note']);
+    $stmt = $pdo->prepare("SELECT * FROM invoice WHERE ($scope) AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 50");
+    $stmt->execute($params + $searchParams);
     $invoices = $stmt->fetchAll();
     $results = [];
     foreach ($invoices as $OrderUser) {
@@ -26,8 +25,6 @@ if (isset($update["inline_query"])) {
         $results[] = [
             "type" => "article",
             "id" => uniqid(),
-            'cache_time' => 0,
-            'is_personal' => true,
             "title" => $OrderUser['username'],
             "input_message_content" => [
                 "message_text" => "
@@ -45,7 +42,12 @@ if (isset($update["inline_query"])) {
             ]
         ];
     }
-    answerInlineQuery($inline_query_id, $results);
+    telegram('answerInlineQuery', [
+        'inline_query_id' => $inline_query_id,
+        'results' => json_encode($results, JSON_INVALID_UTF8_SUBSTITUTE),
+        'cache_time' => 0,
+        'is_personal' => true,
+    ]);
 } elseif (preg_match('/vieworderuser_(\w+)/', $datain, $datagetr)) {
     $id_user = $datagetr[1];
     update("user", "pagenumber", "1", "id", $from_id);

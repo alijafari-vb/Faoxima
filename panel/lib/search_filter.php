@@ -1,6 +1,43 @@
 <?php
 
 require_once __DIR__ . '/pagination.php';
+require_once __DIR__ . '/../../lib/ServiceSearch.php';
+
+function fx_user_search_condition(PDO $pdo, string $query, string $scope = '1=1'): array
+{
+    $query = trim($query);
+    $phone = preg_replace('/[\h()-]+/u', '', ServiceSearch::asciiDigits($query));
+    if (preg_match('/^(?:09[0-9]{9}|\+[0-9]{8,15})$/D', $phone)) {
+        $local = preg_replace('/^\+98(?=9[0-9]{9}$)/', '0', $phone);
+        $international = preg_replace('/^0(?=9[0-9]{9}$)/', '+98', $local);
+        $params = [':local_phone' => $local, ':intl_phone' => $international, ':local_alt' => $local, ':intl_alt' => $international];
+        return ['(number IN (:local_phone, :intl_phone) OR number_username IN (:local_alt, :intl_alt))', $params];
+    }
+    if (ServiceSearch::isNumericQuery($query)) {
+        $id = ServiceSearch::numericId($query);
+        return $id === null ? ['0 = 1', []] : ['id = :telegram_id', [':telegram_id' => $id]];
+    }
+
+    $handle = ServiceSearch::telegramUsername($query);
+    $explicit = str_starts_with($query, '@') || preg_match('~^https?://~i', $query);
+    if ($handle !== null) {
+        $where = 'BINARY LOWER(username) = BINARY LOWER(:telegram_name)';
+        $params = [':telegram_name' => $handle];
+        if ($explicit) {
+            return [$where, $params];
+        }
+        $stmt = $pdo->prepare("SELECT 1 FROM user WHERE ($scope) AND $where LIMIT 1");
+        $stmt->execute($params);
+        if ($stmt->fetchColumn() !== false) {
+            return [$where, $params];
+        }
+    }
+    if ($explicit) {
+        return ['0 = 1', []];
+    }
+    $like = '%' . strtr($query, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+    return ["(username LIKE :user_like ESCAPE '!' OR namecustom LIKE :user_custom ESCAPE '!')", [':user_like' => $like, ':user_custom' => $like]];
+}
 
 if (!function_exists('fx_search_current')) {
 

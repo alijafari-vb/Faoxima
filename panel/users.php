@@ -50,13 +50,8 @@ $userCardLink = function (string $filter) use ($userQ, $userFilter) {
     return 'href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '" style="' . $style . '"' . ($userFilter === $filter ? ' aria-current="true"' : '');
 };
 if ($userQ !== '') {
-    $userLike = '%' . $userQ . '%';
-    $userWhereSql .= ' AND (id LIKE :uq1 OR username LIKE :uq2 OR namecustom LIKE :uq3 OR number LIKE :uq4 OR number_username LIKE :uq5)';
-    $userParams[':uq1'] = $userLike;
-    $userParams[':uq2'] = $userLike;
-    $userParams[':uq3'] = $userLike;
-    $userParams[':uq4'] = $userLike;
-    $userParams[':uq5'] = $userLike;
+    [$condition, $userParams] = fx_user_search_condition($pdo, $userQ, $userWhereSql);
+    $userWhereSql .= ' AND ' . $condition;
 }
 
 $pg = fx_paginate($pdo, "SELECT COUNT(*) FROM user WHERE $userWhereSql", $userParams, 5);
