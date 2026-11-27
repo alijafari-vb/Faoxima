@@ -301,9 +301,15 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
 
 
         $pdo = \Faoxima\Api\Runtime\Db::pdo();
+        $history = $nationalPanel ? null : [
+            'volumebuy' => (int) $product['Volume_constraint'], 'Service_time' => (int) $product['Service_time'],
+            'code_product' => \Faoxima\Services\Renewal\Plans::renewalNormalizeProductCode((string) $product['code_product']),
+            'catalog_product_id' => $product['id'] ?? null, 'reservation' => $reservation, 'pricing_snapshot' => $fxSnapshot,
+            'oldvolume' => $snapshotCheck['data_limit'] ?? '', 'oldtime' => $snapshotCheck['expire'] ?? '',
+        ];
         $funding = \Faoxima\Services\Renewal\WalletRenewal::reserve(
             $pdo, $this->user, $invoice, $discountOperationId, $finalPrice, $discountCode,
-            \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_ledger_debit_note', 'تمدید سرویس')
+            \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_ledger_debit_note', 'تمدید اشتراک'), $history
         );
         if (empty($funding['ok'])) {
             $reason = (string) ($funding['reason'] ?? '');
@@ -450,7 +456,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
         }
 
         $outcome = \Faoxima\Services\Renewal\ProviderRenewal::walletRenewalOutcome($extend);
-        $resultSaved = \Faoxima\Services\Renewal\WalletRenewal::result($pdo, $funding, $outcome, empty($extend['queued']));
+        $resultSaved = \Faoxima\Services\Renewal\WalletRenewal::result($pdo, $funding, $outcome, empty($extend['queued']), (array) $extend);
         if (!$resultSaved) {
             \Faoxima\Api\Runtime\Response::fail(503, 'وضعیت ثبت تمدید در حال بررسی است.', ['operation_id' => $discountOperationId]);
             return;
@@ -494,48 +500,6 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
 
             \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
             return;
-        }
-
-
-        try {
-            $orderRand = bin2hex(random_bytes(2));
-            $oldDataLimit = '';
-            $oldExpire = '';
-            if (is_array($extend['rx_renewal']['before'] ?? null)) {
-                $oldDataLimit = (string)($extend['rx_renewal']['before']['data_limit'] ?? '');
-                $oldExpire    = (string)($extend['rx_renewal']['before']['expire'] ?? '');
-            } elseif (is_array($snapshotCheck ?? null) && !empty($snapshotCheck['ok']) && !empty($snapshotCheck['exists'])) {
-                $oldDataLimit = (string)($snapshotCheck['data_limit'] ?? '');
-                $oldExpire    = (string)($snapshotCheck['expire'] ?? '');
-            }
-
-            $value = json_encode([
-                'volumebuy'    => (int)$product['Volume_constraint'],
-                'Service_time' => (int)$product['Service_time'],
-                'oldvolume'    => $oldDataLimit,
-                'oldtime'      => $oldExpire,
-                'code_product' => \Faoxima\Services\Renewal\Plans::renewalNormalizeProductCode((string)$product['code_product']),
-                'id_order'     => $orderRand,
-                'reservation'  => $reservation,
-            ], JSON_UNESCAPED_UNICODE);
-            $value = \Faoxima\Orders\Pricing\ExchangePricing::fxValueWithSnapshot($value, $fxSnapshot);
-
-            $pdo = \Faoxima\Api\Runtime\Db::pdo();
-            $stmt = $pdo->prepare(
-                "INSERT IGNORE INTO service_other
-                    (id_user, username, value, type, time, price, output, status)
-                 VALUES (:u, :n, :v, 'extend_user', :t, :p, :o, 'paid')"
-            );
-            $stmt->execute([
-                ':u' => $this->user['id'],
-                ':n' => $invoice['username'],
-                ':v' => $value,
-                ':t' => date('Y/m/d H:i:s'),
-                ':p' => (int)$product['price_product'],
-                ':o' => json_encode($extend, JSON_UNESCAPED_UNICODE),
-            ]);
-        } catch (Throwable $e) {
-            \Faoxima\Api\Runtime\Logger::warn('service_other insert failed (extend)', ['err' => $e->getMessage()]);
         }
 
 

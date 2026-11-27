@@ -13,7 +13,7 @@ final class WalletExtensions
 {
     public static function reserve(
         PDO $pdo, array $user, string $username, array $order, string $type,
-        float $price, string $agent, string $ledgerNote
+        float $price, string $agent, string $ledgerNote, array $initialOutput = []
     ): array {
         $own = !$pdo->inTransaction();
         $savepoint = 'rx_extra_' . bin2hex(random_bytes(4));
@@ -46,7 +46,8 @@ final class WalletExtensions
             );
             $statement->execute([
                 (string) $user['id'], $username, json_encode($order, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
-                $type, date('Y/m/d H:i:s'), (string) $price, '', 'pending',
+                $type, date('Y/m/d H:i:s'), (string) $price,
+                $initialOutput === [] ? '' : json_encode($initialOutput, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), 'pending',
             ]);
             $rowId = (int) $pdo->lastInsertId();
             if ($rowId <= 0) {

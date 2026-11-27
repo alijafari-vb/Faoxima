@@ -210,8 +210,10 @@ final class InvoiceManagement
             }
             $ManagePanel->RemoveUser($invoice['Service_location'], $invoice['username']);
         } elseif ($data['type'] == "three") {
-            $stmt = $pdo->prepare("DELETE  FROM invoice WHERE id_invoice = :id_invoice");
-            $stmt->execute(['id_invoice' => $data['id_invoice']]);
+            if (\Faoxima\Services\Subscriptions\InvoiceDeletion::selected($pdo, [(string) $data['id_invoice']]) !== 1) {
+                EndpointSupport::sendJsonResponse(false, \Faoxima\Services\Subscriptions\InvoiceDeletion::RESTRICTION, [], 409);
+                return;
+            }
         }
         EndpointSupport::sendJsonResponse(true, "Successful", $invoice);
     }

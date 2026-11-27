@@ -252,8 +252,14 @@ final class ConfirmRenewal
                 }
             }
             $discountCode = $fxRenewDiscounted ? (string) $partsdic[1] : '';
+            $history = [
+                'volumebuy' => (int) $prodcut['Volume_constraint'], 'Service_time' => (int) $prodcut['Service_time'],
+                'oldvolume' => $DataUserOut['data_limit'] ?? '', 'oldtime' => $DataUserOut['expire'] ?? '',
+                'code_product' => \Faoxima\Services\Renewal\Plans::renewalNormalizeProductCode($prodcut['code_product']),
+                'catalog_product_id' => $prodcut['id'] ?? null, 'reservation' => $rxReservationSelection, 'pricing_snapshot' => $fxRenewSnapshot,
+            ];
             $funding = \Faoxima\Services\Renewal\WalletRenewal::reserve(
-                $pdo, ['id' => $from_id] + $user, $nameloc, $walletRef, (float) $pricelastextend, $discountCode, 'تمدید سرویس'
+                $pdo, ['id' => $from_id] + $user, $nameloc, $walletRef, (float) $pricelastextend, $discountCode, 'تمدید اشتراک', $history
             );
             if (empty($funding['ok'])) {
                 $textRenewalError = !empty($funding['blocking_operation'])
@@ -283,7 +289,7 @@ final class ConfirmRenewal
                 $extend = ['status' => false, 'code' => 'provider_exception'];
             }
             $outcome = \Faoxima\Services\Renewal\ProviderRenewal::walletRenewalOutcome($extend);
-            $resultSaved = \Faoxima\Services\Renewal\WalletRenewal::result($pdo, $funding, $outcome, empty($extend['queued']));
+            $resultSaved = \Faoxima\Services\Renewal\WalletRenewal::result($pdo, $funding, $outcome, empty($extend['queued']), (array) $extend);
             if (!$resultSaved) {
                 sendmessage($from_id, \Faoxima\Telegram\Support\MessageTemplates::get('service_renewal_registration_pending'), null, 'HTML');
                 return;
@@ -327,25 +333,6 @@ final class ConfirmRenewal
                 $rxCashbackGiftTpl = $datatextbot['dyn_rewards_cashback_gift'] ?? "تبریک 🎉\n📌 به عنوان هدیه تمدید مبلغ %s تومان حساب شما شارژ گردید";
                 sendmessage($from_id, sprintf($rxCashbackGiftTpl, $rxCashbackDiscount), null, 'HTML');
             }
-            $stmt = $connect->prepare("INSERT IGNORE INTO service_other (id_user, username,value,type,time,price,output,status) VALUES (?, ?, ?, ?,?,?,?,?)");
-            $dateacc = date('Y/m/d H:i:s');
-            $value = json_encode(array(
-                "volumebuy" => $prodcut['Volume_constraint'],
-                "Service_time" => $prodcut['Service_time'],
-                "oldvolume" => $DataUserOut['data_limit'],
-                "oldtime" => $DataUserOut['expire'],
-                'code_product' => \Faoxima\Services\Renewal\Plans::renewalNormalizeProductCode($prodcut['code_product']),
-                'id_order' => $randomString,
-                'reservation' => $rxReservationSelection
-            ));
-            $value = \Faoxima\Orders\Pricing\ExchangePricing::fxValueWithSnapshot($value, $fxRenewSnapshot);
-            $value = \Faoxima\Telegram\Support\ServiceProductIdentity::linkRenewal($value, (string) $nameloc['id_invoice'], $prodcut);
-            $type = "extend_user";
-            $status = "paid";
-            $extend_json = json_encode($extend);
-            $stmt->bind_param("ssssssss", $from_id, $nameloc['username'], $value, $type, $dateacc, $prodcut['price_product'],$extend_json, $status);
-            $stmt->execute();
-            $stmt->close();
             if (!$rxExtendPending && empty($extend['queued'])) {
                 if ($nameloc['name_product'] == "سرویس تست") {
                     \Faoxima\Core\Database\Db::update("invoice", "name_product", $prodcut['name_product'], "id_invoice", $nameloc['id_invoice']);

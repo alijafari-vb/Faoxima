@@ -254,14 +254,16 @@ final class BulkGiftExecutionAndExports
                     ]
                 ]
             ]);
-            Editmessagetext($from_id, $message_id, "📌 با تایید بر روی گزینه زیر این سرویس بطور کامل از دیتابیس ربات حذف خواهد شد و دیگرجزء آمار حساب نخواهد شد ( این بخش سرویس را از پنل حذف نمی کند و فقط از دیتابیس ربات حذف می کند)", $bakinfos);
+            Editmessagetext($from_id, $message_id, \Faoxima\Services\Subscriptions\InvoiceDeletion::RESTRICTION, $bakinfos);
             break;
         case 14:
             $id_invoice = $dataget[1];
             $invocie = \Faoxima\Core\Database\Db::select("invoice", "*", "id_invoice", $id_invoice, "select");
-            $stmt = $pdo->prepare("DELETE FROM invoice WHERE id_invoice = :id_invoice");
-            $stmt->bindParam(':id_invoice', $id_invoice, PDO::PARAM_STR);
-            $stmt->execute();
+            if (\Faoxima\Services\Subscriptions\InvoiceDeletion::selected($pdo, [$id_invoice]) !== 1) {
+                $back = ['inline_keyboard' => [[['text' => 'بازگشت', 'callback_data' => 'manageinvoice_' . $id_invoice]]]];
+                Editmessagetext($from_id, $message_id, \Faoxima\Services\Subscriptions\InvoiceDeletion::RESTRICTION, json_encode($back));
+                return;
+            }
             Editmessagetext($from_id, $message_id, "✅ سرویس با موفقیت حذف گردید.", json_encode(['inline_keyboard' => []]));
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [

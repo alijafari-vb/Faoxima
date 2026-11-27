@@ -8,13 +8,13 @@ use PDO;
 
 final class WalletRenewal
 {
-    public static function reserve(PDO $pdo, array $user, array $invoice, string $reference, float $price, string $discount, string $note): array
+    public static function reserve(PDO $pdo, array $user, array $invoice, string $reference, float $price, string $discount, string $note, ?array $history = null): array
     {
         $invoiceId = (string) $invoice['id_invoice'];
         $order = ['operation_id' => $reference, 'invoice_id' => $invoiceId, 'ledger_invoice' => $invoiceId,
             'discount_code' => $discount, 'wallet_state' => 'charged'];
         $result = WalletExtensions::reserve($pdo, $user, $invoice['username'], $order, 'wallet_renewal',
-            $price, $user['agent'] ?? 'f', $note);
+            $price, $user['agent'] ?? 'f', $note, $history === null ? [] : ['history' => $history]);
         return $result + ['order' => $order, 'price' => $price];
     }
 
@@ -23,10 +23,10 @@ final class WalletRenewal
         return self::write($pdo, $funding, 'charged', 'dispatching');
     }
 
-    public static function result(PDO $pdo, array $funding, string $outcome, bool $activate = true): bool
+    public static function result(PDO $pdo, array $funding, string $outcome, bool $activate = true, array $providerResult = []): bool
     {
         if ($outcome === 'applied') {
-            return self::complete($pdo, $funding, 'dispatching', $activate);
+            return self::complete($pdo, $funding, 'dispatching', $activate, $providerResult);
         }
         return self::write($pdo, $funding, 'dispatching', $outcome === 'pending' ? 'uncertain' : $outcome);
     }
@@ -56,18 +56,41 @@ final class WalletRenewal
             AND source IN ('wallet', 'miniapp') AND state = 'verified' LIMIT 1");
         $proof->execute([$order['operation_id'], $order['invoice_id'], $row['username']]);
         if ($proof->fetchColumn() !== false) {
-            return self::complete($pdo, $funding, $state, true);
+            return self::complete($pdo, $funding, $state, true, ['status' => true, 'operation_id' => $order['operation_id']]);
         }
         $queued = $pdo->prepare('SELECT 1 FROM queued_renewal WHERE payment_ref = ? AND id_invoice = ? AND id_user = ? AND username = ? LIMIT 1');
         $queued->execute([$order['operation_id'], $order['invoice_id'], $row['id_user'], $row['username']]);
-        return $queued->fetchColumn() !== false && self::complete($pdo, $funding, $state, false);
+        return $queued->fetchColumn() !== false && self::complete($pdo, $funding, $state, false, ['status' => true, 'queued' => true, 'operation_id' => $order['operation_id']]);
     }
 
-    private static function complete(PDO $pdo, array $funding, string $state, bool $activate): bool
+    private static function complete(PDO $pdo, array $funding, string $state, bool $activate, array $providerResult): bool
     {
-        return Store::tx($pdo, static function (PDO $pdo) use ($funding, $state, $activate) {
+        return Store::tx($pdo, static function (PDO $pdo) use ($funding, $state, $activate, $providerResult) {
             if (!self::write($pdo, $funding, $state, 'applied', 'done')) {
                 return false;
+            }
+            $source = $pdo->prepare('SELECT id_user, username, time, output FROM service_other WHERE id = ?');
+            $source->execute([$funding['id']]);
+            $original = $source->fetch(PDO::FETCH_ASSOC);
+            $saved = json_decode((string) ($original['output'] ?? ''), true);
+            if (isset($saved['history']) && is_array($saved['history'])) {
+                $history = $saved['history'];
+                $before = $providerResult['rx_renewal']['before'] ?? [];
+                if (isset($before['data_limit'], $before['expire'])) {
+                    $history['oldvolume'] = $before['data_limit'];
+                    $history['oldtime'] = $before['expire'];
+                }
+                $history['id_order'] = $funding['order']['operation_id'];
+                $history['invoice_id'] = $funding['order']['invoice_id'];
+                $value = json_encode($history, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                if (mb_strlen($value, 'UTF-8') > 1000) {
+                    unset($history['pricing_snapshot'], $history['reservation']);
+                    $value = json_encode($history, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                }
+                $record = $pdo->prepare("INSERT INTO service_other (id_user, username, value, type, time, price, output, status)
+                    VALUES (?, ?, ?, 'extend_user', ?, ?, ?, 'paid')");
+                $record->execute([$original['id_user'], $original['username'], $value, $original['time'], $funding['price'],
+                    json_encode($providerResult, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]);
             }
             if ($activate) {
                 $statement = $pdo->prepare("UPDATE invoice i JOIN service_other o ON o.id = ? AND o.id_user = i.id_user
