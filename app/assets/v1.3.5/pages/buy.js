@@ -87,14 +87,21 @@ export async function buy(view) {
 
     function render() {
         const detail = STEP_DETAILS[step];
+        const firstStep = draft.panelAutoSelected && draft.panel ? 1 : 0;
         view.innerHTML = `
-            <article class="buy-shell" aria-label="خرید سرویس">
+            <article class="buy-shell" aria-label="خرید اشتراک">
                 <header class="buy-topline">
-                    <span class="buy-eyebrow">${icon('plus')} خرید سرویس</span>
-                    <span class="buy-step-count">مرحله ${FA_NUMS[step]} <span>از ${FA_NUMS[4]}</span></span>
+                    <span class="buy-eyebrow">${icon('plus')} خرید اشتراک</span>
+                    <span class="buy-step-count">مرحله ${FA_NUMS[step - firstStep]} <span>از ${FA_NUMS[4 - firstStep]}</span></span>
                 </header>
                 <ol class="buy-steps" aria-label="مراحل خرید">
-                    ${STEPS.map((s, i) => `<li class="${i < step ? 'is-done' : ''} ${i === step ? 'is-active' : ''}" ${i === step ? 'aria-current="step"' : ''}><span class="buy-step-dot">${i < step ? icon('check') : FA_NUMS[i]}</span><span>${escapeHtml(s.label)}</span></li>`).join('')}
+                    ${STEPS.slice(firstStep).map((item, index) => {
+                        const i = index + firstStep;
+                        const state = i < step ? 'is-done' : i === step ? 'is-active' : '';
+                        const current = i === step ? 'aria-current="step"' : '';
+                        const dot = i < step ? icon('check') : FA_NUMS[index];
+                        return `<li class="${state}" ${current}><span class="buy-step-dot">${dot}</span><span>${escapeHtml(item.label)}</span></li>`;
+                    }).join('')}
                 </ol>
                 <section class="buy-hero">
                     <div class="buy-hero-copy"><span class="buy-hero-kicker">${step === 4 ? 'بررسی و تأیید سفارش' : 'انتخاب ' + escapeHtml(STEPS[step].label)}</span><h1>${detail.title}</h1><p>${detail.text}</p></div>
@@ -140,6 +147,11 @@ export async function buy(view) {
         }
         if (target <= 2) delete draft.timeDay;
         if (target <= 1) delete draft.categoryId;
+        if (target <= 0 && draft.panelAutoSelected) {
+            clearBuyDraft();
+            window.location.hash = '#/';
+            return;
+        }
         if (target <= 0) delete draft.panel;
 
         setBuyDraft(draft);
@@ -154,6 +166,16 @@ export async function buy(view) {
     }
 
 
+    function selectPanel(panel, automatic = false) {
+        draft.panel = {
+            id: String(panel.id), name: panel.name, is_custom: !!panel.is_custom,
+            is_username: !!panel.is_username, is_username_required: !!panel.is_username_required,
+            is_username_random: !!panel.is_username_random, is_note: !!panel.is_note,
+        };
+        draft.panelAutoSelected = automatic;
+        persistAndNext();
+    }
+
     async function renderPanelStep(host) {
         host.innerHTML = `
             <div class="buy-list-heading"><h2>موقعیت‌های موجود</h2><span>برای ادامه، یک موقعیت انتخاب کن</span></div>
@@ -162,9 +184,14 @@ export async function buy(view) {
         try {
             const res = await call('countries');
             const list = Array.isArray(res?.obj) ? res.obj : [];
+            if (!host.isConnected) return;
             const $list = host.querySelector('#panel-list');
             if (!list.length) {
                 $list.innerHTML = emptyState('پنلی موجود نیست', 'در حال حاضر هیچ موقعیتی برای خرید فعال نیست.');
+                return;
+            }
+            if (list.length === 1) {
+                selectPanel(list[0], true);
                 return;
             }
             $list.innerHTML = list.map((p) => `
@@ -187,20 +214,13 @@ export async function buy(view) {
             $list.querySelectorAll('.plan').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     hapticImpact('light');
-                    draft.panel = {
-                        id: btn.dataset.id,
-                        name: btn.dataset.name,
-                        is_custom: btn.dataset.custom === '1',
-                        is_username: btn.dataset.username === '1',
-                        is_username_required: btn.dataset.usernameRequired === '1',
-                        is_username_random: btn.dataset.usernameRandom === '1',
-                        is_note: btn.dataset.note === '1',
-                    };
-                    persistAndNext();
+                    const panel = list.find(item => String(item.id) === btn.dataset.id);
+                    if (panel) selectPanel(panel);
                 });
             });
         } catch (err) {
-            host.querySelector('#panel-list').innerHTML = errorBlock(err);
+            const list = host.querySelector('#panel-list');
+            if (list && host.isConnected) list.innerHTML = errorBlock(err);
         }
     }
 
@@ -334,7 +354,7 @@ export async function buy(view) {
                         ${list.map((p) => `
                             <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
-                                    <div class="plan-title">${escapeHtml(p.name)}</div>
+                                    <div class="plan-title">${escapeHtml(`${fmtGb(p.traffic_gb)} · ${fmtDays(p.time_days)}`)}</div>
                                     <div class="plan-meta">
                                         <span>${icon('box')} ${escapeHtml(fmtGb(p.traffic_gb))}</span>
                                         <span>${icon('calendar')} ${escapeHtml(fmtDays(p.time_days))}</span>

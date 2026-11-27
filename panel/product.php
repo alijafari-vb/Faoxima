@@ -43,7 +43,7 @@ if (($_POST['_action'] ?? '') === 'product_delete') {
 
 [$prodQ, $pg, $listinvoice, $listpanel, $panelTypeMap, $listcategory] = \Faoxima\Admin\Web\Pages\ProductPage::catalog($pdo, $_GET);
 $nameProduct = $_POST['nameproduct'] ?? null;
-if (!empty($nameProduct)) {
+if (is_string($nameProduct)) {
     $error = \Faoxima\Admin\Web\Pages\ProductPage::create($pdo, $_POST, $nameProduct);
     if ($error !== null) {
         echo $error;
@@ -212,8 +212,8 @@ if (!empty($nameProduct)) {
         <form action="product.php" method="POST">
             <?php echo \Faoxima\Admin\Web\Support\Csrf::fx_csrf_field(); ?>
             <div class="form-group">
-                <label class="form-label">نام محصول</label>
-                <input type="text" name="nameproduct" class="form-control" placeholder="نام محصول را وارد کنید" required>
+                <label class="form-label">نام پلن</label>
+                <input type="text" name="nameproduct" class="form-control" placeholder="خالی بگذارید تا از حجم و مدت ساخته شود">
             </div>
 
             <div class="form-group">
@@ -312,7 +312,7 @@ if (!empty($nameProduct)) {
         <form action="product.php" method="POST">
             <?php echo \Faoxima\Admin\Web\Support\Csrf::fx_csrf_field(); ?>
             <div class="form-group">
-                <label class="form-label">نام محصول</label>
+                <label class="form-label">نام پلن</label>
                 <input type="text" name="nameproduct" id="clone_name" class="form-control" placeholder="نام محصول را وارد کنید" required>
             </div>
 

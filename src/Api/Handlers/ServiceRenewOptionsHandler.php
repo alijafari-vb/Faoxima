@@ -81,9 +81,11 @@ final class ServiceRenewOptionsHandler extends \Faoxima\Api\Handlers\BaseHandler
         $currentPlan = null;
         $serviceOther = \Faoxima\Api\Runtime\Db::fetchOne(
             "SELECT value FROM service_other
-              WHERE username = :u AND type = 'extend_user' AND status = 'paid'
-              ORDER BY time DESC LIMIT 1",
-            [':u' => $invoice['username']]
+              WHERE id_user = :owner AND username = :u AND type = 'extend_user' AND status = 'paid'
+                AND (JSON_UNQUOTE(JSON_EXTRACT(CASE WHEN JSON_VALID(value) THEN value ELSE '{}' END, '$.invoice_id')) = :invoice
+                    OR JSON_EXTRACT(CASE WHEN JSON_VALID(value) THEN value ELSE '{}' END, '$.invoice_id') IS NULL)
+              ORDER BY time DESC, id DESC LIMIT 1",
+            [':owner' => $this->user['id'], ':u' => $invoice['username'], ':invoice' => $invoice['id_invoice']]
         );
         $currentCode = null;
         if (is_array($serviceOther) && !empty($serviceOther['value'])) {
@@ -102,6 +104,7 @@ final class ServiceRenewOptionsHandler extends \Faoxima\Api\Handlers\BaseHandler
             foreach ($list as $p) {
                 if ($p['code'] === $currentCode) {
                     $currentPlan = $p;
+                    $currentPlan['is_current'] = true;
                     $currentPlan['name'] = '♻️ ' . $currentPlan['name'] . ' (پلن فعلی)';
                     break;
                 }

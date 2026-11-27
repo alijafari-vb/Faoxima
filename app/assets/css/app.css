@@ -4986,3 +4986,18 @@ div.card-body.info-card > div.info-card-body:nth-of-type(2) > div.info-stats:nth
 @supports not (color:color-mix(in srgb, red, blue)){
   .home-header.home-header-v2{ background:linear-gradient(var(--surface-2),var(--surface-2)) padding-box,radial-gradient(ellipse at top left,var(--accent),var(--border) 85%) border-box; }
 }
+
+
+/* Subscription list controls and metrics share the existing service-card palette. */
+.subscription-tools { display:grid; gap:.75rem; margin-block:.65rem 1rem; }
+.subscription-tools [hidden] { display:none; }
+.subscription-tools summary { cursor:pointer; color:var(--text-muted,#686e7e); }
+.subscription-tools details p { margin:.4rem 0 0; font-size:.83rem; }
+.subscription-tools label[id]:not([hidden]) { display:flex; align-items:center; gap:.55rem; font-size:.87rem; }
+.subscription-sort { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; font-size:.87rem; }
+.subscription-sort select { flex:1; min-width:0; padding:.53rem .65rem; font:inherit; color:inherit; background:transparent; border:1px solid var(--border,rgba(126,130,150,.4)); border-radius:.65rem; }
+.subscription-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.35rem; margin:.7rem 0; text-align:center; }
+.subscription-metrics div { border-radius:.7rem; background:rgba(128,135,158,.1); padding:.55rem .15rem; }
+.subscription-metrics dt { font-size:.72rem; }
+.subscription-metrics dd { margin:.25rem 0 0; font-size:.88rem; font-weight:600; overflow-wrap:anywhere; }
+.service-preview-head h2 { overflow-wrap:anywhere; }

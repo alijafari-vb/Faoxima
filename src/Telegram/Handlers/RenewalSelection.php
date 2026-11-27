@@ -131,10 +131,10 @@ final class RenewalSelection
                     }
                     $result['price_product'] = \Faoxima\Orders\Pricing\ExchangePricing::fxFinalizeAmount($result['price_product'], $marzban_list_get, 'product');
                     if ($statusshowprice == "offshowprice") {
-                        $namekeyboard = $result['name_product'];
+                        $namekeyboard = \Faoxima\Services\Subscriptions\PlanLabel::offer($result);
                     } else {
                         $result['price_product'] = number_format($result['price_product']);
-                        $namekeyboard = $result['name_product'] . " - " . $result['price_product'] . "تومان";
+                        $namekeyboard = \Faoxima\Services\Subscriptions\PlanLabel::offer($result) . " - " . $result['price_product'] . "تومان";
                     }
                     $productextend['inline_keyboard'][] = [
                         ['text' => $namekeyboard, 'callback_data' => "serviceextendselect_" . $result['code_product']]
@@ -220,10 +220,10 @@ final class RenewalSelection
                 }
                 $result['price_product'] = \Faoxima\Orders\Pricing\ExchangePricing::fxFinalizeAmount($result['price_product'], $marzban_list_get, 'product');
                 if ($statusshowprice == "offshowprice") {
-                    $namekeyboard = $result['name_product'];
+                    $namekeyboard = \Faoxima\Services\Subscriptions\PlanLabel::offer($result);
                 } else {
                     $result['price_product'] = number_format($result['price_product']);
-                    $namekeyboard = $result['name_product'] . " - " . $result['price_product'] . "تومان";
+                    $namekeyboard = \Faoxima\Services\Subscriptions\PlanLabel::offer($result) . " - " . $result['price_product'] . "تومان";
                 }
                 $productextend['inline_keyboard'][] = [
                     ['text' => $namekeyboard, 'callback_data' => "serviceextendselect_" . $result['code_product']]

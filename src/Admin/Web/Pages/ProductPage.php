@@ -77,7 +77,15 @@ final class ProductPage
 
     public static function create(PDO $pdo, array $post, $nameProduct): ?string
     {
-        $randomString = bin2hex(random_bytes(2));
+        $nameProduct = trim($nameProduct);
+        $randomString = bin2hex(random_bytes($nameProduct === '' ? 8 : 2));
+        if ($nameProduct === '') {
+            $label = \Faoxima\Services\Subscriptions\PlanLabel::display(['Volume_constraint' => $post['volume_product'] ?? null, 'Service_time' => $post['time_product'] ?? null]);
+            if ($label === null) {
+                return "<script>alert('حجم یا مدت پلن نامعتبر است'); window.location.href='product.php';</script>";
+            }
+            $nameProduct = "$label [$randomString]";
+        }
 
         $product_count = \Faoxima\Core\Database\Db::select("product", "*", "name_product", $nameProduct, "count");
         if ($product_count != 0) {

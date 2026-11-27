@@ -1,5 +1,5 @@
 import { call } from '../api.js?v=0.0.53';
-import { escapeHtml, skeletonList, fmtNumber, serviceStatusBadge } from '../utils.js?v=0.0.52';
+import { escapeHtml, skeletonList, fmtNumber, fmtBytes, serviceStatusBadge } from '../utils.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
 
 export async function services(view) {
@@ -8,6 +8,9 @@ export async function services(view) {
     let query = '';
     let totalPages = 1;
     let totalItems = 0;
+    let sort = 'recent';
+    let direction = 'desc';
+    let searchAll = false;
     let statusFilter = 'all';
     let currentItems = [];
     let requestSeq = 0;
@@ -17,18 +20,32 @@ export async function services(view) {
         <article class="services-page">
             <div class="services-content">
                 <div class="services-heading">
-                    <div><p class="services-eyebrow">اتصال‌های شما، یک‌جا</p><h1>سرویس‌های من</h1></div>
-                    <a href="#/buy" class="services-add">${icon('plus')}<span>سرویس جدید</span></a>
+                    <div><p class="services-eyebrow">اتصال‌های شما، یک‌جا</p><h1>اشتراک‌های من</h1></div>
+                    <a href="#/buy" class="services-add">${icon('plus')}<span>اشتراک جدید</span></a>
                 </div>
 
                 <label class="search-field services-search">
                     ${icon('search', 'class="ico search-field-ico"')}
-                    <input id="services-search" type="search" aria-label="جست‌وجوی شناسه سرویس" placeholder="جست‌وجوی شناسهٔ سرویس…" inputmode="search" autocomplete="off" />
+                    <input id="services-search" type="search" aria-label="جستجوی اشتراک" placeholder="جستجو در اشتراک‌ها" maxlength="2048" dir="auto" spellcheck="false" inputmode="search" autocomplete="off" />
                     <button type="button" class="search-field-clear hidden" id="services-search-clear" aria-label="پاک کردن جستجو">
                         ${icon('close', 'class="ico"')}
                     </button>
                 </label>
 
+                <div class="subscription-tools">
+                    <details><summary>روش‌های جستجو</summary><p>نام اشتراک، شناسهٔ عددی یا لینک کامل را وارد کنید.</p></details>
+                    <label id="subscriptions-scope" hidden><input type="checkbox" id="subscriptions-all" /> جستجو در همهٔ اشتراک‌ها</label>
+                    <p id="subscriptions-cached" class="muted" hidden>حجم، زمان و شناسه بر اساس آخرین اطلاعات ثبت‌شده مرتب می‌شوند.</p>
+                    <div id="subscriptions-sort" class="subscription-sort">
+                        <label for="subscriptions-sort-field">مرتب‌سازی</label>
+                        <select id="subscriptions-sort-field">
+                            <option value="recent">جدیدترین</option><option value="username">نام</option>
+                            <option value="panel_user_id">شناسه</option><option value="remaining_bytes">حجم مانده</option>
+                            <option value="days_remaining">روز مانده</option><option value="expires_at">انقضا</option>
+                        </select>
+                        <button type="button" class="btn btn-ghost" id="subscriptions-direction" aria-label="مرتب‌سازی صعودی" aria-pressed="false" disabled>↓</button>
+                    </div>
+                </div>
                 <div class="services-filter-bar">
                     <span class="services-filter-label">وضعیت در این صفحه</span>
                     <div class="services-filters" role="group" aria-label="فیلتر وضعیت سرویس‌های این صفحه">
@@ -62,12 +79,47 @@ export async function services(view) {
     const $resultsLabel = view.querySelector('#services-results-label');
     const $filters = [...view.querySelectorAll('[data-service-filter]')];
 
+    const $cached = view.querySelector('#subscriptions-cached');
+    const $scope = view.querySelector('#subscriptions-scope');
+    const $all = view.querySelector('#subscriptions-all');
+    const $sort = view.querySelector('#subscriptions-sort');
+    const $sortField = view.querySelector('#subscriptions-sort-field');
+    const $direction = view.querySelector('#subscriptions-direction');
+    $all.addEventListener('change', () => {
+        searchAll = $all.checked;
+        $sort.hidden = searchAll;
+        $cached.hidden = true;
+        page = 1;
+        statusFilter = 'all';
+        $filters.forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.serviceFilter === 'all')));
+        load();
+    });
+    function updateDirection() {
+        const ascending = direction === 'asc';
+        $direction.textContent = ascending ? '↑' : '↓';
+        $direction.setAttribute('aria-pressed', String(ascending));
+        $direction.disabled = sort === 'recent';
+    }
+    $sortField.addEventListener('change', () => {
+        sort = $sortField.value;
+        direction = sort === 'username' ? 'asc' : 'desc';
+        updateDirection();
+        page = 1;
+        load();
+    });
+    $direction.addEventListener('click', () => {
+        direction = direction === 'asc' ? 'desc' : 'asc';
+        updateDirection();
+        page = 1;
+        load();
+    });
+
     function renderItems() {
         const items = currentItems.filter(it => {
             const active = serviceStatusBadge(it.status || it.Status || '').badge === 'is-active';
             return statusFilter === 'all' || (statusFilter === 'active' ? active : !active);
         });
-        $resultsLabel.textContent = `${fmtNumber(items.length)} سرویس در این صفحه`;
+        $resultsLabel.textContent = `${fmtNumber(items.length)} اشتراک در این صفحه`;
         if (!items.length) {
             const filtered = statusFilter !== 'all' && currentItems.length > 0;
             $list.innerHTML = `<div class="services-empty">
@@ -92,6 +144,16 @@ export async function services(view) {
 
     async function load() {
         const seq = ++requestSeq;
+        if (searchAll && !query) {
+            currentItems = [];
+            $count.classList.add('hidden');
+            $pager.classList.add('hidden');
+            $list.setAttribute('aria-busy', 'false');
+            $filters.forEach(btn => { btn.disabled = true; });
+            $resultsLabel.textContent = 'جستجوی همهٔ اشتراک‌ها';
+            $list.innerHTML = '<p class="muted">عبارت جستجو را وارد کنید.</p>';
+            return;
+        }
         $list.innerHTML = skeletonList(4);
         $list.setAttribute('aria-busy', 'true');
         $filters.forEach(btn => { btn.disabled = true; });
@@ -99,11 +161,15 @@ export async function services(view) {
         $pager.classList.add('hidden');
 
         try {
-            const params = { page: String(page), limit: String(limit) };
-            if (query) params.q = query;
-            const res = await call('invoices', { params });
+            const params = { page, limit, sort, direction };
+            const res = query
+                ? await call('invoices', { method: 'POST', body: { ...params, q: query, scope: searchAll ? 'all' : 'mine' } })
+                : await call('invoices', { params });
             if (disposed || seq !== requestSeq) return;
 
+            $scope.hidden = res?.obj?.can_search_all !== true;
+            $cached.hidden = searchAll || res?.obj?.cached_usage !== true;
+            page = Number(res?.obj?.page || page);
             const items = res?.obj?.items || [];
             totalPages = Number(res?.obj?.total_pages) || 1;
             totalItems = Number(res?.obj?.total) || items.length;
@@ -150,26 +216,41 @@ export async function services(view) {
 
         const username = it.username || '—';
         const displayUsername = it.display_username || username;
-        const productName = it.name_product || '—';
+        const productName = it.plan_label || it.name_product || '';
         const location = it.Service_location || '';
-
+        const href = `#/services/${encodeURIComponent(username)}/${encodeURIComponent(it.id_invoice)}`;
+        const days = metric(it.days_remaining, value => value === 0 ? 'منقضی' : fmtNumber(value));
+        const traffic = metric(it.remaining_bytes, value => value === 0 ? 'تمام' : fmtBytes(value));
+        const expiry = it.expires_at == null ? '—' : Number(it.expires_at) === 0 ? '∞'
+            : new Intl.DateTimeFormat('fa-IR', { dateStyle: 'short', timeZone: 'Asia/Tehran' }).format(it.expires_at * 1000);
+        const tag = searchAll ? 'article' : 'a';
         return `
-            <a href="#/services/${encodeURIComponent(username)}" class="service-preview ${badge}" data-username="${escapeHtml(username)}">
+            <${tag} ${searchAll ? '' : `href="${href}"`} class="service-preview ${badge}">
                 <div class="service-preview-head">
                     <span class="service-preview-icon">${icon('globe')}</span>
-                    <h2>${escapeHtml(productName)}</h2>
+                    <h2><bdi>${escapeHtml(displayUsername)}</bdi></h2>
                     <span class="service-state">${icon(badgeIcon)} ${escapeHtml(badgeText)}</span>
                 </div>
-                <div class="service-preview-identity"><span>شناسه</span><bdi>${escapeHtml(displayUsername)}</bdi></div>
+                <div class="service-preview-identity"><span>شناسهٔ اشتراک</span><bdi>${escapeHtml(it.panel_user_id || '—')}</bdi></div>
+                ${searchAll ? `<div class="service-preview-identity"><span>شماره سفارش</span><bdi>${escapeHtml(it.id_invoice)}</bdi></div>` : `
+                    <dl class="subscription-metrics">
+                        <div><dt>روز مانده</dt><dd>${escapeHtml(days)}</dd></div>
+                        <div><dt>حجم مانده</dt><dd>${escapeHtml(traffic)}</dd></div>
+                        <div><dt>انقضا</dt><dd>${escapeHtml(expiry)}</dd></div>
+                    </dl>`}
                 <div class="service-preview-footer">
                     <div class="service-preview-tags">
                         ${location ? `<span>${icon('globe')} ${escapeHtml(location)}</span>` : ''}
+                        ${productName ? `<span>${escapeHtml(productName)}</span>` : ''}
                         ${it.has_queued_renewal ? `<span class="service-queued">${icon('clock')} رزرو اشتراک</span>` : ''}
                     </div>
-                    <span class="service-details-link">جزئیات سرویس ${icon('arrowLeft')}</span>
+                    ${searchAll ? '' : `<span class="service-details-link">جزئیات ${icon('arrowLeft')}</span>`}
                 </div>
-            </a>
-        `;
+            </${tag}>`;
+    }
+
+    function metric(value, format) {
+        return value == null ? '—' : Number(value) === -1 ? '∞' : format(Number(value));
     }
 
     let searchTimer = null;

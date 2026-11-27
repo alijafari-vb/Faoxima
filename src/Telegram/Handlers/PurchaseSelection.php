@@ -437,7 +437,7 @@ final class PurchaseSelection
             $userBalance = number_format($user['Balance']);
             $replacements = [
                 '{username}' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get),
-                '{name_product}' => $info_product['name_product'],
+                '{name_product}' => \Faoxima\Services\Subscriptions\PlanLabel::offer($info_product),
                 '{Service_time}' => $info_product['Service_time'],
 
                 '{note}' => $info_product['note'] ?? '',

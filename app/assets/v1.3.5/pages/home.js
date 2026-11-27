@@ -250,7 +250,7 @@ function renderServiceItem(it) {
     const location = it.Service_location || '';
 
     return `
-        <a href="#/services/${encodeURIComponent(username)}" class="list-item" data-username="${escapeHtml(username)}">
+        <a href="#/services/${encodeURIComponent(username)}/${encodeURIComponent(it.id_invoice)}" class="list-item" data-username="${escapeHtml(username)}">
             <div class="li-main">
                 <div class="li-title">${escapeHtml(productName)}</div>
                 <div class="li-sub">${escapeHtml(displayUsername)}${location ? ' · ' + escapeHtml(location) : ''}</div>

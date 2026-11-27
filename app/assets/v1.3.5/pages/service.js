@@ -809,13 +809,14 @@ function fmtNum(n) {
     return Number(n || 0).toLocaleString('fa-IR');
 }
 
-export async function service(view, encodedUsername) {
+export async function service(view, encodedUsername, encodedOrderId) {
     const username = decodeURIComponent(encodedUsername || '');
+    const orderId = encodedOrderId ? decodeURIComponent(encodedOrderId) : undefined;
 
     view.innerHTML = `
         <a href="#/services" class="page-back sd-back">
             ${icon('chevronLeft', 'class="ico"')}
-            <span>سرویس‌های من</span>
+            <span>اشتراک‌های من</span>
         </a>
 
         <article class="service-detail-page">
@@ -831,7 +832,7 @@ export async function service(view, encodedUsername) {
         const $body = view.querySelector('#service-body');
         $body.innerHTML = skeletonList(4);
         try {
-            const res = await call('service', { params: { username } });
+            const res = await call('service', { params: orderId ? { username, order_id: orderId } : { username } });
             info = res?.obj;
         } catch (err) {
             const _msg = String(err.message || '');
@@ -894,7 +895,7 @@ function renderBody($body, info, username, reload) {
     const disabled = Array.isArray(info.disabled_actions) ? new Set(info.disabled_actions) : new Set();
 
 
-    const visibleActions = ALL_ACTIONS.filter((a) => !disabled.has(a.id));
+    const visibleActions = info.ambiguous_username ? [] : ALL_ACTIONS.filter((a) => !disabled.has(a.id));
     const { primary: primaryActions, extra: extraActions } = managementActionGroups(visibleActions);
 
     $body.innerHTML = `
@@ -905,8 +906,10 @@ function renderBody($body, info, username, reload) {
                 ${escapeHtml(statusText)}
             </span>
             </div>
-            <h1>${escapeHtml(info.product_name || '—')}</h1>
-            <div class="sd-identifier"><span>شناسه</span><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi></div>
+            <h1><bdi>${escapeHtml(info.display_username || info.username || username)}</bdi></h1>
+            ${info.panel_user_id ? `<div class="sd-identifier"><span>شناسهٔ اشتراک</span><bdi>${escapeHtml(info.panel_user_id)}</bdi></div>` : ''}
+            <p class="muted">نام پلن · ${escapeHtml(info.plan_label || info.product_name || '—')}</p>
+            ${info.ambiguous_username ? '<p class="muted">برای مدیریت این اشتراک، آن را از فهرست بات باز کنید.</p>' : ''}
         </section>
 
         ${info.has_queued_renewal ? `
@@ -1559,7 +1562,7 @@ async function renderRenewPanel($panel, info, username, reload) {
                     data-volume="${escapeHtml(String(p.volume_gb))}"
                     data-time="${escapeHtml(String(p.time_days))}">
                 <div class="plan-info">
-                    <div class="plan-title">${escapeHtml(p.name)}</div>
+                    <div class="plan-title">${escapeHtml(`${fmtGb(p.volume_gb)} · ${fmtDays(p.time_days)}`)}${p.is_current ? ' · پلن فعلی' : ''}</div>
                     <div class="plan-meta">${meta.join('')}</div>
                 </div>
                 <div class="plan-price">${priceTag}</div>
@@ -1844,6 +1847,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
         }
     };
     loadPreview();
+    const renewalOperationId = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
 
     $btn.addEventListener('click', async () => {
         const shownAmount = $host.querySelector('#rc-amount')?.textContent || `${fmtNum(basePrice)} تومان`;
@@ -1853,7 +1857,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
         $btn.disabled = true;
         $label.textContent = 'در حال انجام…';
         try {
-            const body = { username };
+            const body = { username, operation_id: renewalOperationId };
             if (choice.code === '__custom__') {
                 body.custom = choice.custom;
             } else {
