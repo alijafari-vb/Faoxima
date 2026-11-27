@@ -263,7 +263,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
         \Faoxima\Services\Fulfillment\Purchase::persistProvisionedUserInfo(
             \Faoxima\Api\Runtime\Db::pdo(), (string) $invoice['id_invoice'], ['username' => $svcUsername] + $result, true
         );
-        \Faoxima\Core\Cache\RedisCache::rx_redis_del('faoxima:panelcache:' . $panelName . ':' . $svcUsername);
+        ServiceHandler::invalidatePanelCache($panelName, $svcUsername, (string) $invoice['id_invoice']);
         $panel = \Faoxima\Services\Delivery\ServiceDelivery::rxPurchaseDeliveryPanel($panel, $result['subscription_url'] ?? '');
         $newSubLink = '';
         if (($panel['sublink'] ?? '') === 'onsublink') {

@@ -130,7 +130,7 @@ final class BalanceAndCatalogManagement
             }
             break;
         case 4:
-            \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, $textbotlang['Admin']['ManageUser']['GetIdUserunblock'], $backadmin, 'HTML');
+            \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, 'شناسهٔ عددی، @نام‌کاربری یا لینک تلگرام کاربر را بفرستید. می‌توانید پیام خود او را هم فوروارد کنید.', $backadmin, 'HTML');
             \Faoxima\Telegram\Navigation\Steps::step('show_info', $from_id);
             break;
         case 5:
@@ -140,15 +140,15 @@ final class BalanceAndCatalogManagement
                 $id_user = $rxCardpayMatch[1];
             } elseif ($user['step'] == "show_info") {
                 if (!isset($update['message']) && empty($text)) { return; }
-                $id_user = $text;
+                $id_user = \Faoxima\Admin\Users\UserSearch::telegramId($pdo, (string) $text, $update['message'] ?? []);
             } elseif (explode(" ", $text)[0] == "/user") {
-                $id_user = explode(" ", $text)[1];
+                $id_user = \Faoxima\Admin\Users\UserSearch::telegramId($pdo, trim(substr($text, strpos($text, " ") + 1)));
             } elseif (explode(" ", $text)[0] == "/id") {
-                $id_user = explode(" ", $text)[1];
+                $id_user = \Faoxima\Admin\Users\UserSearch::telegramId($pdo, trim(substr($text, strpos($text, " ") + 1)));
             } else {
                 $id_user = $dataget[1];
             }
-            if (!\Faoxima\Core\Database\Db::userExists($id_user)) {
+            if ($id_user === null || !\Faoxima\Core\Database\Db::userExists($id_user)) {
                 \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, $textbotlang['Admin']['not-user'], null, 'HTML');
                 return;
             }

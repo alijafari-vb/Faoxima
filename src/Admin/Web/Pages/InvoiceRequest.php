@@ -43,7 +43,30 @@ final class InvoiceRequest
 
         \Faoxima\Admin\Web\Support\Csrf::fx_csrf_guard();
 
-        $invQ = trim((string)($_GET['q'] ?? ''));
+        $principal = ($result['rule'] ?? '') === 'administrator';
+        if ($principal && ($_POST['action'] ?? '') === 'service_lookup') {
+            $term = is_string($_POST['q'] ?? null) ? trim($_POST['q']) : '';
+            $keep = array_intersect_key($_POST, array_flip(['status', 'dpreset', 'ddays', 'dfrom', 'dto', 'min_price', 'max_price', 'product', 'pmatch', 'location']));
+            if ($term !== '' && strlen($term) <= \Faoxima\Services\Subscriptions\ServiceSearch::MAX_QUERY_LENGTH) {
+                if (\Faoxima\Services\Subscriptions\ServiceSearch::isPrivate($term)) {
+                    $key = bin2hex(random_bytes(16));
+                    $lookups = array_filter($_SESSION['invoice_service_lookups'] ?? [], static fn($entry) => $entry['until'] > time());
+                    $lookups[$key] = ['term' => $term, 'until' => time() + 900];
+                    $_SESSION['invoice_service_lookups'] = array_slice($lookups, -8, null, true);
+                    $keep['lookup'] = $key;
+                } else {
+                    $keep['q'] = $term;
+                }
+            }
+            header('Location: invoice.php?' . http_build_query($keep), true, 303);
+            exit;
+        }
+        $invQ = is_string($_GET['q'] ?? null) ? trim($_GET['q']) : '';
+        $lookup = $principal && is_string($_GET['lookup'] ?? null) ? $_GET['lookup'] : '';
+        $stored = $_SESSION['invoice_service_lookups'][$lookup] ?? [];
+        $search = $lookup !== '' ? (($stored['until'] ?? 0) > time() ? $stored['term'] : '') : $invQ;
+        $sensitive = $lookup !== '' || \Faoxima\Services\Subscriptions\ServiceSearch::isPrivate($search);
+        if ($sensitive) { $invQ = ''; }
         $df = \Faoxima\Admin\Web\Support\DateFilter::fx_date_filter_resolve();
         $invStatusOptions = [
             'unpaid'        => 'در انتظار پرداخت',
@@ -86,14 +109,6 @@ final class InvoiceRequest
 
         $whereSql = '1=1';
         $whereParams = [];
-        if ($invQ !== '') {
-            $invLike = '%' . $invQ . '%';
-            $whereSql .= ' AND (id_invoice LIKE :l1 OR id_user LIKE :l2 OR username LIKE :l3 OR name_product LIKE :l4)';
-            $whereParams[':l1'] = $invLike;
-            $whereParams[':l2'] = $invLike;
-            $whereParams[':l3'] = $invLike;
-            $whereParams[':l4'] = $invLike;
-        }
         if ($df['active']) {
             $whereSql .= ' AND time_sell BETWEEN :dfrom AND :dto';
             $whereParams[':dfrom'] = $df['from'];
@@ -113,6 +128,22 @@ final class InvoiceRequest
             $whereParams[':xloc'] = '%' . $invLocation . '%';
         }
 
+        if ($search !== '' || $lookup !== '') {
+            if ($sensitive && $lookup === '') {
+                $condition = '0=1';
+                $params = [];
+            } elseif (!$principal && \Faoxima\Services\Subscriptions\ServiceSearch::isNumericQuery($search)) {
+                $condition = 'id_user = :telegram_id';
+                $params = [':telegram_id' => \Faoxima\Services\Subscriptions\ServiceSearch::numericId($search)];
+            } else {
+                [$condition, $params] = \Faoxima\Services\Subscriptions\ServiceSearch::condition($pdo, $search, $whereSql, $whereParams, ['id_invoice', 'id_user', 'username', 'name_product']);
+            }
+            $whereSql .= ' AND ' . $condition;
+            $whereParams += $params;
+        }
+        $invDeleteBlocked = $invDeleteBlocked || $sensitive || ($principal && \Faoxima\Services\Subscriptions\ServiceSearch::isNumericQuery($search));
+        if ($lookup !== '') { $invExtraKeep['lookup'] = $lookup; }
+
         $invStatusActive = $invStatus !== '' && isset($invStatusOptions[$invStatus]);
         if ($invStatus !== '' && !$invStatusActive) $invDeleteBlocked = true;
         $invFilterActive = $invQ !== '' || $df['active'] || $invStatusActive || $invAf['active'] || $invProduct !== '' || $invLocation !== '';
@@ -123,11 +154,11 @@ final class InvoiceRequest
             'محصول' => $invProduct !== '' ? ($invPmatch === 'exact' ? $invProduct . ' (تطابق دقیق)' : $invProduct) : '',
             'لوکیشن' => $invLocation,
         ], function ($v) { return $v !== ''; });
-        $invFilterCriteria = array_merge(\Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_criteria($invStatusActive ? $invStatusOptions[$invStatus] : '', $df, $invQ), $invExtraCriteria);
+        $invFilterCriteria = array_merge(\Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_criteria($invStatusActive ? $invStatusOptions[$invStatus] : '', $df, $lookup !== '' ? 'مرجع اشتراک' : $invQ), $invExtraCriteria);
         $invDeleteNote = ($invTestScope ? 'حذف فقط به رکوردهای فاکتور «سرویس تست» مطابق فیلتر محدود است. ' : '')
-            . 'این عملیات فقط رکوردهای سفارش (تاریخچه فاکتور) را از پایگاه داده ربات حذف می‌کند و هیچ اکانت یا کانفیگی از پنل خارجی حذف نمی‌شود.';
+            . \Faoxima\Services\Subscriptions\InvoiceDeletion::RESTRICTION;
         if (\Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_requested()) {
-            $fdRes = ($invFilterActive && !$invDeleteBlocked) ? \Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_where($pdo, 'invoice', $whereSql, $whereParams) : [0, 0];
+            $fdRes = ($invFilterActive && !$invDeleteBlocked) ? \Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_where($pdo, 'invoice', "($whereSql) AND " . \Faoxima\Services\Subscriptions\InvoiceDeletion::eligible(), $whereParams) : [0, 0];
             \Faoxima\Admin\Web\Support\BulkDelete::fx_filter_delete_redirect('invoice.php', $invFilterParams, (int)$fdRes[0], (int)$fdRes[1], '', !empty($fdRes[2]));
         }
 
@@ -139,7 +170,7 @@ final class InvoiceRequest
             $invBulkFailed = false;
             $deletedCount = 0;
             try {
-                $deletedCount = \Faoxima\Admin\Web\Support\BulkDelete::fx_bulk_delete_ids($pdo, 'invoice', 'id_invoice', $requestedIds, false);
+                $deletedCount = \Faoxima\Services\Subscriptions\InvoiceDeletion::selected($pdo, $requestedIds);
             } catch (\Throwable $e) {
                 \Faoxima\Admin\Web\Support\BulkDelete::fx_delete_log_error('bulk_delete', 'invoice', $e);
                 $invBulkFailed = true;

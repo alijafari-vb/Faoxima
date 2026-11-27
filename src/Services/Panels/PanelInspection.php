@@ -71,7 +71,7 @@ trait PanelInspection
     }
 
 
-    function DataUser($name_panel, $username, $client_type = 'links')
+    function DataUser($name_panel, $username, $client_type = 'links', ?string $invoiceId = null)
     {
         $Output = array();
         global $pdo, $domainhosts;
@@ -83,10 +83,17 @@ trait PanelInspection
                 'msg' => 'Panel Not Found'
             );
         }
-        if (isset($Get_Data_Panel['subvip']) && $Get_Data_Panel['subvip'] == "onsubvip") {
-            $inoice = \Faoxima\Core\Database\Db::select("invoice", "*", "username", $username, "select");
-        } else {
-            $inoice = false;
+        $inoice = false;
+        if (($Get_Data_Panel['subvip'] ?? '') === 'onsubvip') {
+            $sql = 'SELECT id_invoice FROM invoice WHERE BINARY username = :name AND Service_location = :panel';
+            $params = [':name' => $username, ':panel' => $Get_Data_Panel['name_panel']];
+            if ($invoiceId !== null) {
+                $sql .= ' AND BINARY id_invoice = :invoice';
+                $params[':invoice'] = $invoiceId;
+            }
+            $stmt = $pdo->prepare($sql . ' ORDER BY time_sell DESC, id_invoice DESC LIMIT 1');
+            $stmt->execute($params);
+            $inoice = $stmt->fetch(\PDO::FETCH_ASSOC);
         }
         if ($Get_Data_Panel['type'] == "marzban") {
             $UsernameData = \Faoxima\Services\Panels\Drivers\Marzban::getuser($username, $Get_Data_Panel['name_panel']);
@@ -708,6 +715,7 @@ trait PanelInspection
             }
             $Output = array(
                 'status' => $rebeccaStatus,
+                'panel_user_id' => \Faoxima\Services\Subscriptions\ServiceSearch::numericId($userData['id'] ?? null),
                 'username' => $userData['username'] ?? $username,
                 'data_limit' => intval($userData['data_limit'] ?? 0),
                 'expire' => intval($userData['expire'] ?? 0),

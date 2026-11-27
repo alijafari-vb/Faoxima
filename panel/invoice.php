@@ -90,7 +90,7 @@ unset($adminWebPage);
                     <span class="fx-filter-drawer__action"><span class="fx-filter-drawer__show">نمایش فیلترها</span><span class="fx-filter-drawer__hide">بستن فیلترها</span></span>
                     <span class="fx-filter-drawer__chevron" aria-hidden="true"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('chevron-down', 'svg-icon'); ?></span>
                 </summary>
-            <?php echo \Faoxima\Admin\Web\Support\SearchFilter::fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null], $invDateKeep, $invExtraKeep), 'جستجو در شناسه سفارش، آیدی کاربر، نام کانفیگ یا محصول…'); ?>
+            <?php echo \Faoxima\Admin\Web\Support\SearchFilter::fx_search_ui('invoice.php', $invQ, array_merge(['status' => $invStatus !== '' ? $invStatus : null], $invDateKeep, $invExtraKeep), ($result['rule'] ?? '') === 'administrator' ? 'نام، شناسه یا لینک اشتراک · order:123' : 'شماره سفارش، شناسهٔ تلگرام یا نام اشتراک', 'q', ($result['rule'] ?? '') === 'administrator'); ?>
 
             <?php echo \Faoxima\Admin\Web\Support\StatusFilter::fx_status_filter_ui('invoice.php', $invStatusOptions, $invStatus, array_merge(['q' => $invQ !== '' ? $invQ : null], $invDateKeep, $invExtraKeep)); ?>
 

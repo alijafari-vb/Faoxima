@@ -43,13 +43,19 @@ final class Rebecca
     ];
 }
 
-    public static function rebeccaApiRequest(array $panelConfig, string $method, string $endpoint, $payload = null, bool $asJson = true)
+    public static function rebeccaApiRequest(array $panelConfig, string $method, string $endpoint, $payload = null, bool $asJson = true, bool $redactUrl = false, ?int $timeout = null)
 {
     $panel = $panelConfig['panel'];
     $apiKey = $panelConfig['api_key'];
     $baseUrl = self::rebeccaGetBaseUrl($panel['url_panel'] ?? null);
     $url = rtrim($baseUrl, '/') . $endpoint;
     $request = new CurlRequest($url);
+    if ($redactUrl) {
+        $request->redactUrl();
+    }
+    if ($timeout !== null) {
+        $request->setTimeout($timeout);
+    }
     $headers = [
         'accept: application/json',
         'Authorization: Bearer ' . $apiKey,
@@ -371,6 +377,41 @@ final class Rebecca
     $response = self::rebeccaApiRequest($config, 'GET', "/api/user/{$encodedUsername}");
     return self::rebeccaDecodeResponse($response, true);
 }
+
+    public static function rebeccaListUsers(string $namePanel, array $usernames = [], ?string $search = null, bool $links = false): iterable
+    {
+        $config = self::getRebeccaPanelConfig($namePanel);
+        if (!$config['status'] || ($usernames === [] && $search === null)) {
+            return;
+        }
+        $limit = $search === null ? count($usernames) : 50;
+        $params = ['limit=' . $limit, 'links=' . ($links ? 'true' : 'false')];
+        if ($search !== null) {
+            $params[] = 'search=' . rawurlencode($search);
+            $params[] = 'match_whole_word=true';
+        }
+        foreach ($usernames as $username) {
+            $params[] = 'username=' . rawurlencode($username);
+        }
+        $endpoint = '/api/users?' . implode('&', $params);
+        $offset = 0;
+        do {
+            // Account IDs are supplementary on service lists. Let the list render even if the panel is slow.
+            $response = self::rebeccaDecodeResponse(self::rebeccaApiRequest(
+                $config, 'GET', $endpoint . '&offset=' . $offset, redactUrl: true, timeout: 2
+            ), true);
+            $users = $response['data']['users'] ?? [];
+            if (!is_array($users) || $users === []) {
+                return;
+            }
+            foreach ($users as $user) {
+                if (is_array($user)) {
+                    yield $user;
+                }
+            }
+            $offset += count($users);
+        } while ($search !== null && $offset < min(150, (int) ($response['data']['total'] ?? 0)));
+    }
 
     public static function rebeccaGetOnHoldUsers($namePanel)
 {

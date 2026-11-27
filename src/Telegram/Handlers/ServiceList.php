@@ -49,56 +49,67 @@ final class ServiceList
                 $setting, $datatextbot, $textbotlang, $_rx_nav_styles
             );
         case 'lookup_prompt':
-            sendmessage($from_id, $textbotlang['users']['stateus']['SendUsername'], $backuser, 'html');
+            if (($setting['NotUser'] ?? '') !== 'onnotuser') { return; }
+            sendmessage($from_id, '📌 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $backuser, 'html');
             \Faoxima\Telegram\Navigation\Steps::step('getusernameinfo', $from_id);
             break;
         case 'lookup_name':
-            if (!isset($update['message']) && empty($text)) { return; }
+            if (($setting['NotUser'] ?? '') !== 'onnotuser' || !isset($update['message'])) { return; }
             if (empty($text))
                 return;
-            $usernameconfig = "";
-            if (strlen($text) > 32) {
-                if (!filter_var($text, FILTER_VALIDATE_URL)) {
-                    sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-                    return;
-                }
-                $date = \Faoxima\Services\Delivery\ServiceDelivery::outputlunksub($text);
-                if (!isset($date)) {
-                    sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-                    return;
-                }
-                $date = json_decode($date, true);
-                if (!isset($date['username'])) {
-                    sendmessage($from_id, $datatextbot['dyn_errors_invalid_subscription_link'] ?? "❌ لینک اشتراک نامعتبر است", $backuser, 'HTML');
-                    return;
-                }
-                $usernameconfig = $date['username'];
-            } else {
-                $text = str_replace('_', '-', $text);
-                if (!preg_match('/^[A-Za-z0-9-]{3,32}$/', $text)) {
-                    sendmessage($from_id, $textbotlang['users']['stateus']['Invalidusername'], $backuser, 'html');
-                    return;
-                }
-                $usernameconfig = $text;
+            $scope = 'id_user = :owner AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS;
+            $params = [':owner' => (string) $from_id];
+            [$condition, $searchParams] = \Faoxima\Services\Subscriptions\ServiceSearch::condition($pdo, $text, $scope, $params);
+            $stmt = $pdo->prepare("SELECT id_invoice, username, Service_location FROM invoice WHERE $scope AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 10");
+            $stmt->execute($params + $searchParams);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $buttons = [];
+            foreach ($rows as $row) {
+                $buttons[] = [['text' => $row['username'], 'callback_data' => 'quickview_' . $row['id_invoice']]];
             }
-            \Faoxima\Core\Database\Db::update("user", "Processing_value", $usernameconfig, "id", $from_id);
-            sendmessage($from_id, $datatextbot['textselectlocation'], $list_marzban_panel_user, 'html');
-            \Faoxima\Telegram\Navigation\Steps::step('getdata', $from_id);
+            if ($buttons === [] && preg_match('~^https?://~i', $text) && strlen($text) <= \Faoxima\Services\Subscriptions\ServiceSearch::MAX_QUERY_LENGTH) {
+                $accounts = [];
+                $panels = $pdo->prepare("SELECT * FROM marzban_panel WHERE status = 'active' AND agent IN ('all', :agent)");
+                $panels->execute([':agent' => (string) ($user['agent'] ?? 'f')]);
+                foreach ($panels->fetchAll(\PDO::FETCH_ASSOC) as $panel) {
+                    if (in_array((string) $from_id, array_map('strval', (array) json_decode((string) ($panel['hide_user'] ?? ''), true)), true)) { continue; }
+                    $name = \Faoxima\Services\Subscriptions\ServiceSearch::externalPanelUsername($panel, $text);
+                    if ($name !== null && self::allowedExternal($pdo, $panel, $name, (string) $from_id)) {
+                        $accounts[$panel['code_panel']] = $name;
+                        $buttons[] = [['text' => $panel['name_panel'], 'callback_data' => 'locationnotuser_' . $panel['code_panel']]];
+                    }
+                }
+                if ($accounts !== []) {
+                    \Faoxima\Core\Database\Db::update('user', 'Processing_value', json_encode($accounts), 'id', $from_id);
+                    \Faoxima\Telegram\Navigation\Steps::step('getdata', $from_id);
+                    sendmessage($from_id, 'پنل اشتراک را انتخاب کنید.', json_encode(['inline_keyboard' => $buttons]), 'HTML');
+                    return;
+                }
+            }
+            $buttons[] = [['text' => $textbotlang['users']['stateus']['backlist'], 'callback_data' => 'backorder']];
+            sendmessage($from_id, $rows === [] ? 'اشتراکی پیدا نشد. برای اشتراک ثبت‌نشده در فاکسیما، لینک کامل را بفرستید.' : 'اشتراک را انتخاب کنید.', json_encode(['inline_keyboard' => $buttons]), 'HTML');
+            \Faoxima\Telegram\Navigation\Steps::step($rows === [] ? 'getusernameinfo' : 'home', $from_id);
             break;
         case 'lookup_panel':
-            $marzban_list_get = \Faoxima\Core\Database\Db::select("marzban_panel", "*", "code_panel", $dataget[1]);
-            \Faoxima\Core\Database\Db::update("user", "Processing_value_four", $marzban_list_get['code_panel'], "id", $from_id);
-            $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $user['Processing_value']);
-            if ($DataUserOut['status'] == "Unsuccessful") {
-                if ($DataUserOut['msg'] == "User not found") {
-                    sendmessage($from_id, $textbotlang['users']['stateus']['notUsernameget'], $keyboard, 'html');
-                    \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
-                    return;
-                }
-                sendmessage($from_id, $textbotlang['users']['stateus']['error'], $keyboard, 'html');
-                \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
+            if (($user['step'] ?? null) !== 'getdata' || ($setting['NotUser'] ?? '') !== 'onnotuser') { return; }
+            $marzban_list_get = \Faoxima\Core\Database\Db::select('marzban_panel', '*', 'code_panel', $dataget[1], 'select');
+            $accounts = json_decode((string) ($user['Processing_value'] ?? ''), true);
+            $lookupName = $accounts[$dataget[1]] ?? null;
+            if (!is_string($lookupName) || !is_array($marzban_list_get)
+                || ($marzban_list_get['status'] ?? '') !== 'active'
+                || !in_array($marzban_list_get['agent'] ?? '', ['all', $user['agent']], true)
+                || in_array((string) $from_id, array_map('strval', (array) json_decode((string) ($marzban_list_get['hide_user'] ?? ''), true)), true)
+                || !self::allowedExternal($pdo, $marzban_list_get, $lookupName, (string) $from_id)) {
+                sendmessage($from_id, 'اشتراکی پیدا نشد.', $backuser, 'HTML');
                 return;
             }
+            $DataUserOut = $ManagePanel->DataUser($marzban_list_get['name_panel'], $lookupName);
+            if (($DataUserOut['status'] ?? 'Unsuccessful') === 'Unsuccessful') {
+                sendmessage($from_id, $textbotlang['users']['stateus']['notUsernameget'], $backuser, 'HTML');
+                return;
+            }
+            \Faoxima\Core\Database\Db::update('user', 'Processing_value', $lookupName, 'id', $from_id);
+            \Faoxima\Core\Database\Db::update('user', 'Processing_value_four', $dataget[1], 'id', $from_id);
 
             $status = $DataUserOut['status'];
             $bExp = is_numeric($DataUserOut['expire'] ?? null) ? (int)$DataUserOut['expire'] : 0;
@@ -189,150 +200,27 @@ final class ServiceList
         return true;
     }
 
+    private static function allowedExternal($pdo, array $panel, string $username, string $owner): bool
+    {
+        $stmt = $pdo->prepare('SELECT 1 FROM invoice WHERE Service_location = :panel AND BINARY username = :name AND id_user <> :owner LIMIT 1');
+        $stmt->execute([':panel' => $panel['name_panel'], ':name' => $username, ':owner' => $owner]);
+        return $stmt->fetchColumn() === false;
+    }
+
     private static function browse($pdo, $fromId, $messageId, &$callback, $route, $legacyProductKey, $setting, $texts, $language, $navigationStyles)
     {
-        $isEntry = $route === 'services';
-        $isLegacy = !$isEntry && !str_starts_with((string) $callback, 'ms:');
-        $isHome = $isEntry || $isLegacy || $callback === 'ms:home';
-        $panelKey = $productKey = null;
-        $requestedPage = 1;
-        if (!$isHome && preg_match('/^ms:([a-f0-9]{20})(?::([a-f0-9]{20}|trial):([0-9]{1,10}))?$/D', $callback, $selection)) {
-            $panelKey = $selection[1];
-            $productKey = $selection[2] ?? null;
-            $requestedPage = (int) ($selection[3] ?? 1);
-        } elseif (!$isHome && preg_match('/^ms:custom:([0-9]{1,10})$/D', $callback, $selection)) {
-            $productKey = 'custom';
-            $requestedPage = (int) $selection[1];
+        if ($route === 'services') {
+            \Faoxima\Telegram\Media\SectionMedia::rx_section_media_enter('services', $fromId, $callback, $messageId, ['myservicesbtn'], ['myservicesbtn']);
         }
-
-        $customLabel = $language['users']['customsellvolume']['title'] ?? 'سرویس دلخواه';
-        $customNames = ['', trim($customLabel), '🛍 حجم دلخواه', '⚙️ سرویس دلخواه', 'سرویس سفارشی'];
-        $panels = $products = $serviceRows = $panelServiceRows = [];
-        $previousProductGroup = null;
-        $hasCustom = false;
-        $legacyFound = !$isLegacy;
-        if ($isHome || $panelKey !== null || $productKey === 'custom') {
-            $snapshotColumn = ExchangePricing::fxTableHasColumn('invoice', 'pricing_snapshot') ? ', pricing_snapshot' : '';
-            $stmt = $pdo->prepare("SELECT id_invoice, username, note, Status, Service_location, name_product{$snapshotColumn}
-                FROM invoice WHERE id_user = :id_user
-                AND Status IN ('active', 'end_of_time', 'end_of_volume', 'sendedwarn', 'send_on_hold', 'disabled', 'disablebyadmin')
-                ORDER BY time_sell DESC, id_invoice ASC");
-            $stmt->execute([':id_user' => $fromId]);
-            $invoices = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $identity = $invoices !== [] ? new ServiceProductIdentity($pdo, (string) $fromId) : null;
-            foreach ($invoices as $invoice) {
-                $storedName = $invoice['name_product'];
-                if (!$legacyFound) {
-                    $legacyFound = md5($storedName === null ? 'NULL' : 'P:' . $storedName) === $legacyProductKey;
-                }
-                $name = trim((string) $storedName);
-                $product = $identity->productForInvoice($invoice);
-                if ($product === null && (in_array($name, $customNames, true) || \Faoxima\Services\Renewal\Plans::renewalIsCustomCode($name))) {
-                    $hasCustom = true;
-                    if ($productKey === 'custom') {
-                        $serviceRows[] = $invoice;
-                    }
-                    continue;
-                }
-
-                $panel = (string) $invoice['Service_location'];
-                $key = substr(hash('sha256', $panel), 0, 20);
-                $panels[$key] = trim($panel) !== '' ? $panel : 'پنل نامشخص';
-                if ($key !== $panelKey) {
-                    continue;
-                }
-
-                $isTrial = $product === null && $name === RX_TEST_PRODUCT_NAME;
-                $label = $product !== null && $product['name'] !== '' ? $product['name'] : $name;
-                $group = $isTrial ? 'trial' : substr(hash('sha256', 'name:' . $label), 0, 20);
-                if ($productKey === null) {
-                    $products[$group] = $label;
-                } else {
-                    $panelServiceRows[$group][] = $invoice;
-                    if (!$isTrial && $previousProductGroup === null) {
-                        $previousIdentity = $product !== null ? 'product:' . $product['id'] : 'invoice:' . $invoice['id_invoice'];
-                        if (substr(hash('sha256', $previousIdentity), 0, 20) === $productKey
-                            || ($name !== $label && substr(hash('sha256', 'name:' . $name), 0, 20) === $productKey)) {
-                            $previousProductGroup = $group;
-                        }
-                    }
-                }
-            }
-            if ($panelKey !== null && $productKey !== null) {
-                if (!isset($panelServiceRows[$productKey]) && $previousProductGroup !== null) {
-                    $productKey = $previousProductGroup;
-                }
-                $serviceRows = $panelServiceRows[$productKey] ?? [];
-            }
+        $actions = [];
+        if (($setting['NotUser'] ?? '') === 'onnotuser') {
+            $actions[] = [\Faoxima\Services\Subscriptions\SubscriptionTable::button('🔎 اشتراک من در لیست نیست', 'notusernameme')];
         }
-
-        $backToMain = \Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(
-            ['text' => \Faoxima\Telegram\Support\MessageTemplates::plain('payment_btn_back_main'), 'callback_data' => 'backuser'],
-            'backuser',
-            is_array($navigationStyles) ? $navigationStyles : []
-        );
-        $search = ['text' => $language['users']['search']['title'], 'callback_data' => 'searchservice', '_rxcolor' => 'subscription_list:search'];
-        $lookup = ['text' => $language['users']['page']['notusernameme'], 'callback_data' => 'notusernameme'];
-        $back = [
-            'text' => $language['users']['stateus']['backlist'],
-            'callback_data' => $panelKey !== null && $productKey !== null && isset($panels[$panelKey]) ? "ms:$panelKey" : 'ms:home',
+        $actions[] = [
+            \Faoxima\Services\Subscriptions\SubscriptionTable::button($language['users']['search']['title'], 'searchservice'),
+            \Faoxima\Services\Subscriptions\SubscriptionTable::button('بازگشت', 'backuser', 'danger'),
         ];
-
-        if ($isHome && $legacyFound) {
-            $hasServices = $panels !== [] || $hasCustom;
-            $message = $language['users']['sell']['service_not_available'];
-            if ($isEntry && !$hasServices && $setting['NotUser'] === 'offnotuser') {
-                sendmessage($fromId, $message, null, 'html');
-                return;
-            }
-            if ($isEntry) {
-                \Faoxima\Telegram\Media\SectionMedia::rx_section_media_enter('services', $fromId, $callback, $messageId, ['myservicesbtn'], ['myservicesbtn']);
-            }
-            $buttons = [];
-            asort($panels, SORT_NATURAL | SORT_FLAG_CASE);
-            foreach ($panels as $key => $name) {
-                $buttons[] = [['text' => $name, 'callback_data' => "ms:$key"]];
-            }
-            if ($hasCustom) {
-                $buttons[] = [['text' => $customLabel, 'callback_data' => 'ms:custom:1']];
-            }
-            if ($setting['NotUser'] === 'onnotuser') {
-                $buttons[] = [$lookup];
-            }
-            $buttons[] = [$search];
-            if ($hasServices || $setting['NotUser'] === 'onnotuser') {
-                $message = "🛍 سرویس‌های من\n\nبرای مشاهده سرویس‌ها، پنل یا سرویس دلخواه را انتخاب کنید.\n\n🔎 برای پیدا کردن سریع سرویس خود می‌توانید از دکمه جستجو سریع استفاده کنید.";
-            }
-        } elseif ($products !== []) {
-            $buttons = \Faoxima\Telegram\Support\NavigationFunctionsHelpers::rxBotServiceProductButtons($products, "ms:$panelKey");
-            $buttons[] = [$back];
-            $panelLabel = htmlspecialchars($panels[$panelKey], ENT_QUOTES, 'UTF-8');
-            $message = "🛍 سرویس‌های من — $panelLabel\n\nبرای مشاهده نام‌های کاربری، محصول مورد نظر را انتخاب کنید.";
-        } elseif ($serviceRows !== []) {
-            $callbackPrefix = 'ms:' . ($productKey === 'custom' ? 'custom' : "$panelKey:$productKey");
-            $buttons = \Faoxima\Telegram\Support\NavigationFunctionsHelpers::rxBotServiceUsernameButtons(
-                $serviceRows, $requestedPage, $callbackPrefix, $setting['statusnamecustom'] === 'onnamecustom', $language['users']['page']
-            );
-            $buttons[] = [$search];
-            if ($setting['NotUser'] === 'onnotuser') {
-                $buttons[] = [$lookup];
-            }
-            $buttons[] = [$back];
-            $message = $language['users']['sell']['service_sell'];
-        } else {
-            $message = $texts['dyn_errors_service_not_found'] ?? "❌ سرویس مورد نظر پیدا نشد.";
-            $keyboard = json_encode(['inline_keyboard' => [[$back], [$backToMain]]]);
-            Editmessagetext($fromId, $messageId, $message, $keyboard);
-            return;
-        }
-
-        $buttons[] = [$backToMain];
-        $keyboard = json_encode(['inline_keyboard' => $buttons]);
-        if (!$isEntry || in_array($callback, ['backorder', 'myservicesbtn'], true)) {
-            Editmessagetext($fromId, $messageId, $message, $keyboard);
-        } else {
-            sendmessage($fromId, $message, $keyboard, 'html');
-        }
-        return true;
+        \Faoxima\Services\Subscriptions\SubscriptionTable::show($pdo, $fromId, $messageId, (string) $callback, 'myst', 'اشتراک‌های من',
+            'id_user = :owner AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS, [':owner' => (string) $fromId], 'quickview_', $actions, $callback !== '');
     }
 }

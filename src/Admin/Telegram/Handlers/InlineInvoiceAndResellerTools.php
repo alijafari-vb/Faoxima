@@ -45,13 +45,13 @@ final class InlineInvoiceAndResellerTools
 
         switch ($adminAction) {
         case 1:
-            $sql = "SELECT * FROM invoice WHERE (username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%') OR Volume LIKE CONCAT('%',:Volume, '%') OR Service_time LIKE CONCAT('%',:Service_time, '%')) AND (status = 'active' OR status = 'end_of_time'  OR status = 'end_of_volume' OR status = 'sendedwarn' OR Status = 'send_on_hold')";
-            $stmt = $pdo->prepare($sql);
-            $stmt->bindParam(':username', $query, PDO::PARAM_STR);
-            $stmt->bindParam(':Service_time', $query, PDO::PARAM_STR);
-            $stmt->bindParam(':Volume', $query, PDO::PARAM_STR);
-            $stmt->bindParam(':notes', $query, PDO::PARAM_STR);
-            $stmt->execute();
+            $role = \Faoxima\Core\Database\Db::select('admin', 'rule', 'id_admin', (string) $from_id, 'select');
+            $isMain = ($role['rule'] ?? '') === 'administrator';
+            $scope = \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS . ($isMain ? '' : ' AND id_user = :owner');
+            $params = $isMain ? [] : [':owner' => (string) $from_id];
+            [$condition, $searchParams] = \Faoxima\Services\Subscriptions\ServiceSearch::condition($pdo, (string) $query, $scope, $params, ['username', 'note']);
+            $stmt = $pdo->prepare("SELECT * FROM invoice WHERE ($scope) AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 50");
+            $stmt->execute($params + $searchParams);
             $invoices = $stmt->fetchAll();
             $results = [];
             foreach ($invoices as $OrderUser) {
@@ -89,7 +89,10 @@ final class InlineInvoiceAndResellerTools
                     ]
                 ];
             }
-            answerInlineQuery($inline_query_id, $results);
+            telegram('answerInlineQuery', [
+                'inline_query_id' => $inline_query_id, 'results' => json_encode($results, JSON_INVALID_UTF8_SUBSTITUTE),
+                'cache_time' => 0, 'is_personal' => true,
+            ]);
             break;
         case 2:
             $id_user = $datagetr[1];

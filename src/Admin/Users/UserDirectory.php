@@ -31,13 +31,9 @@ final class UserDirectory
             $userOrderSql = 'Balance DESC, id DESC';
         }
         if ($userQ !== '') {
-            $userLike = '%' . $userQ . '%';
-            $userWhereSql .= ' AND (id LIKE :uq1 OR username LIKE :uq2 OR namecustom LIKE :uq3 OR number LIKE :uq4 OR number_username LIKE :uq5)';
-            $userParams[':uq1'] = $userLike;
-            $userParams[':uq2'] = $userLike;
-            $userParams[':uq3'] = $userLike;
-            $userParams[':uq4'] = $userLike;
-            $userParams[':uq5'] = $userLike;
+            [$condition, $searchParams] = UserSearch::condition($pdo, $userQ, $userWhereSql);
+            $userWhereSql .= ' AND ' . $condition;
+            $userParams += $searchParams;
         }
 
         $pg = \Faoxima\Admin\Web\Support\Pagination::fx_paginate($pdo, "SELECT COUNT(*) FROM user WHERE $userWhereSql", $userParams, 5);

@@ -12,8 +12,14 @@ class CurlRequest {
     private $authToken = null;
     private $api_key = null;
     private $cookie = null;
+    private bool $redactUrl = false;
     public function __construct($url) {
         $this->url = $url;
+    }
+
+    public function redactUrl(): void
+    {
+        $this->redactUrl = true;
     }
 
     public function setTimeout($seconds) {
@@ -54,9 +60,10 @@ class CurlRequest {
             $this->timeout = \Faoxima\Services\Panels\PanelHttp::faoxima_panel_timeout();
         }
         $connectTimeout = \Faoxima\Services\Panels\PanelHttp::faoxima_panel_connect_timeout($this->timeout);
+        $logUrl = $this->redactUrl ? (parse_url($this->url, PHP_URL_HOST) ?: '[panel]') : $this->url;
         $requestMethod = strtoupper((string)$method);
         $idempotent = in_array($requestMethod, ['GET', 'HEAD'], true);
-        $maxAttempts = $idempotent ? 2 : 1;
+        $maxAttempts = $idempotent && !$this->redactUrl ? 2 : 1;
         $lastError = '';
         $response = false;
         $httpCode  = 0;
@@ -113,10 +120,10 @@ class CurlRequest {
             );
             $host = parse_url($this->url, PHP_URL_HOST);
             $port = parse_url($this->url, PHP_URL_PORT);
-            $dedupKey = 'curlerr|' . ($host ?: $this->url) . ':' . ($port ?: '') . '|' . $lastError;
+            $dedupKey = 'curlerr|' . ($host ?: $logUrl) . ':' . ($port ?: '') . '|' . ($this->redactUrl ? $curlErrno : $lastError);
             \Faoxima\Services\Panels\PanelHttp::faoxima_dedup_error_log(
                 $dedupKey,
-                sprintf('CurlRequest error calling %s: %s (HTTP code: %s)', $this->url, $lastError, var_export($httpCode, true))
+                sprintf('CurlRequest error calling %s: %s (HTTP code: %s)', $logUrl, $this->redactUrl ? 'cURL error ' . $curlErrno : $lastError, var_export($httpCode, true))
             );
             return [
                 'status' => $httpCode,
@@ -135,10 +142,10 @@ class CurlRequest {
         if ($httpCode === 0 || $httpCode >= 500 || ($rxLogAll && $httpCode >= 400)) {
             $host = parse_url($this->url, PHP_URL_HOST);
             $port = parse_url($this->url, PHP_URL_PORT);
-            $dedupKey = 'curlhttp|' . ($host ?: $this->url) . ':' . ($port ?: '') . '|' . $httpCode;
+            $dedupKey = 'curlhttp|' . ($host ?: $logUrl) . ':' . ($port ?: '') . '|' . $httpCode;
             \Faoxima\Services\Panels\PanelHttp::faoxima_dedup_error_log(
                 $dedupKey,
-                sprintf('CurlRequest call to %s returned HTTP code %s', $this->url, var_export($httpCode, true))
+                sprintf('CurlRequest call to %s returned HTTP code %s', $logUrl, var_export($httpCode, true))
             );
         }
 

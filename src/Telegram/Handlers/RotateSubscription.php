@@ -84,7 +84,7 @@ final class RotateSubscription
                 \Faoxima\Services\Fulfillment\Purchase::persistProvisionedUserInfo(
                     $pdo, (string) $nameloc['id_invoice'], ['username' => $nameloc['username']] + $DataUserOut, true
                 );
-                \Faoxima\Core\Cache\RedisCache::rx_redis_del('faoxima:panelcache:' . $nameloc['Service_location'] . ':' . $nameloc['username']);
+                \Faoxima\Api\Handlers\ServiceHandler::invalidatePanelCache($nameloc['Service_location'], $nameloc['username'], (string) $nameloc['id_invoice']);
             }
             $marzban_list_get = \Faoxima\Services\Delivery\ServiceDelivery::rxPurchaseDeliveryPanel($marzban_list_get, $DataUserOut['subscription_url'] ?? '');
             $textconfig = "✅ کانفیگ شما با موفقیت بروزرسانی گردید.";

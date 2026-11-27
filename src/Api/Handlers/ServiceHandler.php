@@ -20,7 +20,8 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
             \Faoxima\Api\Runtime\Response::badRequest('username is required');
         }
 
-        $invoice = $this->lookupInvoice($username);
+        $orderId = \Faoxima\Api\Runtime\Input::nullableString($this->data, 'order_id');
+        $invoice = $this->lookupInvoice($username, $orderId);
         if ($invoice === null) {
             \Faoxima\Api\Runtime\Response::notFound('Service not found');
         }
@@ -30,26 +31,42 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
             \Faoxima\Api\Runtime\Response::fail(200, 'اطلاعات سرویس در حال حاضر از پنل در دسترس نیست؛ لطفاً چند لحظه دیگر دوباره تلاش کنید.');
         }
 
+        $payload['order_id'] = $invoice['id_invoice'];
+        $payload['plan_label'] = \Faoxima\Services\Subscriptions\PlanLabel::display($invoice);
+        if (!isset($payload['panel_user_id'])) {
+            [$row] = \Faoxima\Services\Subscriptions\ServiceSearch::addPanelIds(\Faoxima\Api\Runtime\Db::pdo(), [$invoice]);
+            $payload['panel_user_id'] = $row['panel_user_id'] ?? null;
+        }
+        $payload['ambiguous_username'] = (bool) \Faoxima\Api\Runtime\Db::fetchScalar(
+            'SELECT 1 FROM invoice WHERE id_user = :owner AND BINARY username = :name AND id_invoice <> :id AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS . ' LIMIT 1',
+            [':owner' => $this->user['id'], ':name' => $username, ':id' => $invoice['id_invoice']]
+        );
         \Faoxima\Api\Runtime\Response::ok($payload);
     }
 
 
-    public function lookupInvoice(string $username): ?array
+    public function lookupInvoice(string $username, ?string $orderId = null): ?array
     {
-        return \Faoxima\Api\Runtime\Db::fetchOne(
-            "SELECT * FROM invoice
-              WHERE id_user = :user_id
-                AND (Status = 'active' OR Status = 'end_of_time' OR Status = 'end_of_volume'
-                     OR Status = 'sendedwarn' OR Status = 'send_on_hold'
-                     OR Status = 'disabled' OR Status = 'disablebyadmin')
-                AND username = :username",
-            [
-                ':user_id'  => $this->user['id'],
-                ':username' => $username,
-            ]
-        );
+        $params = [':user_id' => $this->user['id'], ':username' => $username];
+        $scope = 'id_user = :user_id AND BINARY username = :username AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS;
+        if ($orderId !== null) {
+            $scope .= ' AND BINARY id_invoice = :id';
+            $params[':id'] = $orderId;
+        }
+        return \Faoxima\Api\Runtime\Db::fetchOne("SELECT * FROM invoice WHERE $scope ORDER BY time_sell DESC, id_invoice DESC LIMIT 1", $params);
     }
 
+
+    public static function invalidatePanelCache(string $panel, string $username, string $invoice): void
+    {
+        $prefix = 'faoxima:panelcache:' . $panel . ':' . $username;
+        \Faoxima\Core\Cache\RedisCache::rx_redis_del($prefix);
+        $key = $prefix . ':order:' . $invoice;
+        \Faoxima\Core\Cache\RedisCache::rx_redis_del($key);
+        foreach (['xray', 'sing_box', 'clash_meta'] as $format) {
+            \Faoxima\Core\Cache\RedisCache::rx_redis_del($key . ':fmt:' . $format);
+        }
+    }
 
     public static function normalizeClientType($clientType): string
     {
@@ -114,7 +131,7 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
         if (($panel['type'] ?? '') !== 'pasarguard') {
             $clientType = 'links';
         }
-        $rxPanelCacheKey = 'faoxima:panelcache:' . $invoice['Service_location'] . ':' . $invoice['username'];
+        $rxPanelCacheKey = 'faoxima:panelcache:' . $invoice['Service_location'] . ':' . $invoice['username'] . ':order:' . $invoice['id_invoice'];
         if ($clientType !== 'links') {
             $rxPanelCacheKey .= ':fmt:' . $clientType;
         }
@@ -132,9 +149,7 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
         if ($remote === null) {
             $managePanel = new ManagePanel();
             try {
-                $remote = $clientType === 'links'
-                    ? $managePanel->DataUser($invoice['Service_location'], $invoice['username'])
-                    : $managePanel->DataUser($invoice['Service_location'], $invoice['username'], $clientType);
+                $remote = $managePanel->DataUser($invoice['Service_location'], $invoice['username'], $clientType, (string) $invoice['id_invoice']);
             } catch (Throwable $e) {
                 $remote = null;
             }
@@ -532,6 +547,7 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
             'username'                 => $remote['username'] ?? $invoice['username'],
             'display_username'         => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername((string)($remote['username'] ?? $invoice['username']), (string)($invoice['Service_location'] ?? '')),
             'product_name'             => $invoice['name_product'],
+            'panel_user_id'            => $remote['panel_user_id'] ?? null,
             'is_test'                  => $isTest,
             'is_stock'                 => false,
             'invoice_status'           => $invoice['Status'] ?? '',

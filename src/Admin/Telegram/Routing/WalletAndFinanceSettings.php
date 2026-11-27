@@ -51,6 +51,12 @@ final class WalletAndFinanceSettings
             return true;
         }
 
+        if (($adminrulecheck['rule'] ?? '') === 'administrator' && $pdo instanceof \PDO
+            && \Faoxima\Services\Subscriptions\AdminSubscriptions::handle($pdo, $from_id, $message_id, (string) $datain)) {
+            $adminRouteMatched = true;
+            return;
+        }
+
         if ($datain == "mainbalanceaccount" && $adminrulecheck['rule'] == "administrator") {
             $adminAction = 1;
         } elseif ($user['step'] == "minbalance") {
@@ -79,7 +85,7 @@ final class WalletAndFinanceSettings
             $adminAction = 13;
         } elseif ($datain == "searchorder") {
             $adminAction = 14;
-        } elseif ($user['step'] == "GetusernameconfigAndOrdedrs" || strpos($text, "/config ") !== false || preg_match('/manageinvoice_(\w+)/', $datain, $datagetr)) {
+        } elseif (in_array($user['step'], ['GetusernameconfigAndOrdedrs', 'subscription_search'], true) || strpos($text, "/config ") !== false || preg_match('/manageinvoice_(\w+)/', $datain, $datagetr)) {
             $adminAction = 15;
         }
 
@@ -93,10 +99,12 @@ final class WalletAndFinanceSettings
             Percent: $Percent,
             adminAction: $adminAction ?? null,
             adminExecution: $adminExecution ?? null,
+            adminrulecheck: $adminrulecheck,
             backadmin: $backadmin ?? null,
             codeproduct: $codeproduct,
             dataget: $dataget ?? null,
             datagetr: $datagetr ?? null,
+            datain: $datain,
             datatime: $datatime,
             day: $day,
             extend: $extend,

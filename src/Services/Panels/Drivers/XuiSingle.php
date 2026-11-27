@@ -127,7 +127,7 @@ final class XuiSingle
         return $path;
     }
 
-    public static function panel_login_cookie($code_panel)
+    public static function panel_login_cookie($code_panel, ?int $timeout = null)
 {
     $panel = \Faoxima\Core\Database\Db::select("marzban_panel", "*", "code_panel", $code_panel, "select");
     $curl = curl_init();
@@ -137,8 +137,8 @@ final class XuiSingle
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => \Faoxima\Services\Panels\PanelHttp::faoxima_panel_timeout_info()['timeout'],
-        CURLOPT_CONNECTTIMEOUT => \Faoxima\Services\Panels\PanelHttp::faoxima_panel_timeout_info()['connect_timeout'],
+        CURLOPT_TIMEOUT => $timeout ?? \Faoxima\Services\Panels\PanelHttp::faoxima_panel_timeout_info()['timeout'],
+        CURLOPT_CONNECTTIMEOUT => $timeout ?? \Faoxima\Services\Panels\PanelHttp::faoxima_panel_timeout_info()['connect_timeout'],
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
@@ -943,24 +943,35 @@ final class XuiSingle
         );
     }
 
-    public static function xui_clients_onlines($panel)
+    public static function xui_clients_onlines($panel, int $timeout = 8, bool $allowLegacy = false)
     {
-        if (!self::xui_panel_uses_token($panel)) {
-            return array('status' => false, 'msg' => 'token mode required');
+        if (self::xui_panel_uses_token($panel)) {
+            $resp = self::xui_api_token_request($panel, 'POST', '/panel/api/clients/onlines', [], $timeout, 'xui_clients_onlines');
+        } else {
+            if (!$allowLegacy || ($panel['xui_api_mode'] ?? '') === 'token' || empty($panel['code_panel'])) {
+                return ['status' => false, 'msg' => 'panel authentication unavailable'];
+            }
+            $cookie = self::xuisingle_cookie_path();
+            if (is_file($cookie)) { unlink($cookie); }
+            try {
+                $login = self::panel_login_cookie($panel['code_panel'], $timeout);
+                if (!is_string($login) || empty(json_decode($login, true)['success']) || !is_file($cookie)) {
+                    return ['status' => false, 'msg' => 'panel login failed'];
+                }
+                $request = new CurlRequest(rtrim($panel['url_panel'], '/') . '/panel/api/inbounds/onlines');
+                $request->setTimeout($timeout);
+                $request->setCookie($cookie);
+                $resp = $request->post('');
+            } finally {
+                if (is_file($cookie)) { unlink($cookie); }
+            }
         }
-        $resp = self::xui_api_token_request($panel, 'POST', '/panel/api/clients/onlines', array(), 8, 'xui_clients_onlines');
-        if (!empty($resp['error'])) {
-            return array('status' => false, 'msg' => $resp['error']);
+        $data = json_decode($resp['body'] ?? '', true);
+        if (($resp['status'] ?? 0) < 200 || ($resp['status'] ?? 0) >= 300 || empty($data['success'])
+            || !is_array($data['obj'] ?? null) || !array_is_list($data['obj'])) {
+            return ['status' => false, 'msg' => 'online users unavailable'];
         }
-        if (($resp['status'] ?? 0) < 200 || ($resp['status'] ?? 0) >= 300) {
-            return array('status' => false, 'msg' => 'HTTP ' . ($resp['status'] ?? 0));
-        }
-        $decoded = json_decode($resp['body'] ?? '', true);
-        if (!is_array($decoded) || empty($decoded['success'])) {
-            return array('status' => false, 'msg' => 'invalid response');
-        }
-        $obj = $decoded['obj'] ?? array();
-        return array('status' => true, 'emails' => is_array($obj) ? $obj : array());
+        return ['status' => true, 'emails' => $data['obj']];
     }
 
     public static function xui_client_is_online($panel, $email)

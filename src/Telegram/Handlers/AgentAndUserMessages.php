@@ -40,7 +40,7 @@ final class AgentAndUserMessages
     ) {
         switch ($telegramRoute) {
         case 'service_search':
-            sendmessage($from_id, $textbotlang['users']['search']['usernamgeget'], $backuser, 'HTML');
+            sendmessage($from_id, '📌 نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید.', $backuser, 'HTML');
             \Faoxima\Telegram\Navigation\Steps::step('getuseragnetservice', $from_id);
             break;
         case 'user_response':

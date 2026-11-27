@@ -54,11 +54,12 @@ final class DashboardCharts
             $q = trim((string)($_GET['q'] ?? ''));
             $qLen = function_exists('mb_strlen') ? mb_strlen($q) : strlen($q);
             if ($qLen < 2) { echo json_encode(['ok' => true, 'groups' => []], JSON_UNESCAPED_UNICODE); exit; }
-            $like = '%' . $q . '%';
+            $like = '%' . strtr($q, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
             $groups = [];
             try {
-                $st = $pdo->prepare("SELECT id, username, namecustom, number FROM user WHERE id LIKE ? OR username LIKE ? OR namecustom LIKE ? OR number LIKE ? OR number_username LIKE ? ORDER BY (id + 0) DESC LIMIT 8");
-                $st->execute([$like, $like, $like, $like, $like]);
+                [$condition, $params] = \Faoxima\Admin\Users\UserSearch::condition($pdo, $q);
+                $st = $pdo->prepare("SELECT id, username, namecustom, number FROM user WHERE $condition ORDER BY (id + 0) DESC LIMIT 8");
+                $st->execute($params);
                 $items = [];
                 foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                     $uname = (string)($r['username'] ?? '');
@@ -72,20 +73,23 @@ final class DashboardCharts
                 if ($items) $groups[] = ['type' => 'users', 'label' => 'کاربران', 'icon' => \Faoxima\Admin\Web\Support\Icons::icon('users', 'svg-icon'), 'items' => $items];
             } catch (\Throwable $e) { error_log('[search] users: ' . $e->getMessage()); }
             try {
-                $st = $pdo->prepare("SELECT id_invoice, id_user, username, name_product, price_product FROM invoice WHERE (id_invoice LIKE ? OR id_user LIKE ? OR username LIKE ? OR name_product LIKE ?) AND name_product != 'سرویس تست' ORDER BY (time_sell + 0) DESC LIMIT 6");
-                $st->execute([$like, $like, $like, $like]);
+                $numeric = \Faoxima\Services\Subscriptions\ServiceSearch::numericId($q);
+                $filter = $numeric !== null ? '(id_invoice = ? OR id_user = ?)'
+                    : "(id_invoice LIKE ? ESCAPE '!' OR id_user LIKE ? ESCAPE '!' OR username LIKE ? ESCAPE '!' OR name_product LIKE ? ESCAPE '!')";
+                $st = $pdo->prepare("SELECT id_invoice, id_user, username, name_product, price_product FROM invoice WHERE $filter AND name_product != 'سرویس تست' ORDER BY (time_sell + 0) DESC LIMIT 6");
+                $st->execute($numeric !== null ? [$numeric, $numeric] : [$like, $like, $like, $like]);
                 $items = [];
                 foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
                     $title = (string)$r['name_product'];
                     $cfg = (string)($r['username'] ?? '');
                     if ($cfg !== '') $title .= ' — ' . $cfg;
                     $sub = 'سفارش: ' . (string)$r['id_invoice'] . ' — ' . number_format((float)$r['price_product']) . ' تومان';
-                    $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'invoice.php?q=' . urlencode($q)];
+                    $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'invoice.php?q=' . urlencode('order:' . (string) $r['id_invoice'])];
                 }
                 if ($items) $groups[] = ['type' => 'invoices', 'label' => 'سفارشات', 'icon' => \Faoxima\Admin\Web\Support\Icons::icon('receipt', 'svg-icon'), 'items' => $items];
             } catch (\Throwable $e) { error_log('[search] invoices: ' . $e->getMessage()); }
             try {
-                $st = $pdo->prepare("SELECT id, name_product, price_product, category FROM product WHERE id LIKE ? OR name_product LIKE ? OR category LIKE ? ORDER BY id ASC LIMIT 6");
+                $st = $pdo->prepare("SELECT id, name_product, price_product, category FROM product WHERE id LIKE ? ESCAPE '!' OR name_product LIKE ? ESCAPE '!' OR category LIKE ? ESCAPE '!' ORDER BY id ASC LIMIT 6");
                 $st->execute([$like, $like, $like]);
                 $items = [];
                 foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {

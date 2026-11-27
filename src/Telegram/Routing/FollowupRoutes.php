@@ -59,7 +59,7 @@ final class FollowupRoutes
     {
         return match (true) {
             (bool) (($text !== '' && $text == $datatextbot['text_extend']) || $datain == "extendbtn") => 'renewal_list',
-            (bool) ($datain == 'next_page_extends') => 'renewal_next',
+            (bool) (($datain == 'next_page_extends' || str_starts_with((string) $datain, 'renewt:'))) => 'renewal_next',
             (bool) ($datain == 'previous_page_extends') => 'renewal_previous',
             (bool) (preg_match('/changenote_(\w+)/', $datain, $dataget)) => 'note_start',
             (bool) ($user['step'] == "getnotedit") => 'note_save',

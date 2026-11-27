@@ -118,15 +118,11 @@ final class ServiceDetail
             }
 
             if ($user['step'] == "getuseragnetservice") {
-                $username = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-                $sql = "SELECT * FROM invoice WHERE (username LIKE CONCAT('%', :username, '%') OR note LIKE CONCAT('%', :notes, '%') OR Volume LIKE CONCAT('%',:Volume, '%') OR Service_time LIKE CONCAT('%',:Service_time, '%')) AND id_user = :id_user AND (status = 'active' OR status = 'end_of_time' OR status = 'end_of_volume' OR status = 'sendedwarn' OR status = 'send_on_hold' OR status = 'disabled' OR status = 'disablebyadmin')";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':username', $username, PDO::PARAM_STR);
-                $stmt->bindParam(':Service_time', $username, PDO::PARAM_STR);
-                $stmt->bindParam(':Volume', $username, PDO::PARAM_STR);
-                $stmt->bindParam(':notes', $username, PDO::PARAM_STR);
-                $stmt->bindParam(':id_user', $from_id);
-                $stmt->execute();
+                $scope = 'id_user = :id_user AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS;
+                $params = [':id_user' => (string) $from_id];
+                [$condition, $searchParams] = \Faoxima\Services\Subscriptions\ServiceSearch::condition($pdo, $text, $scope, $params, ['username', 'note']);
+                $stmt = $pdo->prepare("SELECT * FROM invoice WHERE $scope AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 50");
+                $stmt->execute($params + $searchParams);
             } elseif ($datain == "productcheckdata") {
                 $username = $user['Processing_value'];
                 $sql = "SELECT * FROM invoice WHERE username = :username AND id_user = :id_user";
@@ -388,7 +384,7 @@ final class ServiceDetail
                 }
                 $manualHasSub = trim((string) $manualDelivery['sub']) !== '';
                 $textinfo = "وضعیت سرویس : <b>$status_var</b>
-نام کاربری سرویس : {$DataUserOut['username']}
+نام اشتراک : {$DataUserOut['username']}
 📎 کد پیگیری سرویس : {$nameloc['id_invoice']}
 
 📅 تاریخ اتمام : $expirationDate ($day)";
@@ -458,7 +454,7 @@ final class ServiceDetail
             $statusremoveserveice = \Faoxima\Services\Panels\PanelFeatures::panel_feature_enabled($nameloc['Service_location'], 'refund') ? "on" : "off";
             if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
                 $textinfo = "وضعیت سرویس : <b>$status_var</b>
-👤 نام کاربری سرویس : <code>{$DataUserOut['username']}</code>
+👤 نام اشتراک : <code>{$DataUserOut['username']}</code>
 🌍 موقعیت سرویس :{$nameloc['Service_location']}
 نام محصول :{$nameloc['name_product']}
 
@@ -663,10 +659,10 @@ $nameconfig";
                     $textconnect = \Faoxima\Telegram\Support\MessageTemplates::get('service_info_connect_simple', [], ['last_online' => $lastonline]);
                 }
                 $rwChangelinkHint = (($marzban['type'] ?? '') != "remnawave") ? \Faoxima\Telegram\Support\MessageTemplates::get('service_info_changelink_hint') : "";
-                $textinfo_tpl = $datatextbot['text_service_detail'] ?? "🗂 نام سرویس : {product}
+                $textinfo_tpl = $datatextbot['text_service_detail'] ?? "🗂 نام پلن : {product}
 📊وضعیت سرویس : {status}
 🌍 موقعیت سرویس :{location}
-👤 شناسه سرویس : <code>{username}</code>
+👤 نام اشتراک : <code>{username}</code>
 
 🔋 ترافیک : {traffic}
 📥 حجم مصرفی : {used}
@@ -677,7 +673,7 @@ $nameconfig";
                     '{status}' => $status_var,
                     '{username}' => $DataUserOut['username'],
                     '{location}' => $nameloc['Service_location'],
-                    '{product}' => $nameloc['name_product'],
+                    '{product}' => htmlspecialchars(\Faoxima\Services\Subscriptions\PlanLabel::display($nameloc) ?? (string) $nameloc['name_product'], ENT_QUOTES, 'UTF-8'),
                     '{traffic}' => $LastTraffic,
                     '{used}' => $usedTrafficGb,
                     '{remaining}' => $RemainingVolume,
@@ -685,12 +681,17 @@ $nameconfig";
                     '{expire_date}' => $expirationDate,
                     '{days_left}' => $day,
                 ];
+                $textinfo_tpl = preg_replace('/نام[\h‌]+(?:سرویس|محصول|اشتراک)(?=\h*:\h*\{product\})/u', 'نام پلن', $textinfo_tpl) ?? $textinfo_tpl;
+                $textinfo_tpl = preg_replace('/شناسه(?:ٔ)?[\h‌]+(?:سرویس|اشتراک)(?=\h*:\h*(?:<code>)?\{username\})/u', 'نام اشتراک', $textinfo_tpl) ?? $textinfo_tpl;
                 $textinfo = strtr($textinfo_tpl, $textinfo_replacements);
                 $textinfo = "$textinfo\n$userpassword\n$nameconfig\n\n$textconnect\n\n$rwChangelinkHint";
                 $rxReservationSummary = is_callable([\Faoxima\Services\Renewal\ReservationOrders::class, 'reservationSummaryForService']) ? \Faoxima\Services\Renewal\ReservationOrders::reservationSummaryForService($pdo, (string) $nameloc['username'], (string) $nameloc['Service_location'], (string) $nameloc['id_invoice']) : null;
                 if (is_array($rxReservationSummary)) {
                     $textinfo .= "\n\n" . htmlspecialchars((string) $rxReservationSummary['text'], ENT_QUOTES, 'UTF-8');
                 }
+            }
+            if (!empty($DataUserOut['panel_user_id'])) {
+                $textinfo .= "\n🪪 شناسهٔ اشتراک: <code>{$DataUserOut['panel_user_id']}</code>";
             }
             if (($marzban['type'] ?? '') == "remnawave") {
                 $rwLight = !empty($DataUserOut['is_online']) ? \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_online') : \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_offline');

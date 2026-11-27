@@ -18,10 +18,12 @@ final class WalletAndFinanceSettings
         &$Percent,
         $adminAction,
         $adminExecution,
+        $adminrulecheck,
         $backadmin,
         &$codeproduct,
         $dataget,
         $datagetr,
+        $datain,
         &$datatime,
         &$day,
         &$extend,
@@ -197,32 +199,29 @@ final class WalletAndFinanceSettings
             \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
             break;
         case 14:
-            \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, $textbotlang['Admin']['order']['vieworderusername'], $backadmin, 'HTML');
+            \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, 'نام اشتراک، شناسهٔ اشتراک یا لینک اشتراک را بفرستید. برای شماره سفارش از <code>order:123</code> استفاده کنید.', $backadmin, 'HTML');
             \Faoxima\Telegram\Navigation\Steps::step('GetusernameconfigAndOrdedrs', $from_id);
             break;
         case 15:
             \Faoxima\Services\Renewal\AdminRenewalFlow::rxArDraftResetIfAny($from_id, $user);
-            if ($user['step'] == "GetusernameconfigAndOrdedrs") {
-                if (!isset($update['message']) && empty($text)) { return; }
-                $usernameconfig = $text;
-                $sql = "SELECT * FROM invoice WHERE username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%')";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':username', $usernameconfig, PDO::PARAM_STR);
-                $stmt->bindParam(':notes', $usernameconfig, PDO::PARAM_STR);
-            } elseif ($text[0] == "/") {
-                $usernameconfig = explode(" ", $text)[1];
-                $sql = "SELECT * FROM invoice WHERE username LIKE CONCAT('%', :username, '%') OR note  LIKE CONCAT('%', :notes, '%')";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':username', $usernameconfig, PDO::PARAM_STR);
-                $stmt->bindParam(':notes', $usernameconfig, PDO::PARAM_STR);
-            } else {
-                $usernameconfig = \Faoxima\Core\Database\Db::select("invoice", "*", "id_invoice", $datagetr[1], "select")['username'];
-                $sql = "SELECT * FROM invoice WHERE username = :username OR note  = :notes";
-                $stmt = $pdo->prepare($sql);
-                $stmt->bindParam(':username', $usernameconfig, PDO::PARAM_STR);
-                $stmt->bindParam(':notes', $usernameconfig, PDO::PARAM_STR);
+            $returnTo = 'subadmin';
+            $fromSubscriptionSearch = ($user['step'] ?? '') === 'subscription_search';
+            if ($fromSubscriptionSearch) { $returnTo = 'subadmin_search'; }
+            if (preg_match('/:(subadmin_search|sadm:(?:all|online):(?:recent|username|remaining_bytes|days_remaining):[ad]:[1-9][0-9]{0,6})$/D', (string) $datain, $returnMatch)) {
+                $returnTo = $returnMatch[1];
             }
-            $stmt->execute();
+            $isMainAdmin = ($adminrulecheck['rule'] ?? '') === 'administrator';
+            if (preg_match('/^manageinvoice_([A-Za-z0-9_-]+)(?::[a-z0-9_:]+)?$/D', (string) $datain, $selected)) {
+                $stmt = $pdo->prepare('SELECT * FROM invoice WHERE BINARY id_invoice = :selected LIMIT 1');
+                $stmt->execute([':selected' => $selected[1]]);
+            } else {
+                if (!$isMainAdmin || trim((string) $text) === '') { return; }
+                $search = preg_replace('/^\/config(?:@\w+)?\s+/i', '', trim($text));
+                $scope = $user['step'] === 'subscription_search' ? \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS : '1=1';
+                [$condition, $params] = \Faoxima\Services\Subscriptions\ServiceSearch::condition($pdo, $search, $scope, [], ['username', 'note', 'id_invoice']);
+                $stmt = $pdo->prepare("SELECT * FROM invoice WHERE ($scope) AND $condition ORDER BY time_sell DESC, id_invoice DESC LIMIT 50");
+                $stmt->execute($params);
+            }
             \Faoxima\Telegram\Navigation\Steps::step("home", $from_id);
             if ($stmt->rowCount() > 1) {
                 $keyboardlists = [
@@ -237,7 +236,7 @@ final class WalletAndFinanceSettings
                     $keyboardlists['inline_keyboard'][] = [
                         [
                             'text' => "مشاهده‌اطلاعات",
-                            'callback_data' => "manageinvoice_" . $row['id_invoice']
+                            'callback_data' => $fromSubscriptionSearch ? \Faoxima\Services\Subscriptions\SubscriptionTable::adminDetails($row['id_invoice'], $returnTo) : 'manageinvoice_' . $row['id_invoice']
                         ],
                         [
                             'text' => $row['Status'],
@@ -249,6 +248,7 @@ final class WalletAndFinanceSettings
                         ],
                     ];
                 }
+                if ($isMainAdmin) { $keyboardlists['inline_keyboard'][] = [\Faoxima\Services\Subscriptions\SubscriptionTable::button('بازگشت', $returnTo, 'danger')]; }
                 $keyboardlists = json_encode($keyboardlists);
                 \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, "⚠️ بیشتر از یک سرویس یافت از لیست زیر سرویس صحیح را انتخاب کنید", $keyboardlists, 'HTML');
                 return;
@@ -262,7 +262,7 @@ final class WalletAndFinanceSettings
                 'inline_keyboard' => [],
             ];
             $keyboardlists['inline_keyboard'][] = [
-                ['text' => "♻️ بروزرسانی", 'callback_data' => "manageinvoice_" . $OrderUser['id_invoice']],
+                ['text' => "♻️ بروزرسانی", 'callback_data' => $isMainAdmin ? \Faoxima\Services\Subscriptions\SubscriptionTable::adminDetails($OrderUser['id_invoice'], $returnTo) : 'manageinvoice_' . $OrderUser['id_invoice']],
             ];
             $keyboardlists['inline_keyboard'][] = [
                 ['text' => $textbotlang['Admin']['ManageUser']['removeservice'], 'callback_data' => "removeservice-" . $OrderUser['id_invoice']],
@@ -276,6 +276,7 @@ final class WalletAndFinanceSettings
             } else {
                 $datatime = $textbotlang['Admin']['ManageUser']['dataorder'];
             }
+            $planLabel = htmlspecialchars(\Faoxima\Services\Subscriptions\PlanLabel::display($OrderUser) ?? (string) $OrderUser['name_product'], ENT_QUOTES, 'UTF-8');
             if ($OrderUser['name_product'] == "سرویس تست") {
                 $OrderUser['Service_time'] = $OrderUser['Service_time'] . "ساعته";
             } else {
@@ -301,16 +302,20 @@ final class WalletAndFinanceSettings
             $text_order = "
 🛒 شماره سفارش  :  <code>{$OrderUser['id_invoice']}</code>
 🛒  وضعیت سفارش در ربات : <code>{$OrderUser['Status']}</code>
-🙍‍♂️ شناسه کاربر : <code>{$OrderUser['id_user']}</code>
-👤 نام کاربری اشتراک :  <code>{$OrderUser['username']}</code>
+🙍‍♂️ شناسهٔ تلگرام کاربر : <code>{$OrderUser['id_user']}</code>
+👤 نام اشتراک :  <code>{$OrderUser['username']}</code>
 📍 موقعیت سرویس :  {$OrderUser['Service_location']}
-🛍 نام محصول :  {$OrderUser['name_product']}
+🛍 نام پلن :  $planLabel
 💰 قیمت پرداختی سرویس : " . \Faoxima\Core\Support\Formatting::rxFormatToman($OrderUser['price_product']) . " تومان
 ⚜️ حجم سرویس خریداری شده : {$OrderUser['Volume']}
 ⏳ زمان سرویس خریداری شده : {$OrderUser['Service_time']}
 📆 تاریخ خرید : $datatime
 ";
+            if ($isMainAdmin) { $keyboardlists['inline_keyboard'][] = [\Faoxima\Services\Subscriptions\SubscriptionTable::button('بازگشت', $returnTo, 'danger')]; }
             $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username']);
+            if (!empty($DataUserOut['panel_user_id'])) {
+                $text_order .= "\n🪪 شناسهٔ اشتراک: <code>{$DataUserOut['panel_user_id']}</code>";
+            }
             if ($DataUserOut['status'] == "Unsuccessful") {
                 $keyboard_json = json_encode($keyboardlists);
                 \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, "کاربر در پنل وجود ندارد", $keyboardadmin, 'html');

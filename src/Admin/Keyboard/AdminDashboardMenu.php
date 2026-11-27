@@ -15,6 +15,7 @@ final class AdminDashboardMenu
                     \Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(['text' => "🏬 تنظیمات فروشگاه", 'callback_data' => 'admin_shop'], 'admin_shop', $_rx_adm_styles),
                     \Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(['text' => "💎 مالی و گزارشات", 'callback_data' => 'admin_finance'], 'admin_finance', $_rx_adm_styles)
                 ],
+                [\Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(['text' => '🛍 مدیریت اشتراک‌ها', 'callback_data' => 'subadmin'], 'subadmin', $_rx_adm_styles)],
                 [\Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(['text' => "👥 مدیریت کاربران", 'callback_data' => 'admin_usershub'], 'admin_usershub', $_rx_adm_styles)],
                 [
                     \Faoxima\Telegram\Keyboard\LayoutFunctions::rx_kb_style(['text' => "🤙 بخش پشتیبانی", 'callback_data' => 'admin_support'], 'admin_support', $_rx_adm_styles),
