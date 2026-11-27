@@ -6,6 +6,7 @@ use Faoxima\Admin\Users\UserSearch;
 use Faoxima\Services\Subscriptions\PlanLabel;
 use Faoxima\Services\Subscriptions\ServiceSearch;
 use Faoxima\Services\Subscriptions\SubscriptionTable;
+use Faoxima\Telegram\Support\SubscriptionText;
 
 // Start the panel fixture in a separate terminal:
 // php -S 127.0.0.1:43497 scripts/tests/service-search.php
@@ -62,8 +63,8 @@ if (PHP_SAPI === 'cli-server') {
         return;
     }
     if ($path === "/$panel/api/user/same-name") {
-        unset($user['subscription_urls']);
-        echo json_encode($user + ['status' => 'active']);
+        unset($user['id'], $user['subscription_urls']);
+        echo json_encode($user + ['service_id' => 702, 'telegram_id' => '98765']);
         return;
     }
     if ($path !== "/$panel/api/users") {
@@ -308,6 +309,17 @@ $pdo->exec("INSERT INTO invoice (id_invoice, id_user, username, Service_location
 $panel = new ManagePanel();
 $selected = $panel->DataUser('east', 'same-name', 'links', 'e123');
 same('https://shop.example.test/sub/e123', $selected['subscription_url'] ?? null, 'selected order has its own Faoxima subscription link');
+$invoice = ['username' => 'same-name', 'Service_location' => 'east', 'user_info' => '{}'];
+same(null, $selected['panel_user_id'] ?? null, 'individual Rebecca details omit the numeric user ID');
+same("\n🪪 شناسهٔ اشتراک: <code>91</code>",
+    SubscriptionText::idLine(ServiceSearch::detailPanelUserId($pdo, $invoice, $selected['panel_user_id'] ?? null), true),
+    'subscription details render the ID from the exact list entry when the individual response omits it');
+same("\n🪪 شناسهٔ اشتراک: در دسترس نیست",
+    SubscriptionText::idLine(ServiceSearch::detailPanelUserId($pdo, array_replace($invoice, ['username' => 'other'])), true),
+    'the absence of an exact Rebecca match is visible without revealing another account ID');
+same('12', ServiceSearch::detailPanelUserId($pdo, $invoice, 12), 'panel responses that include an ID take precedence');
+$invoice['user_info'] = '{"username":"same-name","panel_user_id":91}';
+same('91', ServiceSearch::detailPanelUserId($pdo, $invoice), 'details reuse an existing ID from invoice data');
 $legacy = $panel->DataUser('east', 'same-name');
 same('https://shop.example.test/sub/later-order', $legacy['subscription_url'] ?? null, 'legacy callers resolve the latest order in their panel');
 $pdo->exec("UPDATE invoice SET Status = 'active' WHERE id_invoice = 'w123'");

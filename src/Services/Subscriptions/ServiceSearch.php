@@ -509,6 +509,18 @@ final class ServiceSearch
         return self::numericId($cached['panel_user_id'] ?? null);
     }
 
+    public static function detailPanelUserId(PDO $pdo, array $invoice, mixed $liveId = null): ?string
+    {
+        $known = self::numericId($liveId) ?? self::cachedPanelUserId($invoice);
+        if ($known !== null) {
+            return $known;
+        }
+
+        // Rebecca's individual user response omits its internal numeric ID.
+        [$enriched] = self::addPanelIds($pdo, [$invoice]);
+        return $enriched['panel_user_id'] ?? null;
+    }
+
     /** Load numeric IDs by exact username in batches grouped by panel. */
     public static function addPanelIds(PDO $pdo, array $rows, bool $includeUsage = false): array
     {

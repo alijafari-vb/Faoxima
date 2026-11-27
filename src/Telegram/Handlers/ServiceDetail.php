@@ -89,12 +89,9 @@ final class ServiceDetail
                     $note_qv = isset($nameloc_qv['note']) && $nameloc_qv['note'] !== '' ? ' | ' . $nameloc_qv['note'] : '';
                     $caption_qv = '✨ <b>' . htmlspecialchars((string)$nameloc_qv['username'], ENT_QUOTES, 'UTF-8') . '</b>'
                                 . htmlspecialchars($note_qv, ENT_QUOTES, 'UTF-8');
-                    $cardId = ServiceSearch::cachedPanelUserId($nameloc_qv);
-                    if ($cardId === null && ($panel_qv['type'] ?? '') === 'rebecca') {
-                        [$cardInvoice] = ServiceSearch::addPanelIds($pdo, [$nameloc_qv]);
-                        $cardId = $cardInvoice['panel_user_id'] ?? null;
+                    if (($panel_qv['type'] ?? '') === 'rebecca') {
+                        $caption_qv .= SubscriptionText::idLine(ServiceSearch::detailPanelUserId($pdo, $nameloc_qv), true);
                     }
-                    $caption_qv .= SubscriptionText::idLine($cardId);
                     $__qvRow = [['text' => \Faoxima\Telegram\Support\MessageTemplates::plain('service_btn_manage'), 'callback_data' => 'product_' . $nameloc_qv['id_invoice']]];
                     if (!(method_exists(\Faoxima\Telegram\Support\InfoCardRenderer::class, 'isQrDisabled') && \Faoxima\Telegram\Support\InfoCardRenderer::isQrDisabled())) {
                         $__qvRow[] = ['text' => \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_qr_code_btn', '📷 دریافت QR Code'), 'callback_data' => 'infocard_qr_' . $nameloc_qv['id_invoice']];
@@ -224,8 +221,12 @@ final class ServiceDetail
                 \Faoxima\Core\Database\Db::update("user", "Processing_value_four", $marzban['name_panel'], "id", $from_id);
             }
             $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username'], 'links', (string) $nameloc['id_invoice']);
-            $panelUserId = ServiceSearch::numericId($DataUserOut['panel_user_id'] ?? null) ?? ServiceSearch::cachedPanelUserId($nameloc);
+            $isRebecca = ($marzban['type'] ?? '') === 'rebecca';
+            $panelUserId = $isRebecca ? ServiceSearch::cachedPanelUserId($nameloc) : null;
             if (is_array($DataUserOut) && isset($DataUserOut['status']) && $DataUserOut['status'] !== 'Unsuccessful') {
+                if ($isRebecca) {
+                    $panelUserId = ServiceSearch::detailPanelUserId($pdo, $nameloc, $DataUserOut['panel_user_id'] ?? null);
+                }
                 if ($panelUserId !== null) {
                     $DataUserOut['panel_user_id'] = $panelUserId;
                 }
@@ -702,7 +703,9 @@ $nameconfig";
                     $textinfo .= "\n\n" . htmlspecialchars((string) $rxReservationSummary['text'], ENT_QUOTES, 'UTF-8');
                 }
             }
-            $textinfo .= SubscriptionText::idLine($panelUserId);
+            if ($isRebecca) {
+                $textinfo = ltrim(SubscriptionText::idLine($panelUserId, true)) . "\n" . $textinfo;
+            }
             if (($marzban['type'] ?? '') == "remnawave") {
                 $rwLight = !empty($DataUserOut['is_online']) ? \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_online') : \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_offline');
                 $textinfo .= "\n" . \Faoxima\Telegram\Support\MessageTemplates::get('service_info_line_connection', [], ['status' => $rwLight]);

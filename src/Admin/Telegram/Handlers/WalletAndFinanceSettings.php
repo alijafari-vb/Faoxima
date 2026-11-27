@@ -313,8 +313,9 @@ final class WalletAndFinanceSettings
 ";
             if ($isMainAdmin) { $keyboardlists['inline_keyboard'][] = [\Faoxima\Services\Subscriptions\SubscriptionTable::button('بازگشت', $returnTo, 'danger')]; }
             $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username'], 'links', (string) $OrderUser['id_invoice']);
-            $panelUserId = \Faoxima\Services\Subscriptions\ServiceSearch::numericId($DataUserOut['panel_user_id'] ?? null)
-                ?? \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($OrderUser);
+            $panelUserId = ($DataUserOut['status'] ?? 'Unsuccessful') === 'Unsuccessful'
+                ? \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($OrderUser)
+                : \Faoxima\Services\Subscriptions\ServiceSearch::detailPanelUserId($pdo, $OrderUser, $DataUserOut['panel_user_id'] ?? null);
             $text_order .= \Faoxima\Telegram\Support\SubscriptionText::idLine($panelUserId);
             if ($DataUserOut['status'] == "Unsuccessful") {
                 $keyboard_json = json_encode($keyboardlists);

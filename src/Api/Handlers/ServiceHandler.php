@@ -34,11 +34,7 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
         $payload['order_id'] = $invoice['id_invoice'];
         $payload['plan_label'] = \Faoxima\Services\Subscriptions\PlanLabel::display($invoice);
         if (!isset($payload['panel_user_id'])) {
-            $payload['panel_user_id'] = \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($invoice);
-            if ($payload['panel_user_id'] === null) {
-                [$row] = \Faoxima\Services\Subscriptions\ServiceSearch::addPanelIds(\Faoxima\Api\Runtime\Db::pdo(), [$invoice]);
-                $payload['panel_user_id'] = $row['panel_user_id'] ?? null;
-            }
+            $payload['panel_user_id'] = \Faoxima\Services\Subscriptions\ServiceSearch::detailPanelUserId(\Faoxima\Api\Runtime\Db::pdo(), $invoice);
         }
         $payload['subscription_url'] = \Faoxima\Services\Delivery\ServiceDelivery::rxNormalizeSubscriptionUrl((string) ($payload['subscription_url'] ?? ''));
         $payload['ambiguous_username'] = (bool) \Faoxima\Api\Runtime\Db::fetchScalar(

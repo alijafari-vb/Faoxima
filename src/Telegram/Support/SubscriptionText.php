@@ -67,8 +67,11 @@ final class SubscriptionText
         ]);
     }
 
-    public static function idLine(?string $id): string
+    public static function idLine(?string $id, bool $showUnavailable = false): string
     {
-        return $id === null ? '' : "\n🪪 شناسهٔ اشتراک: <code>$id</code>";
+        if ($id === null) {
+            return $showUnavailable ? "\n🪪 شناسهٔ اشتراک: در دسترس نیست" : '';
+        }
+        return "\n🪪 شناسهٔ اشتراک: <code>$id</code>";
     }
 }

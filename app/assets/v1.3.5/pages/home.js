@@ -120,7 +120,7 @@ export async function home(view) {
         <div id="home-usertest-host"></div>
 
         <div class="section-header-row mt-md">
-            <p class="section-title">${icon('box')} سرویس‌های فعال</p>
+            <p class="section-title">${icon('box')} اشتراک‌های اخیر</p>
             <a href="#/services" class="section-link">مشاهده همه</a>
         </div>
         <div id="home-services-list" class="list mt-sm">
@@ -154,7 +154,7 @@ export async function home(view) {
         toast(err.message || 'خطا در دریافت اطلاعات کاربری', 'error');
     }
 
-    loadActiveServices(view);
+    loadRecentSubscriptions(view);
     loadUsertestBanner(view);
 
     const pendingCleanup = await loadPendingBanner(view).catch(() => () => {});
@@ -213,7 +213,7 @@ async function loadUsertestBanner(view) {
 }
 
 
-async function loadActiveServices(view) {
+async function loadRecentSubscriptions(view) {
     const host = view.querySelector('#home-services-list');
     if (!host) return;
     try {
@@ -223,10 +223,10 @@ async function loadActiveServices(view) {
             host.innerHTML = `
                 <div class="empty">
                     ${icon('info', 'class="ico ico-xxl ico-muted"')}
-                    <h3>هنوز سرویسی ندارید</h3>
+                    <h3>هنوز اشتراکی ندارید</h3>
                     <a href="#/buy" class="btn btn-primary mt-md">
                         ${icon('cart', 'class="ico ico-leading"')}
-                        <span>اولین سرویس را بخرید</span>
+                        <span>اولین اشتراک را بخرید</span>
                     </a>
                 </div>
             `;
@@ -246,14 +246,13 @@ function renderServiceItem(it) {
 
     const username = it.username || '—';
     const displayUsername = it.display_username || username;
-    const productName = it.name_product || '—';
     const location = it.Service_location || '';
 
     return `
         <a href="#/services/${encodeURIComponent(username)}/${encodeURIComponent(it.id_invoice)}" class="list-item" data-username="${escapeHtml(username)}">
             <div class="li-main">
-                <div class="li-title">${escapeHtml(productName)}</div>
-                <div class="li-sub">${escapeHtml(displayUsername)}${location ? ' · ' + escapeHtml(location) : ''}</div>
+                <div class="li-title"><bdi>${escapeHtml(displayUsername)}</bdi></div>
+                ${location ? `<div class="li-sub">${escapeHtml(location)}</div>` : ''}
             </div>
             <span class="badge ${badge}">${icon(badgeIcon, 'class="ico"')} ${escapeHtml(badgeText)}</span>
             <span class="li-action" aria-hidden="true">

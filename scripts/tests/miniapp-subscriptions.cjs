@@ -7,7 +7,7 @@ const { chromium } = require('playwright');
 const assets = join(__dirname, '../../app/assets');
 const secret = 'https://panel.example.test/sub/test-key';
 const name = 'customer-with-a-long-username-1234567890';
-const subscription = { username: name, id_invoice: 'my-order', panel_user_id: '11', name_product: 'Stored plan',
+const subscription = { username: name, id_invoice: 'my-order', panel_user_id: '11', name_product: 'Stored plan', Service_location: 'پنل اصلی',
     Status: 'active', days_remaining: 4, remaining_bytes: 524288000, expires_at: 2000000000, has_queued_renewal: true };
 const foreign = { ...subscription, username: 'somebody-else', id_invoice: 'other-order' };
 const calls = [];
@@ -65,6 +65,16 @@ const server = createServer(async (request, response) => {
         const page = await browser.newPage({ viewport: { width: 320, height: 750 } });
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
+        await page.goto(`${origin}/#/`);
+        const recent = page.locator('#home-services-list .list-item').first();
+        await recent.locator('.li-title').getByText(name).waitFor();
+        assert.equal(await recent.locator('.li-sub').innerText(), 'پنل اصلی');
+        assert.doesNotMatch(await recent.innerText(), /Stored plan/);
+        assert.ok(calls.some(call => call.action === 'invoices' && call.data.limit === '3'));
+        await recent.click();
+        await page.locator('#service-body').getByText('شناسهٔ اشتراک').waitFor();
+        assert.ok(calls.some(call => call.action === 'service' && call.data.order_id === 'my-order'));
+
         await page.goto(`${origin}/#/services`);
         const card = page.locator('.service-preview').first();
         await card.getByText(name).waitFor();
