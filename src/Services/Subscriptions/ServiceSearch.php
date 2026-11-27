@@ -429,8 +429,7 @@ final class ServiceSearch
             foreach ($rows as &$row) {
                 $row += self::usage($row, $now);
                 if (!$liveUsage && $sort === 'panel_user_id') {
-                    $cached = json_decode((string) ($row['user_info'] ?? ''), true);
-                    $row['panel_user_id'] = self::numericId($cached['panel_user_id'] ?? null);
+                    $row['panel_user_id'] = self::cachedPanelUserId($row);
                 }
             }
             unset($row);
@@ -501,6 +500,15 @@ final class ServiceSearch
         return $ascending ? $order : -$order;
     }
 
+    public static function cachedPanelUserId(array $row): ?string
+    {
+        $cached = json_decode((string) ($row['user_info'] ?? ''), true);
+        if (isset($cached['username']) && $cached['username'] !== ($row['username'] ?? null)) {
+            return null;
+        }
+        return self::numericId($cached['panel_user_id'] ?? null);
+    }
+
     /** Load numeric IDs by exact username in batches grouped by panel. */
     public static function addPanelIds(PDO $pdo, array $rows, bool $includeUsage = false): array
     {
@@ -532,8 +540,7 @@ final class ServiceSearch
         foreach ($rows as &$row) {
             $account = $accounts[$row['Service_location'] ?? ''][$row['username'] ?? ''] ?? [];
             if (!isset($account['panel_user_id'])) {
-                $cached = json_decode((string) ($row['user_info'] ?? ''), true);
-                $account['panel_user_id'] = self::numericId($cached['panel_user_id'] ?? null);
+                $account['panel_user_id'] = self::cachedPanelUserId($row);
             }
             $row = array_replace($row, $account);
         }

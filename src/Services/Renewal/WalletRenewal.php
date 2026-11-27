@@ -46,7 +46,7 @@ final class WalletRenewal
         $funding = ['id' => (int) $row['id'], 'order' => $order, 'price' => (float) $row['price']];
         $state = $order['wallet_state'] ?? '';
         if ($state === 'charged' || $state === 'refundable') {
-            self::refund($pdo, $funding, (string) $row['id_user'], 'بازگشت وجه تمدید سرویس');
+            self::refund($pdo, $funding, (string) $row['id_user'], 'بازگشت وجه تمدید اشتراک');
             return true;
         }
         if (!in_array($state, ['dispatching', 'uncertain'], true)) {

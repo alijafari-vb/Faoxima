@@ -79,10 +79,10 @@ final class InlineInvoiceAndResellerTools
 🛒  وضعیت سفارش در ربات : {$OrderUser['Status']}
 🙍‍♂️ شناسه کاربر : {$OrderUser['id_user']}
 👤 نام کاربری اشتراک :  {$OrderUser['username']}
-📍 موقعیت سرویس :  {$OrderUser['Service_location']}
+📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
 🛍 نام محصول :  {$OrderUser['name_product']}
 💰 قیمت پرداختی سرویس : {$rxFmtOrderUserPrice} تومان
-⚜️ حجم سرویس خریداری شده : {$OrderUser['Volume']}
+⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
 ⏳ زمان سرویس خریداری شده : {$OrderUser['Service_time']}
 📆 تاریخ خرید : $datatime
 "

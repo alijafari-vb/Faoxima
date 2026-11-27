@@ -73,7 +73,7 @@ final class StockPresentation
             $usernameTg = trim((string)($userRow['username'] ?? ''));
             if ($usernameTg === '') $usernameTg = '---';
             $price = (float)$price;
-            $title = ($action === 'buy') ? '🛒 خرید سرویس انجام شد' : '♻️ تمدید سرویس انجام شد';
+            $title = ($action === 'buy') ? '🛒 خرید اشتراک انجام شد' : '♻️ تمدید اشتراک انجام شد';
             $msg = "{$title} ({$modeLabel})\n\n"
                 . "<blockquote>👤 آیدی کاربر: <code>{$chatId}</code></blockquote>\n"
                 . "<blockquote>🔖 یوزرنیم تلگرام: @" . htmlspecialchars($usernameTg, ENT_QUOTES, 'UTF-8') . "</blockquote>\n"
@@ -136,7 +136,7 @@ final class StockPresentation
     $txt.="🛍 محصول: <code>".htmlspecialchars((string)($invoice['name_product']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📍 پنل: <code>".htmlspecialchars((string)($invoice['Service_location']??''),ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📦 انبار: <code>{$shelfNameSafe}</code>\n";
-    if($vol!=='')$txt.="🗜 حجم سرویس: <code>".htmlspecialchars($vol,ENT_QUOTES,'UTF-8')."</code>\n";
+    if($vol!=='')$txt.="🗜 حجم اشتراک: <code>".htmlspecialchars($vol,ENT_QUOTES,'UTF-8')."</code>\n";
     $txt.="📅 شروع: <code>".self::nmJalaliDate('Y/m/d',$startTs)."</code>\n";
     $txt.="⏳ پایان: <code>".($days>0?self::nmJalaliDate('Y/m/d',$startTs+$days*86400):'نامحدود')."</code>\n";
     $txt.="📌 وضعیت: <code>".htmlspecialchars((string)($invoice['Status']??'active'),ENT_QUOTES,'UTF-8')."</code>\n\n";
@@ -275,7 +275,7 @@ final class StockPresentation
         if(!$product){ sendmessage($chatId,'❌ محصول تمدید پیدا نشد.',$keyboard??null,'HTML'); return true; }
         if($action==='select_extend'){
             $price=number_format((float)($product['price_product']??0));
-            $txt="📜 فاکتور تمدید سرویس
+            $txt="📜 فاکتور تمدید اشتراک
 
 👤 سرویس: <code>".htmlspecialchars((string)($invoice['username']??''),ENT_QUOTES,'UTF-8')."</code>
 🛍 محصول: {$product['name_product']}
@@ -295,7 +295,7 @@ final class StockPresentation
                 $__allowNegRb=(($userRow['agent']??'')==='n2')?(int)($userRow['maxbuyagent']??0):0;
                 $__chargeRb=\Faoxima\Wallet\Balance\Balances::charge($pdo, $chatId,(float)$price,$__allowNegRb);
                 if (!empty($__chargeRb['ok']) && is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                    \Faoxima\Wallet\Ledger\Ledger::record($pdo, $chatId, 'debit', $price, 'service_action', 'تمدید سرویس (انبار ملی)', null, 'invoice', (string)$invoice['id_invoice']);
+                    \Faoxima\Wallet\Ledger\Ledger::record($pdo, $chatId, 'debit', $price, 'service_action', 'تمدید اشتراک (انبار ملی)', null, 'invoice', (string)$invoice['id_invoice']);
                 }
             } else {
                 \Faoxima\Core\Database\Db::update('user','Balance',(float)($userRow['Balance']??0)-$price,'id',$chatId);
@@ -310,7 +310,7 @@ final class StockPresentation
             try{ \Faoxima\Core\Database\Db::update('invoice','source_panel_code',$panel['code_panel']??'','id_invoice',$invoice['id_invoice']); }catch(Throwable $e){}
             \Faoxima\Services\Fulfillment\DeliveryState::notificationCycleReset($invoice['id_invoice'], array('volume_cycle', 'time_cycle'), array('volume', 'volume_report', 'time', 'time_report'));
             $invoiceNew=array_merge($invoice,['name_product'=>$product['name_product'],'price_product'=>$product['price_product'],'Volume'=>$product['Volume_constraint'],'Service_time'=>$product['Service_time'],'time_sell'=>time(),'user_info'=>$stockNew['content'],'source_panel_code'=>$panel['code_panel']??'']);
-            self::nmStockDeliverConfig($stockNew,$invoiceNew,'✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد');
+            self::nmStockDeliverConfig($stockNew,$invoiceNew,'✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد');
             sendmessage($chatId,\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_errors_stock_extend_success','✅ تمدید انباری انجام شد و موجودی انبار یک عدد کم شد.'),$keyboard??null,'HTML');
 
             if(method_exists(\Faoxima\Services\Fulfillment\StockPresentation::class, 'nmStockNotifyExtend')) self::nmStockNotifyExtend($chatId,$userRow,$invoice,$product,$panel,'stock',(string)($invoice['username']??''),$price);

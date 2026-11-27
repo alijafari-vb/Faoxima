@@ -86,7 +86,7 @@ final class DashboardCharts
                     $sub = 'سفارش: ' . (string)$r['id_invoice'] . ' — ' . number_format((float)$r['price_product']) . ' تومان';
                     $items[] = ['title' => $title, 'sub' => $sub, 'url' => 'invoice.php?q=' . urlencode('order:' . (string) $r['id_invoice'])];
                 }
-                if ($items) $groups[] = ['type' => 'invoices', 'label' => 'سفارشات', 'icon' => \Faoxima\Admin\Web\Support\Icons::icon('receipt', 'svg-icon'), 'items' => $items];
+                if ($items) $groups[] = ['type' => 'invoices', 'label' => 'سفارش‌های خرید', 'icon' => \Faoxima\Admin\Web\Support\Icons::icon('receipt', 'svg-icon'), 'items' => $items];
             } catch (\Throwable $e) { error_log('[search] invoices: ' . $e->getMessage()); }
             try {
                 $st = $pdo->prepare("SELECT id, name_product, price_product, category FROM product WHERE id LIKE ? ESCAPE '!' OR name_product LIKE ? ESCAPE '!' OR category LIKE ? ESCAPE '!' ORDER BY id ASC LIMIT 6");

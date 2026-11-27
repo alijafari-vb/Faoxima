@@ -239,7 +239,7 @@ final class WebAccessAndReceiptReview
                 $info_product['Service_time'] = $textbotlang['users']['stateus']['Unlimited'];
             if (intval($info_product['Volume_constraint']) == 0)
                 $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
-            $textcreatuser = str_replace('{username}', "<code>{$DataUserOut['username']}</code>", $datatextbot['textafterpay']);
+            $textcreatuser = str_replace('{username}', "<code>{$DataUserOut['username']}</code>", \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['textafterpay']));
             $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
             $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
             $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);

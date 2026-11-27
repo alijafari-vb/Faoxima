@@ -61,7 +61,7 @@ final class AdditionalTime
                 return;
             }
             if ($DataUserOut['status'] == "on_hold") {
-                sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید سرویس ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
+                sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید اشتراک ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
                 return;
             }
             $eextraprice = json_decode($marzban_list_get['priceextratime'], true);
@@ -318,7 +318,7 @@ final class AdditionalTime
                 $extra_time['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extra_time['msg'] ?? null, $extra_time['detail'] ?? null);
                 $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_time['msg']}</blockquote>";
                 sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
                 if (strlen($setting['Channel_Report'] ?? '') > 0) {
@@ -385,7 +385,7 @@ final class AdditionalTime
 <blockquote>🪪 آیدی عددی : $from_id</blockquote>
 <blockquote>🛍 زمان خریداری شده  : $volumes روز</blockquote>
 <blockquote>💰 مبلغ پرداختی : $volumesformat تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ : {$nameloc['username']}</blockquote>";
+<blockquote>👤 نام اشتراک : {$nameloc['username']}</blockquote>";
             if (strlen($setting['Channel_Report'] ?? '') > 0) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],

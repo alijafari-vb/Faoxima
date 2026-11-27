@@ -15,7 +15,7 @@ final class TransactionHistoryHandler extends \Faoxima\Api\Handlers\BaseHandler
         'topup_gateway'         => 'شارژ درگاه پرداخت',
         'admin_credit'          => 'افزایش موجودی توسط ادمین',
         'admin_debit'           => 'کاهش موجودی توسط ادمین',
-        'purchase'              => 'خرید سرویس',
+        'purchase'              => 'خرید اشتراک',
         'refund'                => 'بازگشت وجه',
         'affiliate_commission'  => 'پورسانت زیرمجموعه',
         'gift_code'             => 'کد هدیه',

@@ -70,7 +70,7 @@ final class ServiceNotes
             $timejalali = jdate('Y/m/d H:i:s');
             $textreport = "📌  یک کاربر یادداشت سرویس خود را تغییر داد.
 
-<blockquote>▫️ نام کاربری سرویس : {$invoice['username']}</blockquote>
+<blockquote>▫️ نام اشتراک : {$invoice['username']}</blockquote>
 <blockquote>▫️ یاداشت قبلی :‌ {$invoice['note']}</blockquote>
 <blockquote>▫️ یاداشت جدید :‌  $text</blockquote>
 

@@ -20,6 +20,8 @@ final class KeyboardLayoutHandler
                 $labels[$row['id_text']] = $row['text'];
             }
         }
+        $labels['text_Purchased_services'] = \Faoxima\Telegram\Support\SubscriptionText::menuLabel((string) $labels['text_Purchased_services']);
+        $labels['text_extend'] = \Faoxima\Telegram\Support\SubscriptionText::extendLabel((string) $labels['text_extend']);
 
         $layout = json_decode($encodedLayout ?? '', true)['keyboard'] ?? null;
         $available = self::STANDARD_KEYS;

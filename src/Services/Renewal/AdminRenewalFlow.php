@@ -604,7 +604,7 @@ final class AdminRenewalFlow
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],
                     'message_thread_id' => $errorreport,
-                    'text' => "\n        خطای تمدید سرویس\n<blockquote>نام پنل : " . self::rxArEsc($panel['name_panel']) . "</blockquote>\n<blockquote>نام کاربری سرویس : " . self::rxArEsc($username) . "</blockquote>\n<blockquote>کد خطا : " . self::rxArEsc($extend['code'] ?? '') . "</blockquote>\n<blockquote>دلیل خطا : " . self::rxArEsc($extend['msg'] ?? '') . "</blockquote>",
+                    'text' => "\n        خطای تمدید اشتراک\n<blockquote>نام پنل : " . self::rxArEsc($panel['name_panel']) . "</blockquote>\n<blockquote>نام اشتراک : " . self::rxArEsc($username) . "</blockquote>\n<blockquote>کد خطا : " . self::rxArEsc($extend['code'] ?? '') . "</blockquote>\n<blockquote>دلیل خطا : " . self::rxArEsc($extend['msg'] ?? '') . "</blockquote>",
                     'parse_mode' => "HTML",
                 ]);
             }
@@ -638,7 +638,7 @@ final class AdminRenewalFlow
                     . "<blockquote>🛍 بسته : " . self::rxArPackageLabel($d) . "</blockquote>\n"
                     . "<blockquote>⚙️ روش : " . self::rxArEsc(\Faoxima\Services\Renewal\RenewalText::rxRenewalPolicyLabel((string) $d['m'])) . "</blockquote>\n"
                     . "<blockquote>👤 نام کاربری مشتری در پنل  : " . self::rxArEsc($username) . "</blockquote>\n"
-                    . "<blockquote>موقعیت سرویس سرویس کاربر : " . self::rxArEsc($invoice['Service_location']) . "</blockquote>",
+                    . "<blockquote>موقعیت اشتراک کاربر : " . self::rxArEsc($invoice['Service_location']) . "</blockquote>",
                 'parse_mode' => "HTML",
             ]);
         }

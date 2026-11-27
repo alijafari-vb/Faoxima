@@ -108,9 +108,9 @@ final class RotateSubscription
             $text_report = "📣 جزئیات تغییر لینک در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$nameloc['username']}</blockquote>
+<blockquote>▫️نام اشتراک :{$nameloc['username']}</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس : {$marzban_list_get['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$marzban_list_get['name_panel']}</blockquote>
 <blockquote>▫️نوع کاربر : {$user['agent']}</blockquote>
 <blockquote>▫️زمان تغییر لینک : $timejalali</blockquote>";
             if (strlen($setting['Channel_Report'] ?? '') > 0) {

@@ -146,7 +146,7 @@ final class Settlement
                 . "<blockquote>🛒 کد پیگیری پرداخت: <code>" . htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8') . "</code></blockquote>\n"
                 . "<blockquote>✍️ دلیل: " . htmlspecialchars($reason, ENT_QUOTES, 'UTF-8') . "</blockquote>\n";
             if (!empty($ctx['username'])) {
-                $text .= "<blockquote>🪪 نام کاربری سرویس: <code>" . htmlspecialchars((string) $ctx['username'], ENT_QUOTES, 'UTF-8') . "</code></blockquote>\n";
+                $text .= "<blockquote>🪪 نام اشتراک: <code>" . htmlspecialchars((string) $ctx['username'], ENT_QUOTES, 'UTF-8') . "</code></blockquote>\n";
             }
             $text .= "ℹ️ وضعیت پنل قابل تشخیص قطعی نبود؛ عملیات پنل به‌صورت خودکار تکرار نمی‌شود.";
             telegram('sendmessage', [

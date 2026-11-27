@@ -13,7 +13,7 @@ use RuntimeException;
 final class GiftCampaign
 {
     private const BATCH_SIZE = 5;
-    private const ERROR_REPORT_TPL = "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>";
+    private const ERROR_REPORT_TPL = "خطای اضافه شدن هدیه حجم\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>";
 
     private $panel;
     private $pdo;

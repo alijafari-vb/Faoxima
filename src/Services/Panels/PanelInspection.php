@@ -698,8 +698,8 @@ trait PanelInspection
             if (!in_array($rebeccaStatus, ["active", "disabled", "expired", "limited", "on_hold"], true)) {
                 $rebeccaStatus = "active";
             }
-            $subscriptionUrl = $userData['subscription_url'] ?? '';
-            if (!preg_match('/^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?((\/[^\s\/]+)+)?$/', $subscriptionUrl)) {
+            $subscriptionUrl = (string) ($userData['subscription_url'] ?? '');
+            if ($subscriptionUrl !== '' && !preg_match('~^https?://~i', $subscriptionUrl)) {
                 $subscriptionUrl = rtrim((string) ($Get_Data_Panel['url_panel'] ?? ''), '/') . "/" . ltrim($subscriptionUrl, "/");
             }
             if (method_exists(\Faoxima\Services\Panels\Drivers\Rebecca::class, 'rebeccaBuildDisplayLinks')) {
@@ -723,7 +723,7 @@ trait PanelInspection
                 'used_traffic' => intval($userData['used_traffic'] ?? 0),
                 'links' => $links,
                 'links_diagnostic' => array('panel_type' => 'rebecca', 'outcome' => empty($links) ? 'empty' : 'ok'),
-                'subscription_url' => $subscriptionUrl,
+                'subscription_url' => \Faoxima\Services\Delivery\ServiceDelivery::rxNormalizeSubscriptionUrl($subscriptionUrl),
                 'sub_updated_at' => null,
                 'sub_last_user_agent' => null,
                 'uuid' => null,

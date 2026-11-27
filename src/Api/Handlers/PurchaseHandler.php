@@ -396,7 +396,7 @@ final class PurchaseHandler extends \Faoxima\Api\Handlers\BaseHandler
             \Faoxima\Orders\Pricing\ExchangePricing::fxStoreInvoiceSnapshot($orderId, $fxSnapshot);
             $charge = \Faoxima\Services\Fulfillment\Purchase::fundWalletInvoice(
                 \Faoxima\Api\Runtime\Db::pdo(), $this->user, (string) $orderId, (string) $panel['name_panel'],
-                (string) $usernameAc, $priceToCharge, $discountCode, 'خرید سرویس', $confirmation,
+                (string) $usernameAc, $priceToCharge, $discountCode, 'خرید اشتراک', $confirmation,
                 \Faoxima\Services\Fulfillment\WalletPurchaseEffects::plan(
                     $this->setting, (array) \Faoxima\Core\Database\Db::select('affiliates', '*', null, null, 'select'), $this->user,
                     $admin_ids ?? [], $priceToCharge, (int) \Faoxima\Api\Runtime\Db::fetchScalar(
@@ -657,10 +657,10 @@ final class PurchaseHandler extends \Faoxima\Api\Handlers\BaseHandler
         } else {
             $panel = \Faoxima\Services\Delivery\ServiceDelivery::rxPurchaseDeliveryPanel($panel, $remote['subscription_url'] ?? '');
             $showLink = ($panel['sublink'] ?? '') === 'onsublink';
-            $subLink = $showLink ? (string)($remote['subscription_url'] ?? '') : '';
+            $subLink = $showLink ? \Faoxima\Services\Delivery\ServiceDelivery::rxResolveConnectionLink($panel, $remote['subscription_url'] ?? '') : '';
         }
 
-        $template = $this->resolveTemplate($panel['type'] ?? '');
+        $template = \Faoxima\Telegram\Support\SubscriptionText::template($this->resolveTemplate($panel['type'] ?? ''));
         $template = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($remote['username'], $panel) . "</code>", $template);
         $template = str_replace('{name_service}', $product['name_product'] ?? '', $template);
         $template = str_replace('{location}', $panel['name_panel'] ?? '', $template);
@@ -820,6 +820,7 @@ final class PurchaseHandler extends \Faoxima\Api\Handlers\BaseHandler
                 'id'                => $orderId,
                 'username'          => (string)($remote['username'] ?? $usernameAc),
                 'display_username'  => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername((string)($remote['username'] ?? $usernameAc), $panel),
+                'panel_user_id'     => \Faoxima\Services\Subscriptions\ServiceSearch::numericId($remote['panel_user_id'] ?? null),
                 'username_requested' => $requestedUsernameAc,
                 'username_was_changed' => $usernameWasRenamed,
                 'status'            => 'active',
@@ -1073,7 +1074,7 @@ final class PurchaseHandler extends \Faoxima\Api\Handlers\BaseHandler
         $firstBuy = $invoiceCount === 1 ? \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_first_buy_flag', '📌 خرید اول کاربر') : '';
         $when = jdate('Y/m/d H:i:s');
 
-        $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ :{config_username}</blockquote>\n<blockquote>▫️موقعیت سرویس : {panel_name}</blockquote>\n<blockquote>▫️نام محصول :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
+        $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_report_channel_tpl', "📣 جزئیات ساخت اکانت در مینی اپ ثبت شد .\n\n{first_buy}\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>\n<blockquote>▫️نام محصول :{product_name}</blockquote>\n<blockquote>▫️زمان خریداری شده :{service_time} روز</blockquote>\n<blockquote>▫️حجم خریداری شده : {volume} GB</blockquote>\n<blockquote>▫️موجودی قبل خرید : {balance_before} تومان</blockquote>\n<blockquote>▫️موجودی بعد خرید : {balance_after} تومان</blockquote>\n<blockquote>▫️کد پیگیری: {order_id}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️شماره تلفن کاربر : {phone}</blockquote>\n<blockquote>▫️قیمت محصول : {price} تومان</blockquote>\n<blockquote>▫️زمان خرید : {when}</blockquote>"), [
             'first_buy' => $firstBuy,
             'user_id' => $this->user['id'],
             'username' => $this->user['username'],

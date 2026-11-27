@@ -11,7 +11,7 @@ final class AccountRoutes
             (bool) ($text == $textbotlang['users']['backbtn'] || $datain == "backuser" || $datain == "admin_back") => 'back',
             (bool) ($user['step'] == 'get_number' && in_array($from_id, $admin_ids)) => 'admin_phone',
             (bool) ($user['step'] == 'get_number' && !in_array($from_id, $admin_ids)) => 'phone',
-            (bool) (($text !== '' && $text == $datatextbot['text_Purchased_services']) || $datain == "backorder" || $datain == "myservicesbtn" || $datain == "next_page" || $datain == "previous_page" || $text == "/services") => 'services',
+            (bool) (($text !== '' && $text == $datatextbot['text_Purchased_services']) || \Faoxima\Telegram\Support\SubscriptionText::isLegacyMenuLabel((string) $text) || $datain == "backorder" || $datain == "myservicesbtn" || $datain == "next_page" || $datain == "previous_page" || $text == "/services") => 'services',
             (bool) (str_starts_with((string) $datain, 'ms:') || str_starts_with((string) $datain, 'myst:')) => 'services_page',
             (bool) (preg_match('/^(myservicescat|next_page|previous_page)_([a-f0-9]{32})(?:_([0-9]{1,10}))?$/', (string) $datain, $dataget)) => 'services_page',
             (bool) ($datain == "notusernameme") => 'lookup_prompt',

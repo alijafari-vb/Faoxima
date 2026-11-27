@@ -182,7 +182,7 @@ final class BulkGiftExecutionAndExports
             $nameloc = \Faoxima\Core\Database\Db::select("invoice", "*", "id_invoice", $id_invoice, "select");
             $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
             if ($DataUserOut['status'] == "on_hold") {
-                \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, "❌ هنوز به کانفیگ متصل نشده است کانفیگ و امکان تغییر وضعیت سرویس وجود ندارد. بعد از متصل شدن به کانفیگ می توانید از این قابلیت استفاده نمایید.", null, 'html');
+                \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, "❌ هنوز به کانفیگ متصل نشده است کانفیگ و امکان تغییر وضعیت اشتراک وجود ندارد. بعد از متصل شدن به کانفیگ می توانید از این قابلیت استفاده نمایید.", null, 'html');
                 return;
             }
             if ($DataUserOut['status'] == "Unsuccessful") {
@@ -201,7 +201,7 @@ final class BulkGiftExecutionAndExports
                     ]
                 ]);
                 Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.
-⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت سرویس دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت اشتراک دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید", $confirmdisableaccount);
             } else {
                 $confirmdisableaccount = json_encode([
                     'inline_keyboard' => [
@@ -214,7 +214,7 @@ final class BulkGiftExecutionAndExports
                     ]
                 ]);
                 Editmessagetext($from_id, $message_id, "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید
-⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت سرویس دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
+⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت اشتراک دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید", $confirmdisableaccount);
             }
             break;
         case 12:
@@ -273,7 +273,7 @@ final class BulkGiftExecutionAndExports
 
 - آیدی عددی ادمین :‌$from_id
 - نام ادمین : $first_name
-- نام کاربری سرویس :‌ {$invocie['username']}",
+- نام اشتراک :‌ {$invocie['username']}",
                     'parse_mode' => "HTML"
                 ]);
             }

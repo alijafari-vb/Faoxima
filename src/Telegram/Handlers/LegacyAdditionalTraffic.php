@@ -201,7 +201,7 @@ final class LegacyAdditionalTraffic
                 $extra_volume['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
                 $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$user['Processing_value_one']}</blockquote>
-<blockquote>نام کاربری سرویس : {$user['Processing_value']}</blockquote>
+<blockquote>نام اشتراک : {$user['Processing_value']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
                 sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
                 if (strlen($setting['Channel_Report'] ?? '') > 0) {

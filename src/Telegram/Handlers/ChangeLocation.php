@@ -148,7 +148,7 @@ final class ChangeLocation
             }
             $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
             if ($DataUserOut['status'] == "on_hold") {
-                sendmessage($from_id, $datatextbot['dyn_errors_transfer_unused_config_only'] ?? "❌ کانفیگ شما در وضعیت استفاده نشده است و امکان انتقال موقعیت سرویس وجود ندارد.", null, 'html');
+                sendmessage($from_id, $datatextbot['dyn_errors_transfer_unused_config_only'] ?? "❌ کانفیگ شما در وضعیت استفاده نشده است و امکان انتقال موقعیت اشتراک وجود ندارد.", null, 'html');
                 return;
             }
             if ($DataUserOut['status'] != "active") {
@@ -249,7 +249,7 @@ final class ChangeLocation
                 if ($dataoutput['username'] == null) {
                     $dataoutput['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($dataoutput['msg'] ?? null, $dataoutput['detail'] ?? null);
                     sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
-                    $texterros = "خطا هنگام تغییر موقعیت سرویس
+                    $texterros = "خطا هنگام تغییر موقعیت اشتراک
 <blockquote>دلیل خطا : {$dataoutput['msg']}</blockquote>
 <blockquote>آیدی کابر : $from_id</blockquote>
 <blockquote>نام کاربری کاربر : @$username</blockquote>
@@ -291,7 +291,7 @@ final class ChangeLocation
                 }
                 $Balance_Low_user = $__chargePc['new_balance'];
                 if (is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                    \Faoxima\Wallet\Ledger\Ledger::record($pdo, $from_id, 'debit', $Pricechange, 'service_action', 'تغییر موقعیت سرویس', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
+                    \Faoxima\Wallet\Ledger\Ledger::record($pdo, $from_id, 'debit', $Pricechange, 'service_action', 'تغییر موقعیت اشتراک', null, 'invoice', (string)($nameloc['id_invoice'] ?? ''));
                 }
             }
             \Faoxima\Core\Database\Db::update("invoice", "Service_location", $marzban_list_get_new['name_panel'], "username", $nameloc['username']);
@@ -302,7 +302,7 @@ final class ChangeLocation
             $balanceformatsell = number_format(\Faoxima\Core\Database\Db::select("user", "Balance", "id", $from_id, "select")['Balance'], 0);
             $format_byte = \Faoxima\Core\Support\Formatting::formatBytes($data_limit);
             $textreport = "
-تغییر موقعیت سرویس
+تغییر موقعیت اشتراک
 
 <blockquote>🔻آیدی عددی : <code>$from_id</code></blockquote>
 <blockquote>🔻نام کاربری : @$username</blockquote>

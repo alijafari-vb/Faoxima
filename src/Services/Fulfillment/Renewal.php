@@ -108,7 +108,7 @@ final class Renewal
                 }
                 return \Faoxima\Payments\Fulfillment\Settlement::fail($pdo, $order_id, $rxToken, 'national_stock_empty', $__refundSt);
             }
-            $rxStatements = \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید سرویس');
+            $rxStatements = \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید اشتراک');
             \Faoxima\Core\Database\Db::update("invoice", "name_product", $prodcut['name_product'], "id_invoice", $nameloc['id_invoice']);
             \Faoxima\Core\Database\Db::update("invoice", "price_product", $prodcut['price_product'], "id_invoice", $nameloc['id_invoice']);
             \Faoxima\Core\Database\Db::update("invoice", "Volume", $prodcut['Volume_constraint'], "id_invoice", $nameloc['id_invoice']);
@@ -119,7 +119,7 @@ final class Renewal
             try { \Faoxima\Core\Database\Db::update("invoice", "source_panel_code", $marzban_list_get['code_panel'], "id_invoice", $nameloc['id_invoice']); } catch (Throwable $e) {}
             \Faoxima\Services\Fulfillment\DeliveryState::notificationCycleReset($nameloc['id_invoice'], array('volume_cycle', 'time_cycle'), array('volume', 'volume_report', 'time', 'time_report'));
             $invoiceNew = array_merge((array)$nameloc, ['name_product' => $prodcut['name_product'], 'price_product' => $prodcut['price_product'], 'Volume' => $prodcut['Volume_constraint'], 'Service_time' => $prodcut['Service_time'], 'time_sell' => time(), 'user_info' => $stockNew['content'], 'source_panel_code' => $marzban_list_get['code_panel']]);
-            if (method_exists(\Faoxima\Services\Fulfillment\StockPresentation::class, 'nmStockDeliverConfig')) \Faoxima\Services\Fulfillment\StockPresentation::nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد');
+            if (method_exists(\Faoxima\Services\Fulfillment\StockPresentation::class, 'nmStockDeliverConfig')) \Faoxima\Services\Fulfillment\StockPresentation::nmStockDeliverConfig($stockNew, $invoiceNew, '✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد');
             $extend = ['status' => true, 'stock' => true];
         } else {
             $ManagePanel = \Faoxima\Services\Panels\PanelSetup::rxEnsureManagePanel();
@@ -279,7 +279,7 @@ final class Renewal
                 && in_array(\Faoxima\Services\Renewal\ReservationStore::opStage($rxExistingOp), ['reset_sent', 'reset_done', 'modify_sent'], true)) {
                 return \Faoxima\Payments\Fulfillment\Settlement::reconcileLater($pdo, $order_id, $rxToken, 'renewal_resume_result_unverified');
             }
-            $__refundEx = \Faoxima\Payments\Settlement\Refunds::paymentOnce($pdo, $Payment_report['id_order'], $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در تمدید سرویس', (string)($nameloc['id_invoice'] ?? ''));
+            $__refundEx = \Faoxima\Payments\Settlement\Refunds::paymentOnce($pdo, $Payment_report['id_order'], $Balance_id['id'], $Payment_report['price'], 'بازگشت وجه - خطا در تمدید اشتراک', (string)($nameloc['id_invoice'] ?? ''));
             if ($__refundEx === 'duplicate') {
                 return \Faoxima\Payments\Fulfillment\Settlement::fail($pdo, $order_id, $rxToken, 'renewal_failed', $__refundEx);
             }
@@ -289,15 +289,15 @@ final class Renewal
             } else {
                 sendmessage($Balance_id['id'], \Faoxima\Telegram\Support\MessageTemplates::get('service_renewal_failed_refund_failed'), $keyboard, 'HTML');
             }
-            $rxTopupExtendMsg = \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_errors_renewal_support_error', "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"));
+            $rxTopupExtendMsg = \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_errors_renewal_support_error', "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"));
             if (($extend['code'] ?? '') === 'manual_stock_empty') {
                 $rxTopupExtendMsg = "❌ موجودی انبار برای این محصول تمام شده است.";
             }
             $extend['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
             $textreports = "
-        خطای تمدید سرویس
+        خطای تمدید اشتراک
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>کد پیگیری پرداخت : {$order_id}</blockquote>
 <blockquote>کد خطا : " . htmlspecialchars((string) ($extend['code'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
@@ -312,7 +312,7 @@ final class Renewal
             }
             return \Faoxima\Payments\Fulfillment\Settlement::fail($pdo, $order_id, $rxToken, 'renewal_failed', $__refundEx);
         }
-            $rxStatements = array_merge($rxStatements, \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید سرویس'));
+            $rxStatements = array_merge($rxStatements, \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], -1, 'تمدید اشتراک'));
         }
         $rxCompletion = \Faoxima\Payments\Fulfillment\Settlement::complete($pdo, $order_id, $rxToken, ['operation' => 'getextenduser', 'panel' => $extend, 'target' => $rxTargetState ?? null], $rxStatements);
         if ($rxCompletion !== 'completed') {
@@ -381,7 +381,7 @@ final class Renewal
             || \Faoxima\Cashback\Eligibility::shopCashbackEligible($pdo, "chashbackextend", $Balance_id['register'] ?? null, "getextenduser", $Balance_id['id'] ?? null, $Payment_report['id_order'] ?? null);
         if ($renewCashbackEligible && intval($valurcashbackextend) != 0) {
             $result = (int) floor(($prodcut['price_product'] * $valurcashbackextend) / 100);
-            if (\Faoxima\Cashback\Credits::creditOnce($pdo, $Payment_report['id_order'] ?? '', $Balance_id['id'], $result, 'chashbackextend', 'هدیه بازگشت وجه تمدید سرویس') === 'credited') {
+            if (\Faoxima\Cashback\Credits::creditOnce($pdo, $Payment_report['id_order'] ?? '', $Balance_id['id'], $result, 'chashbackextend', 'هدیه بازگشت وجه تمدید اشتراک') === 'credited') {
                 sendmessage($Balance_id['id'], \Faoxima\Telegram\Support\MessageTemplates::get('service_renewal_cashback_gift', ['amount' => \Faoxima\Core\Support\Formatting::rxFormatToman($result)]), null, 'HTML');
             }
         }
@@ -412,8 +412,8 @@ final class Renewal
 
 <blockquote>▫️آیدی عددی کاربر : <code>{$Balance_id['id']}</code></blockquote>
 <blockquote>▫️نام کاربری کاربر : @{$Balance_id['username']}</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :$usernamepanel</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$nameloc['Service_location']}</blockquote>
+<blockquote>▫️نام اشتراک :$usernamepanel</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$nameloc['Service_location']}</blockquote>
 <blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>
@@ -444,8 +444,8 @@ final class Renewal
 
             $rxFmtBalanceBeforeExtend = \Faoxima\Core\Support\Formatting::rxFormatToman($Balance_id['Balance']);
             $textconfrom = "✅ پرداخت تایید شده
-🔋 تمدید سرویس
-🪪 نام کاربری کانفیگ : $usernamepanel
+🔋 تمدید اشتراک
+🪪 نام اشتراک : $usernamepanel
 🛍 نام محصول : {$prodcut['name_product']}
 🌏 نام لوکیشن : {$nameloc['Service_location']}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>

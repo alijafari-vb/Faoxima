@@ -166,14 +166,14 @@ final class ServiceDelivery
                 sendmessage($from_id, $datatextbot['dyn_errors_panel_connection_error'] ?? "❌ سامانه استعلام سرویس مورد نظر درحال حاضر در دسترس نیست.", $offlineKeyboard, 'html');
                 return;
             }
-            $subscriptionurl = $DataUserOut['subscription_url'];
+            $subscriptionurl = \Faoxima\Services\Delivery\ServiceDelivery::rxNormalizeSubscriptionUrl((string) $DataUserOut['subscription_url']);
             if ($marzban_list_get['type'] == "WGDashboard") {
                 $textsub = "qrcode اشتراک شما";
             } else {
                 $textsub = "
 {$textbotlang['users']['stateus']['linksub']}
 
-<code>$subscriptionurl</code>";
+<code>" . htmlspecialchars($subscriptionurl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "</code>";
             }
             $bakinfos = json_encode([
                 'inline_keyboard' => [
@@ -183,7 +183,6 @@ final class ServiceDelivery
                 ]
             ]);
             \Faoxima\Core\Database\Db::update("user", "Processing_value", $nameloc['username'], "id", $from_id);
-            $subscriptionurl = $DataUserOut['subscription_url'];
             $randomString = bin2hex(random_bytes(3));
             $subBackRow = [[
                 'text' => $textbotlang['users']['stateus']['backinfo'],

@@ -31,7 +31,7 @@ final class InventoryProvisioning
             $__allowNegBl = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
             $__chargeBl = \Faoxima\Wallet\Balance\Balances::charge($runtimePdo, $chatId, (float)$price, $__allowNegBl);
             if (!empty($__chargeBl['ok']) && is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $chatId, 'debit', $price, 'service_action', 'تمدید سرویس (تبدیل انبار)', null, 'invoice', (string)$invoice['id_invoice']);
+                \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $chatId, 'debit', $price, 'service_action', 'تمدید اشتراک (تبدیل انبار)', null, 'invoice', (string)$invoice['id_invoice']);
             }
         } else {
             \Faoxima\Core\Database\Db::update('user', 'Balance', (float)($userRow['Balance'] ?? 0) - $price, 'id', $chatId);
@@ -88,7 +88,7 @@ final class InventoryProvisioning
             if (!$stock && $productCode !== 'auto') $stock = \Faoxima\Services\Fulfillment\Inventory::nmStockReserveOne($runtimePdo, 'auto', 'auto', $volume, $invoice['id_user'] ?? '', $invoice['id_invoice'] ?? '', $mode);
         }
         if (!$stock) return false;
-        \Faoxima\Services\Fulfillment\StockPresentation::nmStockDeliverConfig($stock, $invoice, $mode === 'config_button' ? '✅ کانفیگ مطابق حجم سرویس از انبار شبکه‌ملی تحویل شد' : '✅ تمدید از پنل انجام نشد؛ کانفیگ جایگزین از انبار شبکه‌ملی تحویل شد');
+        \Faoxima\Services\Fulfillment\StockPresentation::nmStockDeliverConfig($stock, $invoice, $mode === 'config_button' ? '✅ کانفیگ مطابق حجم اشتراک از انبار شبکه‌ملی تحویل شد' : '✅ تمدید از پنل انجام نشد؛ کانفیگ جایگزین از انبار شبکه‌ملی تحویل شد');
         try { \Faoxima\Core\Database\Db::update('invoice', 'Status', 'active', 'id_invoice', $invoice['id_invoice']); \Faoxima\Core\Database\Db::update('invoice', 'user_info', $stock['content'], 'id_invoice', $invoice['id_invoice']); } catch (Throwable $e) { error_log('nmStockFallbackForInvoice invoice update failed: ' . $e->getMessage()); }
         return $stock;
         }
@@ -105,7 +105,7 @@ final class InventoryProvisioning
                     $__allowNegFb = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
                     $__chargeFb = \Faoxima\Wallet\Balance\Balances::charge($runtimePdo, $userId, $priceToCharge, $__allowNegFb);
                     if (!empty($__chargeFb['ok']) && is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                        \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $userId, 'debit', $priceToCharge, 'service_action', 'تمدید سرویس (جایگزین انبار)', null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                        \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $userId, 'debit', $priceToCharge, 'service_action', 'تمدید اشتراک (جایگزین انبار)', null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
                     }
                 } else {
                     $newBalance = (float)$userRow['Balance'] - $priceToCharge;
@@ -150,7 +150,7 @@ final class InventoryProvisioning
                         $__allowNeg3 = (($userRow['agent'] ?? '') === 'n2') ? (int)($userRow['maxbuyagent'] ?? 0) : 0;
                         $__charge3 = \Faoxima\Wallet\Balance\Balances::charge($runtimePdo, $userId, $__pp3, $__allowNeg3);
                         if (!empty($__charge3['ok']) && is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                            \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $userId, 'debit', $__pp3, 'purchase', 'خرید سرویس (انبار ملی)', (string)$invoiceId, 'invoice', (string)$invoiceId);
+                            \Faoxima\Wallet\Ledger\Ledger::record($runtimePdo, $userId, 'debit', $__pp3, 'purchase', 'خرید اشتراک (انبار ملی)', (string)$invoiceId, 'invoice', (string)$invoiceId);
                         }
                     } else {
                         \Faoxima\Core\Database\Db::update('user', 'Balance', (float)($userRow['Balance'] ?? 0) - $__pp3, 'id', $userId);

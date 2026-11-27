@@ -303,7 +303,7 @@ final class CryptoCheck
                 . "💵 مبلغ برگشت‌خورده: " . number_format($priceIrr) . " تومان\n"
                 . "💼 موجودی جدید: " . number_format($newBalance) . " تومان\n\n"
                 . "⚠️ پرداخت شما تأیید شد ولی به دلیل خطا در ساخت سرویس، مبلغ به کیف پول شما برگشت داده شد.\n"
-                . "💡 می‌توانید مجدداً اقدام به خرید سرویس کنید."
+                . "💡 می‌توانید مجدداً اقدام به خرید اشتراک کنید."
             );
             if (!empty($this->setting['Channel_Report']) && function_exists('telegram')) {
                 @telegram('sendmessage', [
@@ -741,8 +741,8 @@ final class CryptoCheck
                     (string) $row['id_user'],
                     "✅ <b>پرداخت تایید شد و سرویس شما فعال است</b>\n\n"
                     . "🛒 کد فاکتور: <code>{$orderId}</code>\n"
-                    . "👤 نام کاربری سرویس: <code>" . htmlspecialchars($username) . "</code>\n\n"
-                    . "ℹ️ اگر پیام تحویل کانفیگ را دریافت نکردید، از بخش «🛍 سرویس‌های من» وارد سرویس شوید و کانفیگ را دریافت کنید.\n"
+                    . "👤 نام اشتراک: <code>" . htmlspecialchars($username) . "</code>\n\n"
+                    . "ℹ️ اگر پیام تحویل کانفیگ را دریافت نکردید، از بخش «🛍 اشتراک‌های من» وارد سرویس شوید و کانفیگ را دریافت کنید.\n"
                     . "در صورت بروز مشکل با پشتیبانی در تماس باشید."
                 );
             } elseif (!$invoice) {

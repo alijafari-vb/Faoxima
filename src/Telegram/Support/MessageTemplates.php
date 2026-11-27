@@ -30,7 +30,7 @@ final class MessageTemplates
             'msg_btn_service' => ['برچسب دکمه‌های سرویس', 'server'],
             'msg_service_buy' => ['خرید و ساخت سرویس', 'cart-shopping'],
             'msg_service_renew' => ['تمدید و افزایش سرویس', 'server'],
-            'msg_service_manage' => ['مدیریت سرویس و کانفیگ', 'gear'],
+            'msg_service_manage' => ['مدیریت اشتراک و کانفیگ', 'gear'],
         ];
         $categories = [];
         foreach ($titles as $category => [$title, $icon]) {
@@ -82,7 +82,10 @@ final class MessageTemplates
         if ($definition === null) {
             return '';
         }
-        return (string) Texts::faoxima_textbot_get($key, $definition['default']);
+        $template = (string) Texts::faoxima_textbot_get($key, $definition['default']);
+        return str_starts_with($key, 'service_')
+            ? SubscriptionText::customerLabel(SubscriptionText::template($template))
+            : $template;
     }
 
     private static function resolve(string $key, array $vars, array $raw, bool $escape): string
@@ -91,7 +94,7 @@ final class MessageTemplates
         if ($definition === null) {
             return '';
         }
-        $template = (string) Texts::faoxima_textbot_get($key, $definition['default']);
+        $template = self::template($key);
         $replacements = [];
         foreach (array_keys($definition['vars']) as $name) {
             if (array_key_exists($name, $raw)) {
@@ -201,7 +204,7 @@ final class MessageTemplates
         $d['service_renewal_stock_empty_refunded'] = self::def('msg_pay_refund', 'تمدید: اتمام موجودی؛ وجه بازگشت', "❌ موجودی انبار برای این محصول تمام شده است؛ مبلغ پرداختی به کیف پول شما بازگردانده شد.");
         $d['service_renewal_stock_empty_refund_failed'] = self::def('msg_pay_refund', 'تمدید: اتمام موجودی؛ بازگشت ناموفق', "❌ موجودی انبار برای این محصول تمام شده است و بازگشت وجه با خطا مواجه شد؛ لطفاً با پشتیبانی در ارتباط باشید.");
         $d['service_renewal_failed_refunded'] = self::def('msg_pay_refund', 'تمدید: ناموفق؛ وجه بازگشت', "💎  کاربر عزیز بدلیل تمدید نشدن سرویس مبلغ {amount} تومان به کیف پول شما اضافه گردید.", $amount);
-        $d['service_renewal_failed_refund_failed'] = self::def('msg_pay_refund', 'تمدید: ناموفق؛ بازگشت ناموفق', "❌ تمدید سرویس با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.");
+        $d['service_renewal_failed_refund_failed'] = self::def('msg_pay_refund', 'تمدید: ناموفق؛ بازگشت ناموفق', "❌ تمدید اشتراک با خطا مواجه شد و بازگشت وجه نیز انجام نشد؛ لطفاً با پشتیبانی در ارتباط باشید.");
         $d['service_renewal_cashback_gift'] = self::def('msg_pay_refund', 'هدیهٔ بازگشت وجه تمدید', "تبریک 🎉\n📌 به عنوان هدیه تمدید مبلغ {amount} تومان حساب شما شارژ گردید", $amount);
         $d['wallet_transfer_canceled'] = self::def('msg_pay_refund', 'انتقال موجودی لغو شد', "❌ انتقال موجودی لغو شد.");
 
@@ -385,15 +388,15 @@ final class MessageTemplates
         $d['payment_crypto_receipt_saved'] = self::def('msg_pay_crypto', 'ثبت عکس رسید ارز دیجیتال', "✅ عکس رسید ثبت شد.\n\nدرخواست شما برای ادمین ارسال شد. نتیجه از طریق همین چت اعلام خواهد شد.\n\n🛒 کد فاکتور: <code>{order_id}</code>", ['order_id' => 'کد فاکتور']);
         $d['common_btn_cancel'] = self::def('msg_btn_common', 'دکمه: انصراف', "❌ انصراف");
 
-        $d['service_btn_renew'] = self::def('msg_btn_service', 'دکمه: تمدید سرویس', "♻️ تمدید سرویس");
-        $d['service_btn_buy_new'] = self::def('msg_btn_service', 'دکمه: خرید سرویس جدید', "🛒 خرید سرویس جدید");
+        $d['service_btn_renew'] = self::def('msg_btn_service', 'دکمه: تمدید اشتراک', "♻️ تمدید اشتراک");
+        $d['service_btn_buy_new'] = self::def('msg_btn_service', 'دکمه: خرید اشتراک جدید', "🛒 خرید اشتراک جدید");
         $d['service_btn_confirm_disable'] = self::def('msg_btn_service', 'دکمه: تایید و غیرفعال‌کردن کانفیگ', "✅ تایید و غیرفعال کانفیگ");
         $d['service_btn_confirm_enable'] = self::def('msg_btn_service', 'دکمه: تایید و فعال‌کردن کانفیگ', "✅ تایید و فعال کانفیگ");
         $d['service_btn_copy_config'] = self::def('msg_btn_service', 'دکمه: کپی کانفیگ', "📋 کپی کانفیگ");
         $d['service_btn_config_info'] = self::def('msg_btn_service', 'دکمه: اطلاعات کانفیگ', "⚙️ اطلاعات کانفیگ");
         $d['service_select_squad'] = self::def('msg_service_manage', 'انتخاب سرور (Squad)', "🌍 یک سرور (Squad) انتخاب کنید:");
-        $d['service_disable_confirm'] = self::def('msg_service_manage', 'تأیید خاموش‌کردن کانفیگ', "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.\n⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت سرویس دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید");
-        $d['service_enable_confirm'] = self::def('msg_service_manage', 'تأیید روشن‌کردن کانفیگ', "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید\n⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت سرویس دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید");
+        $d['service_disable_confirm'] = self::def('msg_service_manage', 'تأیید خاموش‌کردن کانفیگ', "📌 با تایید گزینه زیر کانفیگ شما خاموش و دیگر امکان اتصال به کانفیگ وجود ندارد.\n⚠️ در صورتی که میخواهید مجدد کانفیگ فعال شود باید از بخش مدیریت اشتراک دکمه <u>💡 روشن کردن اکانت</u> را کلیک کنید");
+        $d['service_enable_confirm'] = self::def('msg_service_manage', 'تأیید روشن‌کردن کانفیگ', "📌 با تایید گزینه زیر کانفیگ شما روشن خواهد شد. و می توانید به کانفیگ خود متصل شوید\n⚠️ در صورتی که میخواهید مجدد کانفیگ غیرفعال شود باید از بخش مدیریت اشتراک دکمه <u>❌ خاموش کردن اکانت</u>را کلیک کنید");
         $d['service_select_config_from_list'] = self::def('msg_service_manage', 'انتخاب کانفیگ از لیست', "📌 از لیست زیر یک کانفیگ را انتخاب استفاده نمایید.");
         $d['service_config_file_fetch_failed_default'] = self::def('msg_service_manage', 'خطای پیش‌فرض دریافت فایل کانفیگ', "خطا در دریافت فایل کانفیگ؛ دوباره تلاش کنید.");
 
@@ -416,21 +419,21 @@ final class MessageTemplates
         $d['service_btn_renew_current_plan'] = self::def('msg_btn_service', 'دکمه: تمدید پلن فعلی', "♻️ تمدید پلن فعلی");
         $d['service_btn_back_prev_menu'] = self::def('msg_btn_service', 'دکمه: بازگشت به منوی قبل', "▶️ بازگشت به منوی قبل");
         $d['service_btn_buy_subscription'] = self::def('msg_btn_service', 'دکمه: خرید اشتراک', "🛍خرید اشتراک");
-        $d['service_btn_manage'] = self::def('msg_btn_service', 'دکمه: مدیریت سرویس', "🔧 مدیریت سرویس");
+        $d['service_btn_manage'] = self::def('msg_btn_service', 'دکمه: مدیریت اشتراک', "🔧 مدیریت اشتراک");
         $d['service_btn_usage_by_server'] = self::def('msg_btn_service', 'دکمه: مصرف به‌تفکیک سرور', "📊 مصرف به‌تفکیک سرور");
         $d['service_btn_choose_server'] = self::def('msg_btn_service', 'دکمه: انتخاب سرور', "🌍 انتخاب سرور");
-        $d['service_btn_get_config'] = self::def('msg_btn_service', 'دکمه: دریافت کانفیگ (جزئیات سرویس)', "🔐 دریافت کانفیگ");
+        $d['service_btn_get_config'] = self::def('msg_btn_service', 'دکمه: دریافت کانفیگ (جزئیات اشتراک)', "🔐 دریافت کانفیگ");
         $d['service_btn_get_sub_link'] = self::def('msg_btn_service', 'دکمه: دریافت لینک اشتراک', "🔗 دریافت لینک اشتراک");
         $d['service_btn_delete'] = self::def('msg_btn_service', 'دکمه: حذف سرویس', "❌ حذف سرویس");
-        $d['service_btn_back_to_info'] = self::def('msg_btn_service', 'دکمه: بازگشت به اطلاعات سرویس', "🏠 بازگشت به اطلاعات سرویس");
+        $d['service_btn_back_to_info'] = self::def('msg_btn_service', 'دکمه: بازگشت به اطلاعات اشتراک', "🏠 بازگشت به اطلاعات اشتراک");
         $d['service_btn_pick_current'] = self::def('msg_btn_service', 'دکمه: انتخاب سرویس فعلی', "📍 انتخاب سرویس فعلی");
         $d['service_btn_stock_back_to_list'] = self::def('msg_btn_service', 'دکمه انبار: بازگشت به لیست سرویس‌ها', "🏠 بازگشت به لیست سرویس ها");
-        $d['service_btn_stock_extend'] = self::def('msg_btn_service', 'دکمه انبار: تمدید سرویس', "🔄 تمدید سرویس");
+        $d['service_btn_stock_extend'] = self::def('msg_btn_service', 'دکمه انبار: تمدید اشتراک', "🔄 تمدید اشتراک");
         $d['service_btn_stock_refund'] = self::def('msg_btn_service', 'دکمه انبار: بازگشت وجه', "💎 بازگشت وجه");
         $d['service_btn_stock_get_config'] = self::def('msg_btn_service', 'دکمه انبار: دریافت کانفیگ', "📥 دریافت کانفیگ");
         $d['service_btn_stock_sub_link'] = self::def('msg_btn_service', 'دکمه انبار: لینک اشتراک', "🔗 لینک اشتراک");
         $d['service_btn_request_delete_confirm'] = self::def('msg_btn_service', 'دکمه: درخواست حذف سرویس', "✅  درخواست حذف سرویس را دارم");
-        $d['service_btn_confirm_transfer'] = self::def('msg_btn_service', 'دکمه: تایید انتقال سرویس', "✅ تایید انتقال سرویس");
+        $d['service_btn_confirm_transfer'] = self::def('msg_btn_service', 'دکمه: تایید انتقال اشتراک', "✅ تایید انتقال اشتراک");
         $d['service_btn_send_dispute_confirm'] = self::def('msg_btn_service', 'دکمه: تایید ارسال گزارش اختلال', "✅ ارسال گزارش اختلال");
         $d['service_btn_report_issue'] = self::def('msg_btn_service', 'دکمه: ارسال گزارش اختلال', "⚠️ ارسال گزارش اختلال");
         $d['service_btn_refresh_info'] = self::def('msg_btn_service', 'دکمه: بروزرسانی اطلاعات', "♻️ بروزرسانی اطلاعات");
@@ -509,7 +512,7 @@ final class MessageTemplates
         $d['payment_invoice_created_nowpayments'] = self::def('msg_pay_invoice', 'NowPayments: پیام ایجاد فاکتور', "<b>💲 جهت افزایش اعتبار کیف پول خود از طریق ارز دیجیتال روی دکمه پرداخت در انتهای پیام کلیک کنید</b>\n\n⚠️ توجه:  زمان پرداخت 30 دقیقه می باشد پس از 30 دقیقه تراکنش لغو خواهد شد\n\n🌐 برخی از سایت های داخلی جهت خرید ارز دیجیتال 👇\n🔸 nikpardakht.com\n🔹 webpurse.org\n🔸 bitpin.ir\n🔹 sarmayex.com\n🔸 ok-ex.io\n🔹 nobitex.ir\n🔸 bitbarg.com\n🔹 cafearz.com\n🔸 pay98.app\n🔢 شماره فاکتور : {order_id}\n💰 مبلغ فاکتور : {price} تومان\n📊 قیمت دلار: {usd_rate} تومان تا این لحظه\n\n<blockquote>⚠️ پس از پرداخت، در صورتی که مبلغ تراکنش به‌درستی واریز شده باشد، موجودی شما حداکثر تا ۱۵ دقیقه آینده به‌صورت خودکار شارژ خواهد شد.</blockquote>\n\nجهت پرداخت از دکمه زیر استفاده👇🏻", $cryptoGwVars);
         $d['payment_invoice_created_zarinpal'] = self::def('msg_pay_invoice', 'زرین‌پال: پیام ایجاد فاکتور', "✅ فاکتور پرداخت ایجاد شد.\n\n🔢 شماره فاکتور : {order_id}\n💰 مبلغ فاکتور : {price} تومان\n\n❌ این تراکنش به مدت ۳۰ دقیقه اعتبار دارد پس از آن امکان پرداخت این تراکنش امکان ندارد.\n\n📌لطفاً پس از پرداخت و موفق بودن تراکنش ، کمی صبر کنید تا پیام پرداخت موفق در سایت ما دریافت کنید. در غیراینصورت اکانت شما شارژ نخواهد شد.\n\nجهت پرداخت از دکمه زیر استفاده کنید👇🏻", ['order_id' => 'شماره فاکتور', 'price' => 'مبلغ فاکتور به تومان']);
 
-        $d['service_transfer_received_notice'] = self::def('msg_service_manage', 'اعلان دریافت سرویس منتقل‌شده', "✅ کاربر گرامی  سرویس با نام کاربری {username} از طرف کاربر با شناسه کاربری {from_id}  به حساب کاربری شما منتقل گردید.", ['username' => 'نام کاربری سرویس', 'from_id' => 'شناسه کاربر فرستنده']);
+        $d['service_transfer_received_notice'] = self::def('msg_service_manage', 'اعلان دریافت سرویس منتقل‌شده', "✅ کاربر گرامی  سرویس با نام کاربری {username} از طرف کاربر با شناسه کاربری {from_id}  به حساب کاربری شما منتقل گردید.", ['username' => 'نام اشتراک', 'from_id' => 'شناسه کاربر فرستنده']);
         $d['service_dispute_ask_reason'] = self::def('msg_service_manage', 'درخواست علت اختلال', "❓ علت اختلال خود را بنویسید\n\n🔹 قبل از اینکه گزارشی ارسال بکنید آموزش های اتصال را مشاهده کنید. ( /help )");
         $d['service_dispute_confirm'] = self::def('msg_service_manage', 'تأیید ارسال گزارش اختلال', "❓ آیا از ارسال گزارش اختلال اطمینان دارید\n\n🔹 قبل از اینکه گزارشی ارسال بکنید آموزش های اتصال را مشاهده کنید. ( /help )");
         $d['wallet_tx_prompt'] = self::def('msg_wallet_tx', 'درخواست انتخاب بازهٔ تراکنش‌ها', "📑 تراکنش‌های من\n\nبازه‌ی زمانی مورد نظر را برای مشاهده‌ی تراکنش‌های کیف پول خود انتخاب کنید:");
@@ -522,7 +525,7 @@ final class MessageTemplates
         $d['wallet_tx_cat_topup_gateway'] = self::def('msg_wallet_tx', 'دسته تراکنش: شارژ درگاه پرداخت', "شارژ درگاه پرداخت");
         $d['wallet_tx_cat_admin_credit'] = self::def('msg_wallet_tx', 'دسته تراکنش: افزایش موجودی توسط ادمین', "افزایش موجودی توسط ادمین");
         $d['wallet_tx_cat_admin_debit'] = self::def('msg_wallet_tx', 'دسته تراکنش: کاهش موجودی توسط ادمین', "کاهش موجودی توسط ادمین");
-        $d['wallet_tx_cat_purchase'] = self::def('msg_wallet_tx', 'دسته تراکنش: خرید سرویس', "خرید سرویس");
+        $d['wallet_tx_cat_purchase'] = self::def('msg_wallet_tx', 'دسته تراکنش: خرید اشتراک', "خرید اشتراک");
         $d['wallet_tx_cat_refund'] = self::def('msg_wallet_tx', 'دسته تراکنش: بازگشت وجه', "بازگشت وجه");
         $d['wallet_tx_cat_affiliate_commission'] = self::def('msg_wallet_tx', 'دسته تراکنش: پورسانت زیرمجموعه', "پورسانت زیرمجموعه");
         $d['wallet_tx_cat_gift_code'] = self::def('msg_wallet_tx', 'دسته تراکنش: کد هدیه', "کد هدیه");
@@ -545,11 +548,11 @@ final class MessageTemplates
         $d['account_score_line'] = self::def('msg_account', 'حساب کاربری: سطر امتیاز', "🥅 امتیاز حساب کاربری شما : {score}", ['score' => 'امتیاز کاربر']);
         $d['account_referral_verify_line'] = self::def('msg_account', 'حساب کاربری: لینک ریفرال جهت احراز', "\n\n🔗 لینک ریفرال جهت احراز زیر مجموعه :\nhttps://t.me/{bot}?start={code}", ['bot' => 'نام کاربری ربات', 'code' => 'کد دعوت کاربر']);
 
-        $d['service_renewal_success'] = self::def('msg_service_renew', 'تمدید موفق: خلاصهٔ تمدید', "✅ تمدید برای سرویس شما با موفقیت صورت گرفت\n\n▫️نام سرویس : {service}\n▫️نام محصول : {product}\n▫️مبلغ تمدید {price} تومان\n", ['service' => 'نام کاربری سرویس', 'product' => 'نام محصول', 'price' => 'مبلغ تمدید']);
-        $d['service_renewal_queued_summary'] = self::def('msg_service_renew', 'تمدید در صف: خلاصهٔ تمدید', "{confirmation}\n\n▫️نام سرویس : {service}\n▫️نام محصول : {product}\n▫️مبلغ تمدید {price} تومان\n", ['confirmation' => 'متن تأیید ثبت در صف', 'service' => 'نام کاربری سرویس', 'product' => 'نام محصول', 'price' => 'مبلغ تمدید']);
+        $d['service_renewal_success'] = self::def('msg_service_renew', 'تمدید موفق: خلاصهٔ تمدید', "✅ تمدید برای سرویس شما با موفقیت صورت گرفت\n\n▫️نام اشتراک: {service}\n▫️نام پلن: {product}\n▫️مبلغ تمدید {price} تومان\n", ['service' => 'نام اشتراک', 'product' => 'نام پلن', 'price' => 'مبلغ تمدید']);
+        $d['service_renewal_queued_summary'] = self::def('msg_service_renew', 'تمدید در صف: خلاصهٔ تمدید', "{confirmation}\n\n▫️نام اشتراک: {service}\n▫️نام پلن: {product}\n▫️مبلغ تمدید {price} تومان\n", ['confirmation' => 'متن تأیید ثبت در صف', 'service' => 'نام اشتراک', 'product' => 'نام پلن', 'price' => 'مبلغ تمدید']);
         $d['service_renewal_restart_error'] = self::def('msg_service_renew', 'خطا: مراحل را از اول طی کنید', "❌ خطایی رخ داده است مراحل را از اول طی کنید");
-        $d['service_location_change_confirm'] = self::def('msg_service_manage', 'تأیید تغییر موقعیت سرویس', "📍 با  تایید کردن انتقال موقعیت سرویس شما در این موقعیت حذف و به موقعیت جدید منتقل خواهد شد.\n💰 هزینه انتقال {price} تومان می باشد\n📌 محدودیت باقی مانده شما : {limit_left} عدد (تعداد محدودیت رایگان باقی مانده :‌{free_left} عدد)\n\n✅ برای تایید انتقال روی دکمه زیر کلیک کنید", ['price' => 'هزینهٔ انتقال', 'limit_left' => 'محدودیت باقی‌مانده', 'free_left' => 'تعداد رایگان باقی‌مانده']);
-        $d['service_location_change_success'] = self::def('msg_service_manage', 'تغییر موقعیت موفق', "✅ کانفیگ شما باموفقیت به سرور ({panel}) انتقال یافت.\n\n🖥 نام سرویس : {username}\n💠 حجم سرویس : {volume}\n⏳ زمان انقضا :  {expire} | {days_left}\n\n🔗 لینک اشتراک شما:\n\n<code>{link}</code>", ['panel' => 'نام سرور جدید', 'username' => 'نام سرویس', 'volume' => 'حجم باقی‌مانده', 'expire' => 'تاریخ انقضا', 'days_left' => 'روزهای باقی‌مانده', 'link' => 'لینک اشتراک']);
+        $d['service_location_change_confirm'] = self::def('msg_service_manage', 'تأیید تغییر موقعیت اشتراک', "📍 با  تایید کردن انتقال موقعیت اشتراک شما در این موقعیت حذف و به موقعیت جدید منتقل خواهد شد.\n💰 هزینه انتقال {price} تومان می باشد\n📌 محدودیت باقی مانده شما : {limit_left} عدد (تعداد محدودیت رایگان باقی مانده :‌{free_left} عدد)\n\n✅ برای تایید انتقال روی دکمه زیر کلیک کنید", ['price' => 'هزینهٔ انتقال', 'limit_left' => 'محدودیت باقی‌مانده', 'free_left' => 'تعداد رایگان باقی‌مانده']);
+        $d['service_location_change_success'] = self::def('msg_service_manage', 'تغییر موقعیت موفق', "✅ کانفیگ شما باموفقیت به سرور ({panel}) انتقال یافت.\n\n🖥 نام سرویس : {username}\n💠 حجم اشتراک : {volume}\n⏳ زمان انقضا :  {expire} | {days_left}\n\n🔗 لینک اشتراک شما:\n\n<code>{link}</code>", ['panel' => 'نام سرور جدید', 'username' => 'نام سرویس', 'volume' => 'حجم باقی‌مانده', 'expire' => 'تاریخ انقضا', 'days_left' => 'روزهای باقی‌مانده', 'link' => 'لینک اشتراک']);
 
         $d['wallet_transfer_invalid_id'] = self::def('msg_wallet_tx', 'انتقال موجودی: آیدی نامعتبر', "❌ آیدی عددی نامعتبر است. آیدی عددی تلگرام کاربر مقصد را مجددا ارسال کنید:");
         $d['wallet_transfer_self'] = self::def('msg_wallet_tx', 'انتقال موجودی: انتقال به خود', "❌ نمی‌توانید به خودتان موجودی انتقال دهید. آیدی عددی دیگری ارسال کنید:");
@@ -577,11 +580,11 @@ final class MessageTemplates
         $d['notify_btn_view_service'] = self::def('msg_notify', 'دکمه اعلان: مشاهده اشتراک', "مشاهده اشتراک");
         $d['notify_cashback_gift'] = self::def('msg_notify', 'اعلان: هدیهٔ بازگشت وجه کارت به کارت', "🎁 کاربر عزیز مبلغ {amount} تومان به عنوان هدیه واریز به حساب شما واریز گردید.", ['amount' => 'مبلغ هدیه']);
         $d['notify_ip_dropped'] = self::def('msg_notify', 'اعلان: قطع اتصال IP قبلی', "⚠️ چون یک دستگاه/IP جدید به کانفیگ شما وصل شد، اتصال قبلی از IP <code>{ips}</code> قطع شد.\nاین IP بعد از مدتی خودکار آزاد می‌شود.\nاگر این تغییر از سمت شما نبوده، کانفیگ خود را با کسی به اشتراک نگذارید.", ['ips' => 'فهرست IPهای قطع‌شده']);
-        $d['notify_on_hold_reminder'] = self::def('msg_notify', 'اعلان: یادآوری عدم اتصال به کانفیگ', "سلام! 🌐\r\n\r\nدیدیم که شما هنوز به کانفیگ خود با نام کاربری {username} متصل نشده‌اید و بیش از {days} روز از فعال‌سازی آن گذشته است. اگر در راه‌اندازی یا استفاده از سرویس مشکلی دارید، لطفاً با تیم پشتیبانی ما  از طریق آیدی زیر در ارتباط باشید تا به شما کمک کنیم.\r\nما آماده‌ایم تا هر گونه سوال یا مشکلی را برطرف کنیم! 📞\r\n\r\nاکانت پشتیبانی : @{support}", ['username' => 'نام کاربری سرویس', 'days' => 'تعداد روز', 'support' => 'آیدی پشتیبانی (بدون @)']);
+        $d['notify_on_hold_reminder'] = self::def('msg_notify', 'اعلان: یادآوری عدم اتصال به کانفیگ', "سلام! 🌐\r\n\r\nدیدیم که شما هنوز به کانفیگ خود با نام کاربری {username} متصل نشده‌اید و بیش از {days} روز از فعال‌سازی آن گذشته است. اگر در راه‌اندازی یا استفاده از سرویس مشکلی دارید، لطفاً با تیم پشتیبانی ما  از طریق آیدی زیر در ارتباط باشید تا به شما کمک کنیم.\r\nما آماده‌ایم تا هر گونه سوال یا مشکلی را برطرف کنیم! 📞\r\n\r\nاکانت پشتیبانی : @{support}", ['username' => 'نام اشتراک', 'days' => 'تعداد روز', 'support' => 'آیدی پشتیبانی (بدون @)']);
 
         $d['service_custom_volume_prompt'] = self::def('msg_service_buy', 'درخواست حجم دلخواه', "📌 حجم درخواستی خود را ارسال کنید.\n🔔قیمت هر گیگ حجم {price} تومان می باشد.\n🔔 حداقل حجم {min} گیگابایت و حداکثر {max} گیگابایت می باشد.", ['price' => 'قیمت هر گیگ به تومان', 'min' => 'حداقل حجم (گیگابایت)', 'max' => 'حداکثر حجم (گیگابایت)']);
         $d['service_custom_volume_invalid'] = self::def('msg_service_buy', 'حجم دلخواه نامعتبر', "❌ حجم نامعتبر است.\n🔔 حداقل حجم {min} گیگابایت و حداکثر {max} گیگابایت می باشد", ['min' => 'حداقل حجم (گیگابایت)', 'max' => 'حداکثر حجم (گیگابایت)']);
-        $d['service_custom_volume_prompt_bulk'] = self::def('msg_service_buy', 'درخواست حجم دلخواه (خرید انبوه)', "🔋 لطفا مقدار حجم سرویس مورد نظر را وارد کنید ( برحسب گیگابایت ) :\n📌 تعرفه هر گیگ :  {price}\n🔔 حداقل حجم 1 گیگابایت و حداکثر 1000 گیگابایت می باشد.", ['price' => 'قیمت هر گیگ به تومان']);
+        $d['service_custom_volume_prompt_bulk'] = self::def('msg_service_buy', 'درخواست حجم دلخواه (خرید انبوه)', "🔋 لطفا مقدار حجم اشتراک مورد نظر را وارد کنید ( برحسب گیگابایت ) :\n📌 تعرفه هر گیگ :  {price}\n🔔 حداقل حجم 1 گیگابایت و حداکثر 1000 گیگابایت می باشد.", ['price' => 'قیمت هر گیگ به تومان']);
         $d['service_custom_duration_prompt'] = self::def('msg_service_buy', 'درخواست مدت دلخواه', "⌛️ زمان سرویس خود را انتخاب نمایید\n📌 تعرفه هر روز  : {price}  تومان\n⚠️ حداقل زمان {min} روز  و حداکثر {max} روز  می توانید تهیه کنید", ['price' => 'تعرفهٔ هر روز به تومان', 'min' => 'حداقل روز', 'max' => 'حداکثر روز']);
 
         $d['service_extra_traffic_ask'] = self::def('msg_service_renew', 'حجم اضافه: درخواست مقدار', " ⭕️ مقدار حجمی که میخواهید خریداری کنید را ارسال کنید.\n❌ مبلغ را به انگلیسی ارسال نمایید.\n        ⚠️ هر گیگ  حجم اضافه {price} تومان  است.", ['price' => 'قیمت هر گیگ حجم اضافه']);
@@ -594,10 +597,10 @@ final class MessageTemplates
         $d['service_extra_time_success'] = self::def('msg_service_renew', 'زمان اضافه: موفقیت', "✅ افزایش زمان برای سرویس شما با موفقیت صورت گرفت\n\n▫️نام سرویس : {username}\n▫️زمان اضافه : {days} روز\n\n▫️مبلغ افزایش زمان : {total} تومان", ['username' => 'نام سرویس', 'days' => 'روز اضافه', 'total' => 'مبلغ']);
 
         $d['service_custom_duration_invalid'] = self::def('msg_service_buy', 'مدت دلخواه نامعتبر', "❌ زمان ارسال شده نامعتبر است . زمان باید بین {min} روز تا {max} روز باشد", ['min' => 'حداقل روز', 'max' => 'حداکثر روز']);
-        $renewVars = ['username' => 'نام کاربری سرویس', 'product' => 'نام محصول', 'price' => 'مبلغ تمدید', 'days' => 'مدت تمدید (روز)', 'volume' => 'حجم تمدید', 'note' => 'توضیحات محصول', 'balance' => 'موجودی کیف پول'];
-        $d['service_renewal_invoice_preview'] = self::def('msg_service_renew', 'پیش‌فاکتور تمدید (انتخاب محصول)', "📜 فاکتور تمدید شما برای نام کاربری {username} ایجاد شد.\n\n🛍 نام محصول :{product}\n💸 مبلغ تمدید : {price} تومان\n⏱ مدت زمان تمدید :{days} روز\n🔋 حجم تمدید :{volume}\n✍️ توضیحات : {note}\n💸 موجودی کیف پول : {balance}", $renewVars);
-        $d['service_renewal_invoice_preview_alt'] = self::def('msg_service_renew', 'پیش‌فاکتور تمدید (تکرار سفارش)', "📜 فاکتور تمدید شما برای نام کاربری {username} ایجاد شد.\n\n🛍 نام محصول :{product}\n💸 مبلغ تمدید :{price}\n⏱ مدت زمان تمدید :{days} روز\n🔋 حجم تمدید :{volume} گیگ\n✍️ توضیحات : {note}\n💸 موجودی کیف پول : {balance}", $renewVars);
-        $d['service_renewal_confirm_hint'] = self::def('msg_service_renew', 'راهنمای تأیید تمدید', "✅ برای تایید و تمدید سرویس روی دکمه زیر کلیک کنید");
+        $renewVars = ['username' => 'نام اشتراک', 'product' => 'نام پلن', 'price' => 'مبلغ تمدید', 'days' => 'مدت تمدید (روز)', 'volume' => 'حجم تمدید', 'note' => 'توضیحات محصول', 'balance' => 'موجودی کیف پول'];
+        $d['service_renewal_invoice_preview'] = self::def('msg_service_renew', 'پیش‌فاکتور تمدید (انتخاب محصول)', "📜 فاکتور تمدید شما برای اشتراک {username} ایجاد شد.\n\n🛍 نام پلن: {product}\n💸 مبلغ تمدید : {price} تومان\n⏱ مدت زمان تمدید :{days} روز\n🔋 حجم تمدید :{volume}\n✍️ توضیحات : {note}\n💸 موجودی کیف پول : {balance}", $renewVars);
+        $d['service_renewal_invoice_preview_alt'] = self::def('msg_service_renew', 'پیش‌فاکتور تمدید (تکرار سفارش)', "📜 فاکتور تمدید شما برای اشتراک {username} ایجاد شد.\n\n🛍 نام پلن: {product}\n💸 مبلغ تمدید :{price}\n⏱ مدت زمان تمدید :{days} روز\n🔋 حجم تمدید :{volume} گیگ\n✍️ توضیحات : {note}\n💸 موجودی کیف پول : {balance}", $renewVars);
+        $d['service_renewal_confirm_hint'] = self::def('msg_service_renew', 'راهنمای تأیید تمدید', "✅ برای تایید و تمدید اشتراک روی دکمه زیر کلیک کنید");
         $d['service_bulk_invoice_preview'] = self::def('msg_service_buy', 'پیش‌فاکتور خرید انبوه', "\n📇 پیش فاکتور شما:\n👤 نام کاربری: <code>{username}</code>\n🔐 نام سرویس: {product}\n📆 مدت اعتبار: {days} روز\n💶 قیمت: {price}  تومان\n👥 حجم اکانت: {volume} گیگ\n💵 موجودی کیف پول شما : {balance}\n⭕️تعداد کانفیگ : {count}\n\n💰 سفارش شما آماده پرداخت است.  ", ['username' => 'نام کاربری', 'product' => 'نام سرویس', 'days' => 'مدت اعتبار', 'price' => 'قیمت', 'volume' => 'حجم', 'balance' => 'موجودی کیف پول', 'count' => 'تعداد کانفیگ']);
         $d['service_discount_invoice_preview'] = self::def('msg_service_buy', 'پیش‌فاکتور با کد تخفیف', "\n📇 پیش فاکتور شما:\n👤 نام کاربری: <code>{username}</code>\n🔐 نام سرویس: {product}\n📆 مدت اعتبار: {days} روز\n💶 قیمت اصلی : <del>{price_main} تومان</del>\n💶 قیمت با تخفیف: {price_discounted}  تومان\n👥 حجم اکانت: {volume} گیگ\n💵 موجودی کیف پول شما : {balance}\n\n        💰 سفارش شما آماده پرداخت است.  ", ['username' => 'نام کاربری', 'product' => 'نام سرویس', 'days' => 'مدت اعتبار', 'price_main' => 'قیمت اصلی', 'price_discounted' => 'قیمت با تخفیف', 'volume' => 'حجم', 'balance' => 'موجودی کیف پول']);
         $d['service_preview_line_user_count'] = self::def('msg_service_buy', 'پیش‌فاکتور: سطر تعداد کاربر', "👥 تعداد کاربر: {count}", ['count' => 'تعداد کاربر']);

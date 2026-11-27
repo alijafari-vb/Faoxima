@@ -298,7 +298,7 @@ final class ConfirmRenewal
             if ($outcome === 'refundable' || $outcome === 'uncertain') {
                 if ($resultSaved && $outcome === 'refundable') {
                     try {
-                        \Faoxima\Services\Renewal\WalletRenewal::refund($pdo, $funding, (string) $from_id, 'بازگشت وجه تمدید سرویس');
+                        \Faoxima\Services\Renewal\WalletRenewal::refund($pdo, $funding, (string) $from_id, 'بازگشت وجه تمدید اشتراک');
                     } catch (Throwable $error) {
                         $extend = ['status' => false, 'code' => 'refund_requires_review'];
                     }
@@ -307,9 +307,9 @@ final class ConfirmRenewal
                 $rxStockEmpty = ($extend['code'] ?? '') === 'manual_stock_empty';
                 $rxQueuedExists = ($extend['code'] ?? '') === 'queued_renewal_exists';
                 $extend['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
-                $textreports = "خطای تمدید سرویس
+                $textreports = "خطای تمدید اشتراک
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>کد خطا : " . htmlspecialchars((string) ($extend['code'] ?? ''), ENT_QUOTES, 'UTF-8') . "</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
                 if ($rxStockEmpty) {
@@ -317,7 +317,7 @@ final class ConfirmRenewal
                 } elseif ($rxQueuedExists) {
                     sendmessage($from_id, $datatextbot['dyn_errors_queued_renewal_exists'] ?? "❌ یک رزرو اشتراک برای این سرویس در انتظار فعال‌سازی است. مبلغی از حساب شما کسر نشد.", null, 'HTML');
                 } else {
-                    sendmessage($from_id, \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+                    sendmessage($from_id, \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, $datatextbot['dyn_errors_renewal_support_error'] ?? "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
                 }
                 if (strlen($setting['Channel_Report'] ?? '') > 0) {
                     telegram('sendmessage', [
@@ -393,9 +393,9 @@ final class ConfirmRenewal
 
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$nameloc['username']}</blockquote>
+<blockquote>▫️نام اشتراک :{$nameloc['username']}</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$nameloc['Service_location']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$nameloc['Service_location']}</blockquote>
 <blockquote>▫️نام محصول : {$prodcut['name_product']}</blockquote>
 <blockquote>▫️حجم محصول : {$prodcut['Volume_constraint']}</blockquote>
 <blockquote>▫️زمان محصول : {$prodcut['Service_time']}</blockquote>

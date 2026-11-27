@@ -22,7 +22,7 @@ final class InvoicePagesHelpers
         ];
         $keyboardlists['inline_keyboard'][] = [
             ['text' => "عملیات", 'callback_data' => "action"],
-            ['text' => "وضعیت سرویس", 'callback_data' => "Status"],
+            ['text' => "وضعیت اشتراک", 'callback_data' => "Status"],
             ['text' => "نام کاربری", 'callback_data' => "username"],
         ];
         while ($row = mysqli_fetch_assoc($result)) {

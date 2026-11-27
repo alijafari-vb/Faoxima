@@ -92,7 +92,7 @@ final class TestServiceCleaner
             $markup = json_encode([
                 'inline_keyboard' => [
                     [
-                        rx_cron_btn('cron_buy_service', ['text' => "🛍 خرید سرویس", 'callback_data' => 'buy']),
+                        rx_cron_btn('cron_buy_service', ['text' => "🛍 خرید اشتراک", 'callback_data' => 'buy']),
                     ],
                 ]
             ]);

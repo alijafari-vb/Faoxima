@@ -319,6 +319,7 @@ trait PanelProvisioning
                     $subscriptionUrl = $createdData['subscription'];
                 }
             }
+            $createdUser = is_array($createdData) && array_is_list($createdData) ? ($createdData[0] ?? []) : $createdData;
             if (!empty($subscriptionUrl)) {
                 $configs[] = $subscriptionUrl;
             }
@@ -336,7 +337,8 @@ trait PanelProvisioning
             }
             $Output['status'] = 'successful';
             $Output['username'] = $usernameC;
-            $Output['subscription_url'] = $subscriptionUrl;
+            $Output['panel_user_id'] = \Faoxima\Services\Subscriptions\ServiceSearch::numericId($userData['panel_user_id'] ?? $createdUser['id'] ?? null);
+            $Output['subscription_url'] = \Faoxima\Services\Delivery\ServiceDelivery::rxNormalizeSubscriptionUrl((string) $subscriptionUrl);
             $Output['configs'] = $configs;
         } elseif ($Get_Data_Panel['type'] == "Manualsale") {
             $configman = null;

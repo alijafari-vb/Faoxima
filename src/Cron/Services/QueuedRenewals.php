@@ -141,7 +141,7 @@ final class QueuedRenewals
         $adminSource = ($fulfillment['source'] ?? '') === 'admin';
         $notifyCustomer = !$adminSource || ($fulfillment['notify_customer'] ?? true) !== false;
         $diagnostic = "<blockquote>شناسه رزرو : <code>{$row['id']}</code></blockquote>\n"
-            . "<blockquote>نام کاربری سرویس : <code>" . self::esc($row['username']) . "</code></blockquote>\n"
+            . "<blockquote>نام اشتراک : <code>" . self::esc($row['username']) . "</code></blockquote>\n"
             . "<blockquote>نام پنل : " . self::esc($row['name_panel']) . "</blockquote>\n"
             . "<blockquote>زمان فعال‌سازی : " . self::esc(Reservations::rxReservationTriggerLabel((string) ($row['trigger_type'] ?? 'either'), $row['trigger_at'] ?? null, ReservationCriteria::reservationRowConditions($row))) . "</blockquote>\n"
             . "<blockquote>سیاست اجرا : " . self::esc(RenewalText::rxRenewalPolicyLabel((string) ($row['policy'] ?? 'reset_all'), !empty($row['reset_usage']))) . "</blockquote>\n"
@@ -202,7 +202,7 @@ final class QueuedRenewals
                 }
                 $this->sendUser('op:' . (string) ($op['op_id'] ?? '') . ':user', $invoice['id_user'], $invoice['bottype'] ?? null, $text);
             }
-            $this->report('op:' . (string) ($op['op_id'] ?? '') . ':report', "✅ تمدید نامشخص پس از بررسی خودکار تأیید شد\n\n<blockquote>شناسه عملیات : <code>" . self::esc($op['op_id'] ?? '') . "</code></blockquote>\n<blockquote>نام کاربری سرویس : <code>" . self::esc($op['username'] ?? '') . "</code></blockquote>\n<blockquote>نام پنل : " . self::esc($op['name_panel'] ?? '') . "</blockquote>");
+            $this->report('op:' . (string) ($op['op_id'] ?? '') . ':report', "✅ تمدید نامشخص پس از بررسی خودکار تأیید شد\n\n<blockquote>شناسه عملیات : <code>" . self::esc($op['op_id'] ?? '') . "</code></blockquote>\n<blockquote>نام اشتراک : <code>" . self::esc($op['username'] ?? '') . "</code></blockquote>\n<blockquote>نام پنل : " . self::esc($op['name_panel'] ?? '') . "</blockquote>");
         }
     }
 

@@ -224,7 +224,7 @@ final class AdminInput
                 'p_inbound_id'          => "💎 شناسه اینباند",
                 'p_services'            => "⚙️ تنظیم سرویس ها",
                 'p_def_svc'             => "⚙️ سرویس پیش‌فرض",
-                'p_renew_method'        => "🔋 روش تمدید سرویس",
+                'p_renew_method'        => "🔋 روش تمدید اشتراک",
                 'p_gen_uname'           => "💡 ساخت نام کاربری",
                 'p_subdomain'           => "🔗 دامنه لینک ساب",
                 'p_limit'               => "🚨 محدودیت اکانت",

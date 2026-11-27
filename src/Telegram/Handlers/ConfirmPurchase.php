@@ -326,7 +326,7 @@ final class ConfirmPurchase
                     $fund = \Faoxima\Services\Fulfillment\Purchase::fundWalletInvoice(
                         $pdo, ['id' => $from_id] + $user, (string) $randomString,
                         (string) $marzban_list_get['name_panel'], (string) $username_ac, (float) (int) $priceproduct,
-                        $discountCode, 'خرید سرویس', $confirmation,
+                        $discountCode, 'خرید اشتراک', $confirmation,
                         \Faoxima\Services\Fulfillment\WalletPurchaseEffects::plan(
                             $setting, (array) \Faoxima\Core\Database\Db::select('affiliates', '*', null, null, 'select'), $user, $admin_ids, (float) $priceproduct,
                             \Faoxima\Cashback\AffiliateCommissions::affiliatePaidInvoiceCount($pdo, $from_id) + 1,
@@ -453,7 +453,7 @@ final class ConfirmPurchase
                 $info_product['Service_time'] = $textbotlang['users']['stateus']['Unlimited'];
             if (($marzban_list_get['type'] ?? '') === 'jovadpanel' ? (is_numeric($info_product['Volume_constraint']) && (float) $info_product['Volume_constraint'] === 0.0) : intval($info_product['Volume_constraint']) == 0)
                 $info_product['Volume_constraint'] = $textbotlang['users']['stateus']['Unlimited'];
-            $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $datatextbot['textafterpay']);
+            $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['textafterpay']));
             $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
             $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
             $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);
@@ -543,9 +543,9 @@ final class ConfirmPurchase
 $textonebuy
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️نام اشتراک :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$userdate['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$userdate['name_panel']}</blockquote>
 <blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>

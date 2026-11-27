@@ -148,7 +148,7 @@ final class ServiceExtensions
             $extra_volume['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
             $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
             sendmessage($nameloc['id_user'], \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if ($__refundVx === 'refunded') {
@@ -212,7 +212,7 @@ final class ServiceExtensions
             $textconfrom = "✅ پرداخت تایید شده
 🔋 خرید حجم اضافه
 🛍 حجم خریداری شده  : $volumes گیگ
-👤 نام کاربری کانفیگ {$steppay[0]}
+👤 نام اشتراک {$steppay[0]}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}
 ⚜️ نام کاربری: @{$Balance_id['username']}
@@ -227,7 +227,7 @@ final class ServiceExtensions
 <blockquote>🪪 آیدی عددی : {$Balance_id['id']}</blockquote>
 <blockquote>🛍 حجم خریداری شده  : $volumes گیگ</blockquote>
 <blockquote>💰 مبلغ پرداختی : " . \Faoxima\Core\Support\Formatting::rxFormatToman($Payment_report['price']) . " تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ {$steppay[0]}</blockquote>
+<blockquote>👤 نام اشتراک {$steppay[0]}</blockquote>
 <blockquote>موجودی کاربر قبل خرید : {$rxFmtBalanceBeforeVolume}</blockquote>";
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
@@ -320,7 +320,7 @@ final class ServiceExtensions
             $extra_time['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extra_time['msg'] ?? null, $extra_time['detail'] ?? null);
             $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_time['msg']}</blockquote>";
             sendmessage($context['presentation']['request_user'], \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_errors_extra_volume_purchase_error', "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if (strlen($setting['Channel_Report']) > 0) {
@@ -381,7 +381,7 @@ final class ServiceExtensions
             $textconfrom = "✅ پرداخت تایید شده
 🔋 خرید زمان اضافه
 🛍 زمان خریداری شده  : $volumes روز
-👤 نام کاربری کانفیگ {$steppay[0]}
+👤 نام اشتراک {$steppay[0]}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}
 ⚜️ نام کاربری: @{$Balance_id['username']}
@@ -396,7 +396,7 @@ final class ServiceExtensions
 <blockquote>🪪 آیدی عددی : {$Balance_id['id']}</blockquote>
 <blockquote>🛍 زمان خریداری شده  : $volumes روز</blockquote>
 <blockquote>💰 مبلغ پرداختی : " . \Faoxima\Core\Support\Formatting::rxFormatToman($Payment_report['price']) . " تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ {$steppay[0]}</blockquote>";
+<blockquote>👤 نام اشتراک {$steppay[0]}</blockquote>";
         if (strlen($setting['Channel_Report']) > 0) {
             telegram('sendmessage', [
                 'chat_id' => $setting['Channel_Report'],

@@ -332,17 +332,17 @@ final class ConfirmBulkPurchase
                 }
                 $datatextbot['textafterpay'] = $marzban_list_get['type'] == "Manualsale" ? $datatextbot['textmanual'] : $datatextbot['textafterpay'];
                 if ($marzban_list_get['type'] == "WGDashboard") {
-                    $datatextbot['textafterpay'] = "✅ سرویس با موفقیت ایجاد شد
+                    $datatextbot['textafterpay'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام پلن: {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
                 }
-                $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $datatextbot['textafterpay']);
+                $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['textafterpay']));
                 $textcreatuser = str_replace('{name_service}', $info_product['name_product'], $textcreatuser);
                 $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
                 $textcreatuser = str_replace('{day}', $info_product['Service_time'], $textcreatuser);
@@ -382,9 +382,9 @@ final class ConfirmBulkPurchase
             $text_report = "📣 جزئیات ساخت اکانت انبوه در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :{$username_ac}_0-$count_service</blockquote>
+<blockquote>▫️نام اشتراک :{$username_ac}_0-$count_service</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس سرویس : {$user['Processing_value']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$user['Processing_value']}</blockquote>
 <blockquote>▫️نام محصول :{$info_product['name_product']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$info_product['Service_time']} روز</blockquote>
 <blockquote>▫️حجم خریداری شده : {$info_product['Volume_constraint']} GB</blockquote>

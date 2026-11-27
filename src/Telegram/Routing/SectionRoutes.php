@@ -74,14 +74,15 @@ final class SectionRoutes
         if ($text === '/start' || $text === 'start') {
             return 'main_menu';
         }
-        if ($text === '/services') {
+        if ($text === '/services' || \Faoxima\Telegram\Support\SubscriptionText::isLegacyMenuLabel($text)) {
             return 'services';
         }
         if ($backLabel !== '' && $text === $backLabel) {
             return 'main_menu';
         }
         foreach ($readTables()['text'] as $key => $section) {
-            if (isset($datatextbot[$key]) && is_string($datatextbot[$key]) && $datatextbot[$key] !== '' && $text === $datatextbot[$key]) {
+            $input = $key === 'text_extend' ? \Faoxima\Telegram\Support\SubscriptionText::extendLabel($text) : $text;
+            if (isset($datatextbot[$key]) && is_string($datatextbot[$key]) && $datatextbot[$key] !== '' && $input === $datatextbot[$key]) {
                 return $section;
             }
         }

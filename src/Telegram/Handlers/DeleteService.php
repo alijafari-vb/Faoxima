@@ -187,18 +187,18 @@ final class DeleteService
 
 📌 یک درخواست حذف سرویس  توسط کاربر برای شما ارسال شده است. لطفا بررسی کرده و در صورت درست بودن و موافقت تایید کنید.
 
-📊 اطلاعات سرویس کاربر :
+📊 اطلاعات اشتراک کاربر :
 آیدی عددی کاربر : $from_id
 نام کاربری کاربر : @$username
-نام کاربری کانفیگ : {$nameloc['username']}
-وضعیت سرویس : $status_var
-موقعیت سرویس : {$nameloc['Service_location']}
+نام اشتراک : {$nameloc['username']}
+وضعیت اشتراک : $status_var
+موقعیت اشتراک : {$nameloc['Service_location']}
 کد سرویس:{$nameloc['id_invoice']}
 
 🟢 اخرین زمان اتصال شما : $lastonline
 
 📥 حجم مصرفی : $usedTrafficGb
-♾ حجم سرویس : $LastTraffic
+♾ حجم اشتراک : $LastTraffic
 🪫 حجم باقی مانده : $RemainingVolume
 📅 فعال تا تاریخ : $expirationDate ($day)
 

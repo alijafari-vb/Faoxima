@@ -348,7 +348,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
                         \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_stock_refund_note', 'بازگشت وجه به دلیل خطای انبار'));
                 } catch (Throwable $error) {
                     \Faoxima\Api\Runtime\Logger::error('Renewal stock refund needs review', ['operation_id' => $discountOperationId]);
-                    \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+                    \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
                     return;
                 }
                 \Faoxima\Api\Runtime\Response::fail(409, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_stock_depleted', '❌ موجودی انبار برای این محصول تمام شده است. مبلغی کسر نشد.'));
@@ -389,7 +389,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
             }
 
             $this->reportSuccess(
-                \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_national_stock_report_tpl', "✅ <b>تمدید سرویس (انبار شبکه‌ملی)</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام کاربری سرویس : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
+                \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_national_stock_report_tpl', "✅ <b>تمدید اشتراک (انبار شبکه‌ملی)</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام اشتراک : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
                     'user_id' => $this->user['id'],
                     'username' => $invoice['username'],
                     'product_name' => $product['name_product'],
@@ -410,7 +410,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
             \Faoxima\Services\Renewal\WalletRenewal::result($pdo, $funding, 'applied');
             \Faoxima\Api\Runtime\Response::ok([
                 'kind'          => 'done',
-                'message'       => \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_national_stock_success', '✅ تمدید سرویس از انبار شبکه‌ملی با موفقیت انجام شد.'),
+                'message'       => \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_national_stock_success', '✅ تمدید اشتراک از انبار شبکه‌ملی با موفقیت انجام شد.'),
                 'cashback'      => $cashback,
                 'balance_after' => $newBalance,
                 'product'       => [
@@ -451,7 +451,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
                 'operation_id' => $discountOperationId,
                 'provider_ref' => $renewRef,
             ]);
-            \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+            \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
             return;
         }
 
@@ -466,10 +466,10 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
             if ($outcome === 'refundable' && $resultSaved) {
                 try {
                     \Faoxima\Services\Renewal\WalletRenewal::refund($pdo, $funding, (string) $this->user['id'],
-                        \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید سرویس'));
+                        \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_refund_note', 'بازگشت وجه به دلیل خطای تمدید اشتراک'));
                 } catch (Throwable $error) {
                     \Faoxima\Api\Runtime\Logger::error('Renewal refund needs review', ['operation_id' => $discountOperationId]);
-                    \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+                    \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
                     return;
                 }
             }
@@ -479,7 +479,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
                 'outcome' => $outcome, 'operation_id' => $discountOperationId, 'provider_ref' => $renewRef, 'reason' => $reason,
             ]);
             $this->reportError(
-                \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_failed_report_tpl', "خطای تمدید سرویس\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+                \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_failed_report_tpl', "خطای تمدید اشتراک\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                     'panel_name' => $panel['name_panel'],
                     'username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($invoice['username'], $panel),
                     'reason' => $reason,
@@ -498,7 +498,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
                 \Faoxima\Api\Runtime\Response::fail(409, \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend));
             }
 
-            \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید'));
+            \Faoxima\Api\Runtime\Response::fail(502, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_extend_error', '❌ خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید'));
             return;
         }
 
@@ -543,7 +543,7 @@ final class ServiceRenewConfirmHandler extends \Faoxima\Api\Handlers\BaseHandler
         }
 
         $this->reportSuccess(
-            \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_report_tpl', "✅ <b>تمدید سرویس</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام کاربری سرویس : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
+            \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_renewconfirm_report_tpl', "✅ <b>تمدید اشتراک</b>\n<blockquote>▫️آیدی کاربر : {user_id}</blockquote>\n<blockquote>▫️نام اشتراک : {username}</blockquote>\n<blockquote>▫️محصول : {product_name}</blockquote>\n<blockquote>▫️حجم : {volume} گیگ</blockquote>\n<blockquote>▫️زمان : {service_time} روز</blockquote>\n<blockquote>▫️مبلغ : {price} تومان</blockquote>\n<blockquote>▫️پنل : {panel_name}</blockquote>"), [
                 'user_id' => $this->user['id'],
                 'username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($invoice['username'], $panel),
                 'product_name' => $product['name_product'],

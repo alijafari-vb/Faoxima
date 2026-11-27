@@ -214,9 +214,9 @@ final class SectionMedia
         return [
             'start' => '🚀 استارت (/start)',
             'buy' => '🔐 خرید اشتراک',
-            'extend' => '♻️ تمدید سرویس',
+            'extend' => '♻️ تمدید اشتراک',
             'test' => '🔑 اکانت تست',
-            'services' => '🛍 سرویس‌های من',
+            'services' => '🛍 اشتراک‌های من',
             'wallet' => '🏦 کیف پول + شارژ',
             'support' => '📞 پشتیبانی',
             'tariff' => '💵 تعرفه اشتراک',

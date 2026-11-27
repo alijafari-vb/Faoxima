@@ -42,7 +42,7 @@ final class RenewalText
             'reason_result_detail_time' => 'سرویس منقضی باقی می‌ماند',
             'reason_invalid_purchase' => '❌ مقدار حجم یا زمان خریداری‌شده نامعتبر است.',
             'reason_unknown_method' => '❌ روش تمدید تنظیم‌شده برای این پنل نامعتبر است؛ لطفاً به مدیریت اطلاع دهید. مبلغی کسر نشد.',
-            'reason_panel_unreachable' => '⚠️ اطلاعات فعلی سرویس از پنل دریافت نشد؛ پیش‌نمایش در دسترس نیست. هنگام تأیید، وضعیت سرویس دوباره از پنل خوانده می‌شود.',
+            'reason_panel_unreachable' => '⚠️ اطلاعات فعلی سرویس از پنل دریافت نشد؛ پیش‌نمایش در دسترس نیست. هنگام تأیید، وضعیت اشتراک دوباره از پنل خوانده می‌شود.',
             'reason_panel_state_unavailable' => '⚠️ وضعیت فعلی سرویس از پنل قابل خواندن نیست؛ لطفاً چند دقیقه بعد دوباره تلاش کنید. مبلغی کسر نشد.',
             'reason_user_missing' => '❌ این سرویس در پنل یافت نشد؛ لطفاً با پشتیبانی در ارتباط باشید.',
             'reason_renewal_in_progress' => '⏳ عملیات دیگری روی این سرویس در حال انجام است؛ چند لحظه بعد دوباره تلاش کنید. مبلغی کسر نشد.',
@@ -52,16 +52,16 @@ final class RenewalText
             'reason_trigger_date_required' => '❌ برای فعال‌سازی در تاریخ مشخص، ابتدا تاریخ فعال‌سازی را تعیین کنید.',
             'reason_trigger_date_invalid' => '❌ تاریخ فعال‌سازی نامعتبر است؛ تاریخ باید در آینده و حداکثر تا یک سال بعد باشد.',
             'reason_policy_invalid' => '❌ سیاست اجرای انتخاب‌شده نامعتبر است.',
-            'reason_panel_policy_unsupported' => '⚠️ این روش تمدید با محدودیت‌های پنل JovadPanel برای وضعیت فعلی این سرویس هم‌خوان نیست (مثلاً کاهش حجم سرویس فعال یا حفظ مصرف یک سرویس تمام‌شده). روش یا محصول دیگری انتخاب کنید؛ مبلغی کسر نشد.',
+            'reason_panel_policy_unsupported' => '⚠️ این روش تمدید با محدودیت‌های پنل JovadPanel برای وضعیت فعلی این سرویس هم‌خوان نیست (مثلاً کاهش حجم اشتراک فعال یا حفظ مصرف یک سرویس تمام‌شده). روش یا محصول دیگری انتخاب کنید؛ مبلغی کسر نشد.',
             'reason_reservation_unsupported' => '❌ رزرو اشتراک برای این نوع سرویس پشتیبانی نمی‌شود.',
-            'reason_generic' => '❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید',
+            'reason_generic' => '❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید',
             'pending_verification' => '⏳ درخواست تمدید به پنل ارسال شد اما نتیجه نهایی هنوز تأیید نشده است. وضعیت به‌صورت خودکار بررسی می‌شود و نیازی به پرداخت مجدد نیست؛ در صورت بروز مشکل، پشتیبانی پیگیری می‌کند.',
             'preview_title' => '🔎 پیش‌نمایش تمدید',
             'preview_policy' => '⚙️ روش تمدید : {label}',
             'preview_traffic_kept' => '🔋 حجم باقی‌مانده فعلی حفظ می‌شود',
             'preview_traffic_discarded' => '🗑 حجم باقی‌مانده فعلی حذف می‌شود و فقط حجم خریداری‌شده باقی می‌ماند',
             'preview_traffic_unchanged' => '📦 حجم کل و مصرف بدون تغییر می‌ماند',
-            'preview_traffic_unlimited' => '♾ حجم سرویس نامحدود می‌ماند',
+            'preview_traffic_unlimited' => '♾ حجم اشتراک نامحدود می‌ماند',
             'preview_time_kept' => '⏳ زمان باقی‌مانده فعلی حفظ می‌شود',
             'preview_time_discarded' => '🗑 زمان باقی‌مانده فعلی حذف می‌شود و زمان خریداری‌شده از لحظه اجرا شروع می‌شود',
             'preview_time_unchanged' => '📅 تاریخ انقضا بدون تغییر می‌ماند',
@@ -109,7 +109,7 @@ final class RenewalText
             'activation_phrase_expire' => 'پایان زمان',
             'activation_phrase_traffic_expire' => 'پایان حجم یا زمان سرویس فعلی',
             'activation_phrase_date' => 'رسیدن تاریخ {date}',
-            'activation_single_traffic' => 'پایان حجم سرویس فعلی',
+            'activation_single_traffic' => 'پایان حجم اشتراک فعلی',
             'activation_single_expire' => 'پایان زمان سرویس فعلی',
             'activation_single' => 'پس از {phrase} فعال می‌شود',
             'activation_multi' => 'پس از {phrase}، هرکدام زودتر باشد، فعال می‌شود',
@@ -133,12 +133,12 @@ final class RenewalText
             'status_cancelled' => 'لغو شده',
             'reservation_notice' => '📌 رزرو اشتراک: {status}\n⏱ زمان فعال‌سازی: {trigger}\n⚙️ سیاست اجرا: {policy}',
             'reservation_failed_user_tpl' => "⚠️ فعال‌سازی رزرو اشتراک سرویس {username} با مشکل مواجه شد و برای بررسی به پشتیبانی ارسال شد. بسته رزرو شما محفوظ است.",
-            'reconciled_user_tpl' => '✅ تمدید سرویس {username} در پنل تأیید و اعمال شد.',
+            'reconciled_user_tpl' => '✅ تمدید اشتراک {username} در پنل تأیید و اعمال شد.',
             'success_same_link' => "🔗 لینک اشتراک شما همان لینک قبلی است و نیازی به دریافت کد یا کانفیگ جدید ندارید.\nبرای دریافت اطلاعات و کانفیگ‌های به‌روز، در برنامهٔ اتصال خود یک بار «به‌روزرسانی اشتراک» را بزنید.",
             'result_line_expire' => '⏳ انقضا : {before} ← {after}',
             'result_line_limit' => '📦 حجم کل : {before} ← {after}',
             'result_line_remaining' => '🔋 حجم باقی‌مانده : {before} ← {after}',
-            'adm_title' => '🔄 تمدید سرویس توسط مدیر',
+            'adm_title' => '🔄 تمدید اشتراک توسط مدیر',
             'adm_service_lines' => "👤 نام کاربری : <code>{username}</code>\n📍 پنل : {panel}",
             'adm_state_unchanged' => 'بدون تغییر',
             'adm_state_unlimited' => 'نامحدود (صفر)',
@@ -146,7 +146,7 @@ final class RenewalText
             'adm_package_product' => '«{name}» ({volume} / {days})',
             'adm_package_custom' => 'حجم : {volume} | زمان : {days}',
             'adm_btn_back' => '◀️ مرحله قبل',
-            'adm_btn_service' => '🧾 بازگشت به مدیریت سرویس',
+            'adm_btn_service' => '🧾 بازگشت به مدیریت اشتراک',
             'adm_btn_admin' => '🏠 منوی مدیریت',
             'adm_btn_cancel' => '❌ لغو تمدید',
             'adm_btn_product' => '🛍 انتخاب محصول',
@@ -190,15 +190,15 @@ final class RenewalText
             'adm_unchanged_time' => 'تاریخ انقضا',
             'adm_none' => 'هیچ‌کدام',
             'adm_revise_hint' => 'یک مرحله به عقب بازگردید و انتخاب‌ها را اصلاح کنید؛ چیزی اعمال نشده است.',
-            'adm_state_changed' => '⚠️ وضعیت سرویس از زمان پیش‌نمایش تغییر کرده است؛ پیش‌نمایش جدید را بررسی و دوباره تایید کنید. چیزی اعمال نشد.',
+            'adm_state_changed' => '⚠️ وضعیت اشتراک از زمان پیش‌نمایش تغییر کرده است؛ پیش‌نمایش جدید را بررسی و دوباره تایید کنید. چیزی اعمال نشد.',
             'adm_already_running' => 'این عملیات قبلاً تایید شده و در حال اجرا یا انجام‌شده است.',
             'adm_cancelled' => '❌ تمدید لغو شد و هیچ تغییری اعمال نشد.',
             'adm_error_start' => '❌ تمدید با خطا مواجه گردید؛ مراحل تمدید را مجددا انجام دهید.',
             'adm_error_manual_panel' => '⚠️ این پنل از نوع فروش دستی یا انبار ملی است و تمدید حجم/زمان با روش‌های این فرایند برای آن پشتیبانی نمی‌شود.',
             'adm_error_status' => '⚠️ وضعیت فعلی سفارش ({status}) اجازه تمدید نمی‌دهد.',
-            'adm_failed_generic' => '❌ خطایی در تمدید سرویس رخ داد و چیزی اعمال‌شده تایید نشد؛ لاگ‌ها را بررسی کنید.',
+            'adm_failed_generic' => '❌ خطایی در تمدید اشتراک رخ داد و چیزی اعمال‌شده تایید نشد؛ لاگ‌ها را بررسی کنید.',
             'adm_failed_stock' => '❌ موجودی انبار فروش دستی برای این محصول تمام شده است.',
-            'adm_admin_done' => '✅ تمدید سرویس انجام و در پنل تایید شد.',
+            'adm_admin_done' => '✅ تمدید اشتراک انجام و در پنل تایید شد.',
             'adm_notified_yes' => '🔔 پیام اطلاع‌رسانی برای مشتری ارسال شد.',
             'adm_notified_no' => '🔕 به انتخاب شما مشتری مطلع نشد.',
             'adm_finalize_pending' => '⏳ ثبت نهایی در فاکتور و تاریخچه به‌صورت خودکار تکمیل می‌شود؛ تمدید در پنل دوباره ارسال نخواهد شد.',
@@ -206,7 +206,7 @@ final class RenewalText
             'adm_notified_failed' => '⚠️ ارسال پیام به مشتری ممکن نشد (مثلاً ربات را مسدود کرده است) و دیگر تلاش نمی‌شود؛ تمدید و ثبت فاکتور تکمیل شده است.',
             'adm_notified_retrying' => '⏳ ارسال پیام به مشتری فعلاً انجام نشد و به‌صورت خودکار و محدود دوباره تلاش می‌شود؛ تمدید و ثبت فاکتور تکمیل شده است. ممکن است در موارد نادر پیام تکراری برسد.',
             'adm_customer_done' => '✅ سرویس {username} توسط مدیریت تمدید شد.',
-            'adm_customer_activated' => '✅ رزرو تمدید سرویس {username} فعال شد و سرویس شما طبق رزرو تمدید گردید.',
+            'adm_customer_activated' => '✅ رزرو تمدید اشتراک {username} فعال شد و اشتراک شما طبق رزرو تمدید گردید.',
             'adm_report_done' => '⭕️ ادمین سرویس کاربر را تمدید کرد.',
             'unlimited' => 'نامحدود',
             'days_unit' => 'روز',
@@ -444,7 +444,7 @@ final class RenewalText
     public static function rxRenewalDecorateSuccess(string $successText, $extend, string $username, string $panelName): string
     {
         if (\Faoxima\Services\Renewal\ProviderRenewal::renewalIsPending($extend)) {
-            return self::rxRenewalText('pending_verification') . "\n\n▫️نام سرویس : " . $username;
+            return self::rxRenewalText('pending_verification') . "\n\n▫️نام اشتراک: " . $username;
         }
         if (!is_array($extend) || !is_array($extend['rx_renewal'] ?? null)) {
             return $successText;
@@ -464,6 +464,6 @@ final class RenewalText
             'operation_id' => $renewal['operation_id'] ?? null,
             'mutation' => 'uncertain',
         ]);
-        return self::rxRenewalText('pending_verification') . "\n\n▫️نام سرویس : " . $username;
+        return self::rxRenewalText('pending_verification') . "\n\n▫️نام اشتراک: " . $username;
     }
 }

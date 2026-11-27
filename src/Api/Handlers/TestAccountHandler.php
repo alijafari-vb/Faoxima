@@ -250,10 +250,11 @@ final class TestAccountHandler extends \Faoxima\Api\Handlers\BaseHandler
 
         $template = $this->resolveTestTemplate((string)($panel['type'] ?? ''));
         if (trim($template) === '') {
-            $template = \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام سرویس : {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
+            $template = \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_default_template', "✅ اکانت تست شما ساخته شد\n\n👤 نام کاربری : {username}\n🌿 نام پلن: {name_service}\n🇺🇳 لوکیشن : {location}\n⏳ مدت زمان: {day}\n🗜 حجم بسته: {volume}");
         }
         $displayDay    = \Faoxima\Services\TestAccounts\TestAccountPolicy::rx_test_display_time($settings);
         $displayVolume = \Faoxima\Services\TestAccounts\TestAccountPolicy::rx_test_display_volume($settings);
+        $template = \Faoxima\Telegram\Support\SubscriptionText::template($template);
         $template = str_replace('{username}', "<code>" . htmlspecialchars(\Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($usernameAc, $panel), ENT_QUOTES, 'UTF-8') . "</code>", $template);
         $template = str_replace('{name_service}', htmlspecialchars(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_product_name', 'سرویس تست'), ENT_QUOTES, 'UTF-8'), $template);
         $template = str_replace('{location}', htmlspecialchars((string)($panel['name_panel'] ?? ''), ENT_QUOTES, 'UTF-8'), $template);
@@ -364,7 +365,7 @@ final class TestAccountHandler extends \Faoxima\Api\Handlers\BaseHandler
         if ((string)$channel !== '') {
             $topicRow = \Faoxima\Core\Database\Db::select('topicid', 'idreport', 'report', 'paymentreport', 'select');
             $topicId = is_array($topicRow) ? (string)($topicRow['idreport'] ?? '') : '';
-            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_report_tpl', "🧪 دریافت اکانت تست از مینی‌اپ\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ :{config_username}</blockquote>\n<blockquote>▫️موقعیت سرویس : {panel_name}</blockquote>"), [
+            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_report_tpl', "🧪 دریافت اکانت تست از مینی‌اپ\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>"), [
                 'user_id' => $user['id'],
                 'username' => $user['username'],
                 'config_username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($usernameAc, $panel),
@@ -390,7 +391,7 @@ final class TestAccountHandler extends \Faoxima\Api\Handlers\BaseHandler
             'success'  => true,
             'order_id' => $orderId,
             'delivery_failed' => !$deliveryOk,
-            'delivery_message' => $deliveryOk ? '' : \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_delivery_failed_saved', '⚠️ اکانت تست ساخته شد اما ارسال آن در تلگرام ناموفق بود. اطلاعات سرویس در همین صفحه و بخش سرویس‌های من در دسترس است.'),
+            'delivery_message' => $deliveryOk ? '' : \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_testaccount_delivery_failed_saved', '⚠️ اکانت تست ساخته شد اما ارسال آن در تلگرام ناموفق بود. اطلاعات اشتراک در همین صفحه و بخش اشتراک‌های من در دسترس است.'),
             'service'  => [
                 'id'                => $orderId,
                 'username'          => (string)($dataoutput['username'] ?? $usernameAc),

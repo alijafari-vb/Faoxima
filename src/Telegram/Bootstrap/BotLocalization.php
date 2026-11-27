@@ -198,6 +198,9 @@ final class BotLocalization
                 unset($datatextbot[$rxTbKey]);
             }
         }
+        $datatextbot['text_Purchased_services'] = \Faoxima\Telegram\Support\SubscriptionText::menuLabel((string) $datatextbot['text_Purchased_services']);
+        $datatextbot['text_extend'] = \Faoxima\Telegram\Support\SubscriptionText::extendLabel((string) $datatextbot['text_extend']);
+        $datatextbot['text_pishinvoice'] = \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['text_pishinvoice']);
         return $datatextbot;
     }
 

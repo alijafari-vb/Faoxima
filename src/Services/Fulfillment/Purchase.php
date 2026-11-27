@@ -116,7 +116,7 @@ final class Purchase
         }
         $encoded = json_encode($remote, JSON_UNESCAPED_UNICODE);
         if ($encoded === false || strlen($encoded) > 65535) {
-            $encoded = json_encode(array_intersect_key($remote, array_flip(['username', 'subscription_url'])), JSON_INVALID_UTF8_SUBSTITUTE);
+            $encoded = json_encode(array_intersect_key($remote, array_flip(['username', 'subscription_url', 'panel_user_id'])), JSON_INVALID_UTF8_SUBSTITUTE);
             if ($encoded === false || strlen($encoded) > 65535) {
                 return false;
             }
@@ -710,7 +710,7 @@ final class Purchase
         // invoice رو active علامت بزن. این جلوی retry بعدی توسط cron رو می‌گیره حتی اگه پیام تلگرام hang کنه.
         $__doneNote = '[service-created at ' . date('Y-m-d H:i:s') . ' username=' . $dataoutput['username'] . ']';
         $rxStatements = array_merge(
-            \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], (int) round($__walletPortion), 'خرید سرویس'),
+            \Faoxima\Orders\Checkout\Settlement::settlementStatements($rxCk, $order_id, $Balance_id['id'], (int) round($__walletPortion), 'خرید اشتراک'),
             [["UPDATE Payment_report SET dec_not_confirmed = CASE WHEN dec_not_confirmed IS NULL OR dec_not_confirmed = '' THEN ? ELSE CONCAT(dec_not_confirmed, ' | ', ?) END WHERE id_order = ?", [$__doneNote, $__doneNote, $order_id]]]
         );
         $activateInvoice = array_key_exists('invalidated_at', $get_invoice)
@@ -749,7 +749,7 @@ final class Purchase
             $get_invoice['Service_time'] = $textbotlang['users']['stateus']['Unlimited'];
         if (intval($get_invoice['Volume']) == 0)
             $get_invoice['Volume'] = $textbotlang['users']['stateus']['Unlimited'];
-        $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", $rxAfterPayTpl);
+        $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get) . "</code>", \Faoxima\Telegram\Support\SubscriptionText::template($rxAfterPayTpl));
         $textcreatuser = str_replace('{name_service}', $get_invoice['name_product'], $textcreatuser);
         $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
         $textcreatuser = str_replace('{day}', $get_invoice['Service_time'], $textcreatuser);
@@ -844,7 +844,7 @@ final class Purchase
 $textonebuy
 <blockquote>▫️آیدی عددی کاربر : <code>{$Balance_id['id']}</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@{$Balance_id['username']}</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️نام اشتراک :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️لوکیشن سرویس : {$get_invoice['Service_location']}</blockquote>
 <blockquote>▫️زمان خریداری شده :{$get_invoice['Service_time']} روز</blockquote>
 <blockquote>▫️نام محصول خریداری شده :{$get_invoice['name_product']}</blockquote>
@@ -883,8 +883,8 @@ $textonebuy
         if ($Payment_report['Payment_Method'] == "cart to cart" or $Payment_report['Payment_Method'] == "arze digital offline") {
             $rxFmtBalanceBeforeBuy = \Faoxima\Core\Support\Formatting::rxFormatToman($Balance_id['Balance']);
             $textconfrom = "✅ پرداخت تایید شده
-🛍خرید سرویس
-▫️نام کاربری کانفیگ :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "
+🛍خرید اشتراک
+▫️نام اشتراک :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "
 ▫️لوکیشن سرویس : {$get_invoice['Service_location']}
 👤 شناسه کاربر: <code>{$Balance_id['id']}</code>
 🛒 کد پیگیری پرداخت: {$Payment_report['id_order']}

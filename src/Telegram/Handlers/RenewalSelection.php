@@ -81,7 +81,7 @@ final class RenewalSelection
                 return;
             }
             if ($DataUserOut['status'] == "on_hold") {
-                sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید سرویس ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
+                sendmessage($from_id, $datatextbot['dyn_errors_not_connected_extend'] ?? "❌ هنوز به سرویس متصل نشده اید برای تمدید اشتراک ابتدا به سرویس متصل شوید سپس اقدام به تمدید کنید", null, 'html');
                 return;
             }
             $eextraprice = json_decode($marzban_list_get['pricecustomvolume'], true);

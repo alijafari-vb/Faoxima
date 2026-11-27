@@ -58,7 +58,7 @@ final class FollowupRoutes
     public static function service($user, $datain, $text, $datatextbot, &$dataget): ?string
     {
         return match (true) {
-            (bool) (($text !== '' && $text == $datatextbot['text_extend']) || $datain == "extendbtn") => 'renewal_list',
+            (bool) (($text !== '' && \Faoxima\Telegram\Support\SubscriptionText::extendLabel((string) $text) === $datatextbot['text_extend']) || $datain == "extendbtn") => 'renewal_list',
             (bool) (($datain == 'next_page_extends' || str_starts_with((string) $datain, 'renewt:'))) => 'renewal_next',
             (bool) ($datain == 'previous_page_extends') => 'renewal_previous',
             (bool) (preg_match('/changenote_(\w+)/', $datain, $dataget)) => 'note_start',

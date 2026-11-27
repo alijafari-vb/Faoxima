@@ -229,7 +229,7 @@ final class WalletAndFinanceSettings
                 ];
                 $keyboardlists['inline_keyboard'][] = [
                     ['text' => "عملیات", 'callback_data' => "action"],
-                    ['text' => "وضعیت سرویس", 'callback_data' => "Status"],
+                    ['text' => "وضعیت اشتراک", 'callback_data' => "Status"],
                     ['text' => "نام کاربری", 'callback_data' => "username"],
                 ];
                 while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -304,18 +304,18 @@ final class WalletAndFinanceSettings
 🛒  وضعیت سفارش در ربات : <code>{$OrderUser['Status']}</code>
 🙍‍♂️ شناسهٔ تلگرام کاربر : <code>{$OrderUser['id_user']}</code>
 👤 نام اشتراک :  <code>{$OrderUser['username']}</code>
-📍 موقعیت سرویس :  {$OrderUser['Service_location']}
+📍 موقعیت اشتراک :  {$OrderUser['Service_location']}
 🛍 نام پلن :  $planLabel
 💰 قیمت پرداختی سرویس : " . \Faoxima\Core\Support\Formatting::rxFormatToman($OrderUser['price_product']) . " تومان
-⚜️ حجم سرویس خریداری شده : {$OrderUser['Volume']}
+⚜️ حجم اشتراک خریداری شده : {$OrderUser['Volume']}
 ⏳ زمان سرویس خریداری شده : {$OrderUser['Service_time']}
 📆 تاریخ خرید : $datatime
 ";
             if ($isMainAdmin) { $keyboardlists['inline_keyboard'][] = [\Faoxima\Services\Subscriptions\SubscriptionTable::button('بازگشت', $returnTo, 'danger')]; }
-            $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username']);
-            if (!empty($DataUserOut['panel_user_id'])) {
-                $text_order .= "\n🪪 شناسهٔ اشتراک: <code>{$DataUserOut['panel_user_id']}</code>";
-            }
+            $DataUserOut = $ManagePanel->DataUser($OrderUser['Service_location'], $OrderUser['username'], 'links', (string) $OrderUser['id_invoice']);
+            $panelUserId = \Faoxima\Services\Subscriptions\ServiceSearch::numericId($DataUserOut['panel_user_id'] ?? null)
+                ?? \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($OrderUser);
+            $text_order .= \Faoxima\Telegram\Support\SubscriptionText::idLine($panelUserId);
             if ($DataUserOut['status'] == "Unsuccessful") {
                 $keyboard_json = json_encode($keyboardlists);
                 \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, "کاربر در پنل وجود ندارد", $keyboardadmin, 'html');
@@ -364,9 +364,9 @@ final class WalletAndFinanceSettings
             $Percent = round($Percent, 2);
             $text_order .= "
 
- وضعیت سرویس : $status_var
+ وضعیت اشتراک : $status_var
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 
@@ -416,7 +416,7 @@ final class WalletAndFinanceSettings
 🕰 زمان انجام سرویس : {$extend['time']} \n\n($time_jalali)
 💰مبلغ انجام سرویس : " . \Faoxima\Core\Support\Formatting::rxFormatToman($extend['price']) . "
 👤 آیدی عددی کاربر : {$extend['id_user']}
-👤 نام کاربری کانفیگ: {$extend['username']}";
+👤 نام اشتراک: {$extend['username']}";
                     \Faoxima\Telegram\Support\Replies::nm_adminInstantReply($from_id, $extendtext, null, 'HTML');
                 }
             }

@@ -1646,8 +1646,8 @@ try {
 از طریق دکمه زیر وارد کانال شده و عضو شوید
 پس از عضویت دکمه بررسی عضویت را کلیک کنید";
     $text_invoice = "📇 پیش فاکتور شما:
-👤 نام کاربری:  {username}
-🔐 نام سرویس: {name_product}
+👤 نام اشتراک: {username}
+🔐 پلن انتخابی: {name_product}
 📆 مدت اعتبار: {Service_time} روز
 💶 قیمت:  {price} تومان
 👥 حجم اکانت: {Volume} گیگ
@@ -1671,10 +1671,10 @@ try {
 
 📆 {date_now} → ⏰ {time_now}
                     ";
-    $text_service_detail = "🗂 نام سرویس : {product}
-📊وضعیت سرویس : {status}
-🌍 موقعیت سرویس :{location}
-👤 شناسه سرویس : <code>{username}</code>
+    $text_service_detail = "🗂 نام پلن : {product}
+📊وضعیت اشتراک : {status}
+🌍 موقعیت اشتراک :{location}
+👤 نام اشتراک : <code>{username}</code>
 
 🔋 ترافیک : {traffic}
 📥 حجم مصرفی : {used}
@@ -1701,41 +1701,41 @@ try {
 💢 حجم باقی مانده : {remaining} ({percent}%)
 
 📅 تاریخ اتمام : {expire_date} ({days_left})";
-    $textafterpay = "✅ سرویس با موفقیت ایجاد شد
+    $textafterpay = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
-‏🇺🇳 لوکیشن: {location}
+👤 نام اشتراک : {username}
+🌿 نام پلن:  {name_service}
+‏🇺🇳 موقعیت اشتراک: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 {connection_links}
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
-    $text_wgdashboard = "✅ سرویس با موفقیت ایجاد شد
+    $text_wgdashboard = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
-‏🇺🇳 لوکیشن: {location}
+👤 نام اشتراک : {username}
+🌿 نام پلن:  {name_service}
+‏🇺🇳 موقعیت اشتراک: {location}
 ⏳ مدت زمان: {day}  روز
-🗜 حجم سرویس:  {volume} گیگابایت
+🗜 حجم اشتراک:  {volume} گیگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
-    $textmanual = "✅ سرویس با موفقیت ایجاد شد
+    $textmanual = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
-‏🇺🇳 لوکیشن: {location}
+👤 نام اشتراک : {username}
+🌿 نام پلن:  {name_service}
+‏🇺🇳 موقعیت اشتراک: {location}
 
- اطلاعات سرویس :
+ اطلاعات اشتراک :
 {connection_links}
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
-    $textaftertext = "✅ سرویس با موفقیت ایجاد شد
+    $textaftertext = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
-‏🇺🇳 لوکیشن: {location}
+👤 نام اشتراک : {username}
+🌿 نام پلن:  {name_service}
+‏🇺🇳 موقعیت اشتراک: {location}
 ⏳ مدت زمان: {day}  ساعت
-🗜 حجم سرویس:  {volume} مگابایت
+🗜 حجم اشتراک:  {volume} مگابایت
 
 {connection_links}
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
@@ -1770,7 +1770,7 @@ try {
     $insertQueries = [
         ['text_start', 'سلام خوش آمدید'],
         ['text_usertest', '🔑 اکانت تست'],
-        ['text_Purchased_services', '🛍 سرویس های من'],
+        ['text_Purchased_services', '🛍 اشتراک‌های من'],
         ['text_support', '☎️ پشتیبانی'],
         ['text_help', '📚 آموزش'],
         ['text_bot_off', '❌ ربات خاموش است، لطفا دقایقی دیگر مراجعه کنید'],
@@ -1808,7 +1808,7 @@ try {
         ['atlaspay', '🌐 اطلس‌پی'],
         ['tetrapay', '🔷 تتراپی'],
         ['textafterpay', $textafterpay],
-        ['dyn_purchase_subscription_link_line', '🔗 لینک اتصال: {link}'],
+        ['dyn_purchase_subscription_link_line', "🔗 لینک اشتراک:\n{link}"],
         ['textaftertext', $textaftertext],
         ['textmanual', $textmanual],
         ['textselectlocation', '📌 موقعیت سرویس را انتخاب نمایید.'],
@@ -1821,7 +1821,7 @@ try {
         ['text_cart_auto', $textcartauto],
         ['text_star_telegram', "💫 Star Telegram"],
         ['text_request_agent_dec', '📌 توضیحات خود را برای ثبت درخواست نمایندگی ارسال نمایید.'],
-        ['text_extend', '♻️ تمدید سرویس'],
+        ['text_extend', '♻️ تمدید اشتراک'],
         ['text_wgdashboard', $text_wgdashboard],
         ['text_miniapp_button', '🚀 Open Mini App'],
         ['miniapp_suggest_1', "کاربر گرامی، برای خرید، تمدید و مدیریت سرویس‌های خود لطفاً از مینی‌اپ اختصاصی ربات استفاده کنید.\n\n✨ مزایای استفاده از مینی‌اپ:\n• رابط کاربری مدرن و بسیار ساده\n• سرعت بسیار بالا در خرید و تحویل سرویس\n• مدیریت کامل و لحظه‌ای اکانت‌ها\n• پرداخت امن و آسان\n\n👇 جهت ورود روی دکمه زیر کلیک کنید:"],

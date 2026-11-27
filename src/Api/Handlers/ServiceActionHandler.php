@@ -153,8 +153,8 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
         $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_user_id_line_tpl', '🪪 شناسه عددی: <code>{user_id}</code>'), ['user_id' => htmlspecialchars($userId, ENT_QUOTES)]);
         $textParts[] = '';
         $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_product_line_tpl', '🛍 محصول: {product}'), ['product' => htmlspecialchars((string)$invoice['name_product'], ENT_QUOTES)]);
-        $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_service_username_line_tpl', '👤 نام کاربری سرویس: <code>{username}</code>'), ['username' => htmlspecialchars(\Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername((string)$invoice['username'], (string)($invoice['Service_location'] ?? '')), ENT_QUOTES)]);
-        $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_location_line_tpl', '🌍 موقعیت سرویس: {location}'), ['location' => htmlspecialchars((string)$invoice['Service_location'], ENT_QUOTES)]);
+        $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_service_username_line_tpl', '👤 نام اشتراک: <code>{username}</code>'), ['username' => htmlspecialchars(\Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername((string)$invoice['username'], (string)($invoice['Service_location'] ?? '')), ENT_QUOTES)]);
+        $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_location_line_tpl', '🌍 موقعیت اشتراک: {location}'), ['location' => htmlspecialchars((string)$invoice['Service_location'], ENT_QUOTES)]);
         $textParts[] = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_invoice_id_line_tpl', '🆔 کد فاکتور: <code>{invoice_id}</code>'), ['invoice_id' => htmlspecialchars((string)$invoice['id_invoice'], ENT_QUOTES)]);
         if ($extraBlock !== '') {
             $textParts[] = '';
@@ -226,7 +226,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
         $panelName = (string)($invoice['Service_location'] ?? '');
         $svcUsername = (string)($invoice['username'] ?? '');
         if ($panelName === '' || $svcUsername === '') {
-            \Faoxima\Api\Runtime\Response::fail(422, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_incomplete_service_info', '❌ اطلاعات سرویس ناقص است.'));
+            \Faoxima\Api\Runtime\Response::fail(422, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_incomplete_service_info', '❌ اطلاعات اشتراک ناقص است.'));
         }
 
         $panel = \Faoxima\Core\Database\Db::select('marzban_panel', '*', 'name_panel', $panelName, 'select');
@@ -280,7 +280,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
             $userName = (string)($this->user['username'] ?? '');
             $userFirst = (string)($this->user['first_name'] ?? '');
             $agent    = (string)($this->user['agent'] ?? '');
-            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changelink_report_tpl', "📣 جزئیات تغییر لینک از مینی‌اپ ثبت شد .\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ :{config_username}</blockquote>\n<blockquote>▫️نام کاربر : {first_name}</blockquote>\n<blockquote>▫️موقعیت سرویس : {panel_name}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️زمان تغییر لینک : {when}</blockquote>"), [
+            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changelink_report_tpl', "📣 جزئیات تغییر لینک از مینی‌اپ ثبت شد .\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر :@{username}</blockquote>\n<blockquote>▫️نام اشتراک :{config_username}</blockquote>\n<blockquote>▫️نام کاربر : {first_name}</blockquote>\n<blockquote>▫️موقعیت اشتراک : {panel_name}</blockquote>\n<blockquote>▫️نوع کاربر : {agent}</blockquote>\n<blockquote>▫️زمان تغییر لینک : {when}</blockquote>"), [
                 'user_id' => $this->user['id'],
                 'username' => $userName,
                 'config_username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($svcUsername, $panel),
@@ -320,7 +320,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
         $svcUsername = (string)($invoice['username'] ?? '');
         $oldPanelName = (string)($invoice['Service_location'] ?? '');
         if ($svcUsername === '' || $oldPanelName === '') {
-            \Faoxima\Api\Runtime\Response::fail(422, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_incomplete_service_info', '❌ اطلاعات سرویس ناقص است.'));
+            \Faoxima\Api\Runtime\Response::fail(422, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_incomplete_service_info', '❌ اطلاعات اشتراک ناقص است.'));
         }
 
         $oldPanel = \Faoxima\Core\Database\Db::select('marzban_panel', '*', 'name_panel', $oldPanelName, 'select');
@@ -383,7 +383,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
             \Faoxima\Api\Runtime\Response::fail(409, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_config_on_hold_no_transfer', '❌ کانفیگ شما در وضعیت استفاده‌نشده است و امکان انتقال موقعیت وجود ندارد.'));
         }
         if (($remoteUser['status'] ?? '') !== 'active') {
-            \Faoxima\Api\Runtime\Response::fail(409, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_status_forbids_transfer', '❌ وضعیت سرویس فعلی اجازه انتقال نمی‌دهد.'));
+            \Faoxima\Api\Runtime\Response::fail(409, \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_status_forbids_transfer', '❌ وضعیت اشتراک فعلی اجازه انتقال نمی‌دهد.'));
         }
 
         $priceChange = $isFree ? 0 : (float)($newPanel['priceChangeloc'] ?? 0);
@@ -418,7 +418,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
             }
             $balanceCharged = true;
             if (is_callable([\Faoxima\Wallet\Ledger\Ledger::class, 'record'])) {
-                \Faoxima\Wallet\Ledger\Ledger::record(\Faoxima\Api\Runtime\Db::pdo(), $this->user['id'], 'debit', $priceChange, 'service_action', \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_ledger_debit_note', 'تغییر موقعیت سرویس'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
+                \Faoxima\Wallet\Ledger\Ledger::record(\Faoxima\Api\Runtime\Db::pdo(), $this->user['id'], 'debit', $priceChange, 'service_action', \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_ledger_debit_note', 'تغییر موقعیت اشتراک'), null, 'invoice', (string)($invoice['id_invoice'] ?? ''));
             }
         }
 
@@ -511,7 +511,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
             $userName = (string)($this->user['username'] ?? '');
             $balanceAfter = number_format((float) \Faoxima\Api\Runtime\Db::fetchScalar('SELECT Balance FROM user WHERE id = :id', [':id' => $this->user['id']]));
             $timejalali = function_exists('jdate') ? jdate('Y/m/d H:i:s') : date('Y/m/d H:i:s');
-            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_report_tpl', "📍 تغییر موقعیت سرویس (از مینی‌اپ)\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر : @{username}</blockquote>\n<blockquote>▫️نام کاربری کانفیگ : {config_username}</blockquote>\n<blockquote>▫️پنل قدیم : {old_panel}</blockquote>\n<blockquote>▫️پنل جدید : {new_panel}</blockquote>\n<blockquote>▫️موجودی کاربر : {balance} تومان</blockquote>\n<blockquote>▫️زمان : {when}</blockquote>"), [
+            $text = \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_report_tpl', "📍 تغییر موقعیت اشتراک (از مینی‌اپ)\n\n<blockquote>▫️آیدی عددی کاربر : <code>{user_id}</code></blockquote>\n<blockquote>▫️نام کاربری کاربر : @{username}</blockquote>\n<blockquote>▫️نام اشتراک : {config_username}</blockquote>\n<blockquote>▫️پنل قدیم : {old_panel}</blockquote>\n<blockquote>▫️پنل جدید : {new_panel}</blockquote>\n<blockquote>▫️موجودی کاربر : {balance} تومان</blockquote>\n<blockquote>▫️زمان : {when}</blockquote>"), [
                 'user_id' => $this->user['id'],
                 'username' => $userName,
                 'config_username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($svcUsername, $newPanel),
@@ -540,7 +540,7 @@ final class ServiceActionHandler extends \Faoxima\Api\Handlers\BaseHandler
 
         \Faoxima\Api\Runtime\Response::ok([
             'kind'             => 'change_location_done',
-            'message'          => \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_success_tpl', '✅ موقعیت سرویس شما با موفقیت به «{panel_name}» تغییر کرد.'), ['panel_name' => $newPanel['name_panel']]),
+            'message'          => \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceaction_changeloc_success_tpl', '✅ موقعیت اشتراک شما با موفقیت به «{panel_name}» تغییر کرد.'), ['panel_name' => $newPanel['name_panel']]),
             'username'         => $svcUsername,
             'panel_name'       => (string)$newPanel['name_panel'],
             'subscription_url' => $subLink,

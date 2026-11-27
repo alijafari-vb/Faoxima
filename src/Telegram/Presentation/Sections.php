@@ -12,8 +12,8 @@ final class Sections
         return [
             'main_menu' => 'منوی اصلی کاربر',
             'purchase' => 'خرید اشتراک',
-            'extend' => 'تمدید سرویس',
-            'services' => 'سرویس‌های من',
+            'extend' => 'تمدید اشتراک',
+            'services' => 'اشتراک‌های من',
             'wallet' => 'کیف پول و شارژ',
             'test' => 'اکانت تست',
             'tariff' => 'تعرفه‌ها',

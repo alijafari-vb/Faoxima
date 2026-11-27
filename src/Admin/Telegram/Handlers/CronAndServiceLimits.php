@@ -162,7 +162,7 @@ final class CronAndServiceLimits
                 $datatextbot['textafterpay'] = $panel['type'] == "WGDashboard" ? $datatextbot['text_wgdashboard'] : $datatextbot['textafterpay'];
                 if (intval($text) == 0)
                     $text = $textbotlang['users']['stateus']['Unlimited'];
-                $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $panel) . "</code>", $datatextbot['textafterpay']);
+                $textcreatuser = str_replace('{username}', "<code>" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $panel) . "</code>", \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['textafterpay']));
                 $textcreatuser = str_replace('{name_service}', "پلن دلخواه", $textcreatuser);
                 $textcreatuser = str_replace('{location}', $panel['name_panel'], $textcreatuser);
                 $textcreatuser = str_replace('{day}', $text, $textcreatuser);

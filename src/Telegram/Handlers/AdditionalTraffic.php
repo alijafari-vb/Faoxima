@@ -310,7 +310,7 @@ final class AdditionalTraffic
                 $extra_volume['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extra_volume['msg'] ?? null, $extra_volume['detail'] ?? null);
                 $textreports = "خطای خرید حجم اضافه
 <blockquote>نام پنل : {$marzban_list_get['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$nameloc['username']}</blockquote>
+<blockquote>نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>دلیل خطا : {$extra_volume['msg']}</blockquote>";
                 sendmessage($from_id, $datatextbot['dyn_errors_extra_volume_purchase_error'] ?? "❌خطایی در خرید حجم اضافه سرویس رخ داده با پشتیبانی در ارتباط باشید", null, 'HTML');
                 if (strlen($setting['Channel_Report'] ?? '') > 0) {
@@ -374,7 +374,7 @@ final class AdditionalTraffic
 <blockquote>🪪 آیدی عددی : $from_id</blockquote>
 <blockquote>🛍 حجم خریداری شده  : $volumes گیگ</blockquote>
 <blockquote>💰 مبلغ پرداختی : $volumesformat تومان</blockquote>
-<blockquote>👤 نام کاربری کانفیگ : {$nameloc['username']}</blockquote>
+<blockquote>👤 نام اشتراک : {$nameloc['username']}</blockquote>
 <blockquote>موجودی کاربر قبل خرید : " . \Faoxima\Core\Support\Formatting::rxFormatToman($user['Balance']) . "</blockquote>
 ";
             if (strlen($setting['Channel_Report'] ?? '') > 0) {

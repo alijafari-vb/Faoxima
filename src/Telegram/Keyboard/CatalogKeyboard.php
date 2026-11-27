@@ -36,7 +36,7 @@ final class CatalogKeyboard
         }
         if ($statusshowprice == "onshowprice") {
             $product['inline_keyboard'][] = [
-                ['text' => $textbotlang['users']['sell']['grid_header_name'] ?? '📦 نام سرویس', 'callback_data' => 'noop', '_rxcolor' => 'product_header:name'],
+                ['text' => $textbotlang['users']['sell']['grid_header_volume'] ?? '📦 حجم', 'callback_data' => 'noop', '_rxcolor' => 'product_header:name'],
                 ['text' => $textbotlang['users']['sell']['grid_header_time'] ?? '⏳ زمان', 'callback_data' => 'noop', '_rxcolor' => 'product_header:duration'],
                 ['text' => $textbotlang['users']['sell']['grid_header_price'] ?? '💵 قیمت', 'callback_data' => 'noop', '_rxcolor' => 'product_header:price'],
             ];
@@ -72,18 +72,17 @@ final class CatalogKeyboard
                 $callbackToken = 'pid:' . (string)($result['id'] ?? '');
                 $callbackData = "{$datakeyboard}{$callbackToken}{$valuetow}";
             }
+            [$volume, $duration] = \Faoxima\Services\Subscriptions\PlanLabel::terms($result);
             if ($statusshowprice == "onshowprice") {
-                $days = trim((string)($result['Service_time'] ?? ''));
-                $duration = $days !== '' ? "{$days} روزه" : '-';
                 $price = number_format((float)$result['price_product']) . ' تومان';
                 $product['inline_keyboard'][] = [
-                    ['text' => $result['name_product'], 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':name'],
+                    ['text' => $volume, 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':name'],
                     ['text' => $duration, 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':duration'],
                     ['text' => $price, 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':price'],
                 ];
             } else {
                 $product['inline_keyboard'][] = [
-                    ['text' => $result['name_product'], 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':name'],
+                    ['text' => \Faoxima\Services\Subscriptions\PlanLabel::offer($result), 'callback_data' => $callbackData, '_rxcolor' => 'product:' . $result['id'] . ':name'],
                 ];
             }
         }

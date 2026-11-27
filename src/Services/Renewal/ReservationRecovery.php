@@ -111,7 +111,7 @@ final class ReservationRecovery
             }
             if ($class === 'ambiguous') {
                 \Faoxima\Services\Renewal\ReservationStore::opUpdate($runtimePdo, $opId, ['state' => 'manual_review', 'last_error' => 'panel_state_ambiguous']);
-                \Faoxima\Payments\Fulfillment\Settlement::alertAdmin('renewal:' . $opId, 'وضعیت سرویس پس از تمدید نامشخص است و بررسی دستی لازم است', ['username' => (string) $op['username']]);
+                \Faoxima\Payments\Fulfillment\Settlement::alertAdmin('renewal:' . $opId, 'وضعیت اشتراک پس از تمدید نامشخص است و بررسی دستی لازم است', ['username' => (string) $op['username']]);
                 return ['op_id' => $opId, 'outcome' => 'manual_review', 'reason' => 'panel_state_ambiguous', 'op' => $op];
             }
             if ($class === 'target') {

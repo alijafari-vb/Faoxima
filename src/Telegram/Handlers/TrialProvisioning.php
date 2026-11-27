@@ -186,19 +186,19 @@ final class TrialProvisioning
                 ]
             ]);
             if ($marzban_list_get['type'] == "WGDashboard" || trim((string) ($datatextbot['textaftertext'] ?? '')) === "") {
-                $datatextbot['textaftertext'] = "✅ سرویس با موفقیت ایجاد شد
+                $datatextbot['textaftertext'] = "✅ اشتراک با موفقیت ایجاد شد
 
-👤 نام کاربری سرویس : {username}
-🌿 نام سرویس:  {name_service}
+👤 نام اشتراک : {username}
+🌿 نام پلن: {name_service}
 ‏🇺🇳 لوکیشن: {location}
 ⏳ مدت زمان: {day}  ساعت
-🗜 حجم سرویس:  {volume} مگابایت
+🗜 حجم اشتراک:  {volume} مگابایت
 
 🧑‍🦯 شما میتوانید شیوه اتصال را  با فشردن دکمه زیر و انتخاب سیستم عامل خود را دریافت کنید";
             }
             $usertest_day = \Faoxima\Services\TestAccounts\TestAccountPolicy::rx_test_display_time($rxTestSettings);
             $usertest_volume = \Faoxima\Services\TestAccounts\TestAccountPolicy::rx_test_display_volume($rxTestSettings);
-            $textcreatuser = str_replace('{username}', \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get), $datatextbot['textaftertext']);
+            $textcreatuser = str_replace('{username}', \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($dataoutput['username'], $marzban_list_get), \Faoxima\Telegram\Support\SubscriptionText::template($datatextbot['textaftertext']));
             $textcreatuser = str_replace('{name_service}', "تست", $textcreatuser);
             $textcreatuser = str_replace('{location}', $marzban_list_get['name_panel'], $textcreatuser);
             $textcreatuser = str_replace('{day}', $usertest_day, $textcreatuser);
@@ -213,7 +213,7 @@ final class TrialProvisioning
             }
             \Faoxima\Services\TestAccounts\TestAccountPolicy::rx_test_mark_delivery($rxTestReservation, $rxTestDelivered);
             if (!$rxTestDelivered) {
-                sendmessage($from_id, $datatextbot['dyn_testaccount_delivery_failed_saved'] ?? "⚠️ اکانت تست ساخته شد اما ارسال جزئیات آن ناموفق بود. اطلاعات سرویس در بخش «سرویس‌های من» در دسترس است.", null, 'HTML');
+                sendmessage($from_id, $datatextbot['dyn_testaccount_delivery_failed_saved'] ?? "⚠️ اکانت تست ساخته شد اما ارسال جزئیات آن ناموفق بود. اطلاعات اشتراک در بخش «اشتراک‌های من» در دسترس است.", null, 'HTML');
             }
             sendmessage($from_id, $textbotlang['users']['selectoption'], $keyboard, 'HTML');
             \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
@@ -238,9 +238,9 @@ final class TrialProvisioning
             $text_report = "📣 جزئیات ساخت اکانت تست در ربات شما ثبت شد .
 <blockquote>▫️آیدی عددی کاربر : <code>$from_id</code></blockquote>
 <blockquote>▫️نام کاربری کاربر :@$username</blockquote>
-<blockquote>▫️نام کاربری کانفیگ :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
+<blockquote>▫️نام اشتراک :" . \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($username_ac, $marzban_list_get) . "</blockquote>
 <blockquote>▫️نام کاربر : $first_name</blockquote>
-<blockquote>▫️موقعیت سرویس : {$marzban_list_get['name_panel']}</blockquote>
+<blockquote>▫️موقعیت اشتراک : {$marzban_list_get['name_panel']}</blockquote>
 <blockquote>▫️زمان خریداری شده : {$rxTestReportTime}</blockquote>
 <blockquote>▫️حجم خریداری شده : {$rxTestReportVolume}</blockquote>
 <blockquote>▫️کد پیگیری: $randomString</blockquote>

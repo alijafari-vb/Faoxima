@@ -28,15 +28,19 @@ final class ServiceHandler extends \Faoxima\Api\Handlers\BaseHandler
 
         $payload = $this->buildPayloadFromInvoice($invoice);
         if ($payload === null) {
-            \Faoxima\Api\Runtime\Response::fail(200, 'اطلاعات سرویس در حال حاضر از پنل در دسترس نیست؛ لطفاً چند لحظه دیگر دوباره تلاش کنید.');
+            \Faoxima\Api\Runtime\Response::fail(200, 'اطلاعات اشتراک در حال حاضر از پنل در دسترس نیست؛ لطفاً چند لحظه دیگر دوباره تلاش کنید.');
         }
 
         $payload['order_id'] = $invoice['id_invoice'];
         $payload['plan_label'] = \Faoxima\Services\Subscriptions\PlanLabel::display($invoice);
         if (!isset($payload['panel_user_id'])) {
-            [$row] = \Faoxima\Services\Subscriptions\ServiceSearch::addPanelIds(\Faoxima\Api\Runtime\Db::pdo(), [$invoice]);
-            $payload['panel_user_id'] = $row['panel_user_id'] ?? null;
+            $payload['panel_user_id'] = \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($invoice);
+            if ($payload['panel_user_id'] === null) {
+                [$row] = \Faoxima\Services\Subscriptions\ServiceSearch::addPanelIds(\Faoxima\Api\Runtime\Db::pdo(), [$invoice]);
+                $payload['panel_user_id'] = $row['panel_user_id'] ?? null;
+            }
         }
+        $payload['subscription_url'] = \Faoxima\Services\Delivery\ServiceDelivery::rxNormalizeSubscriptionUrl((string) ($payload['subscription_url'] ?? ''));
         $payload['ambiguous_username'] = (bool) \Faoxima\Api\Runtime\Db::fetchScalar(
             'SELECT 1 FROM invoice WHERE id_user = :owner AND BINARY username = :name AND id_invoice <> :id AND ' . \Faoxima\Services\Subscriptions\ServiceSearch::VISIBLE_STATUS . ' LIMIT 1',
             [':owner' => $this->user['id'], ':name' => $username, ':id' => $invoice['id_invoice']]

@@ -53,20 +53,20 @@ final class ServiceKeyboardScreenRegistry
             [$svc('extend'), $svc('changelink', ['cond' => 'در پنل‌هایی که تغییر لینک فعال است.'])],
             [$svc('removeservice', ['cond' => 'اگر حذف سرویس توسط کاربر مجاز باشد.']), $svc('changenameconfig', ['cond' => 'اگر تغییر نام/یادداشت سرویس فعال باشد.'])],
             [$svc('Extra_volume', ['cond' => 'اگر خرید حجم اضافه برای این پنل فعال باشد.']), $svc('Extra_time', ['cond' => 'اگر خرید زمان اضافه فعال باشد.'])],
-            [$svc('changestatus', ['cond' => 'اگر تغییر وضعیت سرویس مجاز باشد.']), $svc('transfor', ['cond' => 'برای سرویس تست و پنل رمنـاوِیو نمایش داده نمی‌شود.'])],
+            [$svc('changestatus', ['cond' => 'اگر تغییر وضعیت اشتراک مجاز باشد.']), $svc('transfor', ['cond' => 'برای سرویس تست و پنل رمنـاوِیو نمایش داده نمی‌شود.'])],
             [$svc('change-location', ['cond' => 'اگر تغییر لوکیشن در پنل فعال باشد.']), $svc('ekhtelal', ['cond' => 'اگر ارسال گزارش اختلال فعال باشد.'])],
             [$svc('backorder')],
             [$svc('remna_usage', ['cond' => 'فقط برای پنل‌های رمنـاوِیو.']), $svc('remna_picker', ['cond' => 'فقط برای پنل‌های رمنـاوِیو با انتخاب سرور فعال.'])],
-            [$svc('discountextend', ['cond' => 'در صفحه تأیید تمدید با کد تخفیف.']), $svc('productcheckdata', ['cond' => 'در دکمه‌های بازگشت به اطلاعات سرویس.'])],
+            [$svc('discountextend', ['cond' => 'در صفحه تأیید تمدید با کد تخفیف.']), $svc('productcheckdata', ['cond' => 'در دکمه‌های بازگشت به اطلاعات اشتراک.'])],
         ];
         foreach ($serviceSampleActions as $serviceKey => [$serviceLabel, $fallbackMenu, $fallbackKey]) {
             $serviceRows[] = [$mkIndividual(['_rxcolor' => 'service_template:' . $serviceKey], $serviceLabel, $fallbackMenu, $fallbackKey)];
         }
-        $addScreen('service', 'مدیریت سرویس', 'gear', 'یک نمونه از دکمه‌های مدیریت سرویس برای همه کاربران.', $serviceRows, [
+        $addScreen('service', 'مدیریت اشتراک', 'gear', 'یک نمونه از دکمه‌های مدیریت اشتراک برای همه کاربران.', $serviceRows, [
             'note' => 'رنگ هر دکمه مستقل است و برای همان دکمه در سرویس‌های همه کاربران اعمال می‌شود. این نمونه به آیدی ادمین یا سرویس واقعی وابسته نیست.',
         ]);
         $serviceOperationLabels = [
-            'confirm_transfer' => '✅ تایید انتقال سرویس', 'confirm_remove' => '✅ تایید حذف سرویس',
+            'confirm_transfer' => '✅ تایید انتقال اشتراک', 'confirm_remove' => '✅ تایید حذف سرویس',
             'confirm_report' => '✅ تایید ارسال گزارش اختلال', 'confirm_location' => '✅ تایید تغییر لوکیشن',
             'confirm_volume' => '✅ تایید خرید حجم', 'confirm_volume_discount' => '✅ تایید حجم با تخفیف',
             'confirm_external_volume' => '✅ تایید خرید حجم برای سرویس دیگران',
@@ -107,7 +107,7 @@ final class ServiceKeyboardScreenRegistry
         ];
         $cfgRows[] = [$mkBtn('config_list', 'cfg_download_all', ['label' => '⚙️ دریافت همه کانفیگ‌ها'])];
         $cfgRows[] = [$mkBtn('config_list', 'cfg_back_service', ['label' => '↩️ بازگشت'])];
-        $addScreen('config', 'لیست کانفیگ', 'key-round', 'جدول انتخاب کانفیگ در صفحه اطلاعات سرویس.', $cfgRows, [
+        $addScreen('config', 'لیست کانفیگ', 'key-round', 'جدول انتخاب کانفیگ در صفحه اطلاعات اشتراک.', $cfgRows, [
             'note' => 'رنگ هر سرستون و هر دکمه مستقل است.',
             'table' => true,
         ]);
@@ -147,7 +147,7 @@ final class ServiceKeyboardScreenRegistry
         }
         $walletRows[] = [$mkBtn('account', 'rw_custom')];
         $walletRows[] = [$mkBtn('account', 'transferbal_confirm'), $mkBtn('account', 'transferbal_cancel')];
-        $walletRows[] = [$mkBtn('account', 'backinfo', ['cond' => 'در دکمه‌های بازگشت به اطلاعات سرویس و بازگشت از شارژ کیف پول.'])];
+        $walletRows[] = [$mkBtn('account', 'backinfo', ['cond' => 'در دکمه‌های بازگشت به اطلاعات اشتراک و بازگشت از شارژ کیف پول.'])];
         $addScreen('wallet', 'انتقال و شارژ کیف پول', 'wallet', 'مبالغ پیشنهادی شارژ، رقم دلخواه و تأیید انتقال موجودی.', $walletRows, [
             'note' => 'هر دکمه مبلغ شارژ رنگ مستقل خود را دارد و تغییر رنگ هر کدام روی بقیه مبالغ اثری ندارد.',
         ]);

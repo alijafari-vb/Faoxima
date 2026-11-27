@@ -97,7 +97,7 @@ final class FilenameCatalog
                 ];
                 $status = $statuses[(string) ($row['Status'] ?? '')] ?? 'وضعیت نامشخص';
                 $title = ($product !== '' ? $product : 'سرویس بدون عنوان') . ' · ' . $customer;
-                $detail = 'فاکتور: ' . ($invoice !== '' ? $invoice : '—') . ' · ' . $status . ' · نام کاربری سرویس: ' . $username;
+                $detail = 'فاکتور: ' . ($invoice !== '' ? $invoice : '—') . ' · ' . $status . ' · نام اشتراک: ' . $username;
                 $services[] = [
                     'value' => $username,
                     'label' => $title,

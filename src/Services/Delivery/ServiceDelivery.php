@@ -33,7 +33,7 @@ final class ServiceDelivery
     {
         $type = is_array($panel_info) ? ($panel_info['type'] ?? '') : (string) $panel_info;
         if ($type !== 'Manualsale') {
-            return (string) $subscriptionLink;
+            return self::rxNormalizeSubscriptionUrl((string) $subscriptionLink);
         }
         if (self::rxManualsaleExtIsFile($fileExt)) {
             return '';
@@ -56,6 +56,14 @@ final class ServiceDelivery
             && in_array(strtolower((string) parse_url($link, PHP_URL_SCHEME)), ['https', 'http'], true);
     }
 
+    public static function rxNormalizeSubscriptionUrl(string $link): string
+    {
+        if (!self::rxValidSubscriptionUrl($link) || parse_url($link, PHP_URL_PORT) !== 443) {
+            return $link;
+        }
+        return preg_replace('~^(https://[^/?#]+):443(?=[/?#]|$)~i', '$1', $link, 1) ?? $link;
+    }
+
     public static function rxSavedSubscriptionUrl(array $invoice, array $panel): string
     {
         if (!in_array($invoice['Status'] ?? '', ['active', 'sendedwarn', 'send_on_hold'], true)
@@ -68,7 +76,7 @@ final class ServiceDelivery
         if (!self::rxValidSubscriptionUrl($link) || ($saved['username'] ?? null) !== ($invoice['username'] ?? null)) {
             return '';
         }
-        return self::rxShouldShowConnectionLink(self::rxPurchaseDeliveryPanel($panel, $link)) ? $link : '';
+        return self::rxShouldShowConnectionLink(self::rxPurchaseDeliveryPanel($panel, $link)) ? self::rxNormalizeSubscriptionUrl($link) : '';
     }
 
     public static function rxServiceListStatusSuffix(array $invoice): string
@@ -413,9 +421,13 @@ final class ServiceDelivery
         if ($subLink === '' || self::rxSubscriptionLinkButtonEnabled($panel_info)) {
             return $caption;
         }
-        $lineTemplate = \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_subscription_link_line', '🔗 لینک اتصال: {link}');
+        $lineTemplate = \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_subscription_link_line', "🔗 لینک اشتراک:\n{link}");
+        if (in_array(trim($lineTemplate), ['🔗 لینک اتصال: {link}', '🔗 لینک اشتراک: {link}'], true)) {
+            $lineTemplate = "🔗 لینک اشتراک:\n{link}";
+        }
+        $lineTemplate = str_replace('<code>{link}</code>', '{link}', $lineTemplate);
         $line = trim(\Faoxima\Telegram\Support\Texts::faoxima_render_text($lineTemplate, [
-            'link' => htmlspecialchars($subLink, ENT_QUOTES, 'UTF-8'),
+            'link' => '<code>' . htmlspecialchars($subLink, ENT_QUOTES, 'UTF-8') . '</code>',
         ]));
         if ($line === '') {
             return $caption;
@@ -587,7 +599,7 @@ final class ServiceDelivery
         return ['sub' => $hasSub, 'config' => $hasConfig];
     }
 
-    public static function rxBuildDeliveryOffer($panel_info, $invoice_id, $hasConfig, $hasSub, $reply_markup)
+    public static function rxBuildDeliveryOffer($panel_info, $invoice_id, $hasConfig, $hasSub, $reply_markup, string $subLink = '')
     {
         global $textbotlang;
         $mergedKb = json_decode((string) $reply_markup, true);
@@ -600,6 +612,8 @@ final class ServiceDelivery
         }
         if ($hasSub && self::rxSubscriptionLinkButtonEnabled($panel_info)) {
             $offerRows[] = [['text' => "🔗 دریافت لینک اشتراک", 'callback_data' => "subscriptionurl_{$invoice_id}"]];
+        } elseif ($hasSub && \Faoxima\Core\Support\Formatting::rx_copy_text_fits($subLink)) {
+            $offerRows[] = [['text' => '📋 کپی لینک اشتراک', 'copy_text' => ['text' => $subLink]]];
         }
         if (empty($offerRows)) {
             return null;
@@ -1355,9 +1369,10 @@ final class ServiceDelivery
         }
 
         $availability = self::rxDeliveryAvailability($panel_info, $config, $sub_link);
+        $sub_link = self::rxNormalizeSubscriptionUrl((string) $sub_link);
         $cleanCaption = self::rxStripDeliveryContentFromCaption($caption);
         $cleanCaption = self::rxAppendSubscriptionLinkLine($cleanCaption, $availability['sub'] ? $sub_link : '', $panel_info);
-        $offerKeyboard = self::rxBuildDeliveryOffer($panel_info, $invoice_id, $availability['config'], $availability['sub'], $reply_markup);
+        $offerKeyboard = self::rxBuildDeliveryOffer($panel_info, $invoice_id, $availability['config'], $availability['sub'], $reply_markup, $sub_link);
         $finalKeyboard = $offerKeyboard === null ? $reply_markup : $offerKeyboard;
         $rxServiceCaptionHasTable = is_string($cleanCaption) && preg_match('~<table\b~i', $cleanCaption) === 1;
         $rxSafeMediaCaption = method_exists(\Faoxima\Services\Delivery\ServiceDelivery::class, 'rxPrepareSafeMediaCaption') ? self::rxPrepareSafeMediaCaption($cleanCaption) : $cleanCaption;

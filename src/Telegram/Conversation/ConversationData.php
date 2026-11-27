@@ -134,7 +134,14 @@ final class ConversationData
                                 continue 2;
                             }
                             if ($rx_overlay_i === count($rx_overlay_segments) - 1) {
-                                $rx_overlay_cursor[$rx_overlay_seg] = (string) ($rx_overlay_row['text'] ?? '');
+                                $value = (string) ($rx_overlay_row['text'] ?? '');
+                                if (preg_match('/^users\.(?:sell|stateus|extend|page|Service)\./D', $rx_overlay_path)) {
+                                    $value = \Faoxima\Telegram\Support\SubscriptionText::customerLabel($value);
+                                }
+                                if ($rx_overlay_path === 'users.stateus.username' && trim($value) === 'نام کاربری :') {
+                                    $value = 'نام اشتراک : ';
+                                }
+                                $rx_overlay_cursor[$rx_overlay_seg] = $value;
                             } else {
                                 if (!isset($rx_overlay_cursor[$rx_overlay_seg]) || !is_array($rx_overlay_cursor[$rx_overlay_seg])) {
                                     $rx_overlay_cursor[$rx_overlay_seg] = [];

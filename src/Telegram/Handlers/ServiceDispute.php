@@ -110,9 +110,9 @@ final class ServiceDispute
 
 - نام کاربری : @$username
 - آیدی عددی : $from_id
-- نام کاربری کانفیگ : {$nameloc['username']}
+- نام اشتراک : {$nameloc['username']}
 - نام پلن تهیه شده : {$nameloc['name_product']}
-- موقعیت سرویس : {$nameloc['Service_location']}
+- موقعیت اشتراک : {$nameloc['Service_location']}
 - توضیحات اختلال : {$user['Processing_value']}";
             $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
             $lastonline = \Faoxima\Services\Delivery\ServiceDelivery::formatOnlineAtLabel($DataUserOut['online_at'] ?? null, $DataUserOut['is_online'] ?? null);
@@ -170,9 +170,9 @@ final class ServiceDispute
             $Percent = round($Percent, 2);
             $textdisorder .= "
 
- وضعیت سرویس : $status_var
+ وضعیت اشتراک : $status_var
 
-🔋 حجم سرویس : $LastTraffic
+🔋 حجم اشتراک : $LastTraffic
 📥 حجم مصرفی : $usedTrafficGb
 💢 حجم باقی مانده : $RemainingVolume ($Percent%)
 

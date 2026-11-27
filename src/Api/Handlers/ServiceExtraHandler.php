@@ -269,7 +269,7 @@ final class ServiceExtraHandler extends \Faoxima\Api\Handlers\BaseHandler
                         ? \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_title_time', 'خطای خرید زمان اضافه')
                         : \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_title_volume', 'خطای خرید حجم اضافه');
                     $this->reportError(
-                        \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_uncertain_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>نتیجه عملیات در پنل قابل تشخیص نیست : {reason}</blockquote>"), [
+                        \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_uncertain_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>نتیجه عملیات در پنل قابل تشخیص نیست : {reason}</blockquote>"), [
                             'error_title' => $errorTitle,
                             'panel_name' => $panel['name_panel'],
                             'username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($invoice['username'], $panel),
@@ -300,7 +300,7 @@ final class ServiceExtraHandler extends \Faoxima\Api\Handlers\BaseHandler
                     ? \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_title_time', 'خطای خرید زمان اضافه')
                     : \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_title_volume', 'خطای خرید حجم اضافه');
                 $this->reportError(
-                    \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام کاربری سرویس : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
+                    \Faoxima\Telegram\Support\Texts::faoxima_render_text(\Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_serviceextra_error_report_tpl', "{error_title}\n<blockquote>نام پنل : {panel_name}</blockquote>\n<blockquote>نام اشتراک : {username}</blockquote>\n<blockquote>دلیل خطا : {reason}</blockquote>"), [
                         'error_title' => $errorTitle,
                         'panel_name' => $panel['name_panel'],
                         'username' => \Faoxima\Services\Panels\Drivers\Guard::guardDisplayUsername($invoice['username'], $panel),

@@ -380,11 +380,11 @@ final class InvoiceManagement
         if ($extend['status'] == false) {
             $extend['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($extend['msg'] ?? null, $extend['detail'] ?? null);
             $textreports = "
-        خطای تمدید سرویس
+        خطای تمدید اشتراک
 <blockquote>نام پنل : {$panel['name_panel']}</blockquote>
-<blockquote>نام کاربری سرویس : {$invoice['username']}</blockquote>
+<blockquote>نام اشتراک : {$invoice['username']}</blockquote>
 <blockquote>دلیل خطا : {$extend['msg']}</blockquote>";
-            sendmessage($invoice['id_user'], (($extend['code'] ?? '') === 'manual_stock_empty') ? "❌ موجودی انبار برای این محصول تمام شده است." : \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, "❌خطایی در تمدید سرویس رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
+            sendmessage($invoice['id_user'], (($extend['code'] ?? '') === 'manual_stock_empty') ? "❌ موجودی انبار برای این محصول تمام شده است." : \Faoxima\Services\Renewal\RenewalText::rxRenewalFailureText($extend, "❌خطایی در تمدید اشتراک رخ داده با پشتیبانی در ارتباط باشید"), null, 'HTML');
             if (strlen($setting['Channel_Report']) > 0) {
                 telegram('sendmessage', [
                     'chat_id' => $setting['Channel_Report'],

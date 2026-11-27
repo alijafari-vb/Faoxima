@@ -2,6 +2,9 @@
 
 namespace Faoxima\Telegram\Handlers;
 
+use Faoxima\Services\Subscriptions\ServiceSearch;
+use Faoxima\Telegram\Support\SubscriptionText;
+
 use CURLFile;
 use DateTime;
 use DateTimeZone;
@@ -86,6 +89,12 @@ final class ServiceDetail
                     $note_qv = isset($nameloc_qv['note']) && $nameloc_qv['note'] !== '' ? ' | ' . $nameloc_qv['note'] : '';
                     $caption_qv = '✨ <b>' . htmlspecialchars((string)$nameloc_qv['username'], ENT_QUOTES, 'UTF-8') . '</b>'
                                 . htmlspecialchars($note_qv, ENT_QUOTES, 'UTF-8');
+                    $cardId = ServiceSearch::cachedPanelUserId($nameloc_qv);
+                    if ($cardId === null && ($panel_qv['type'] ?? '') === 'rebecca') {
+                        [$cardInvoice] = ServiceSearch::addPanelIds($pdo, [$nameloc_qv]);
+                        $cardId = $cardInvoice['panel_user_id'] ?? null;
+                    }
+                    $caption_qv .= SubscriptionText::idLine($cardId);
                     $__qvRow = [['text' => \Faoxima\Telegram\Support\MessageTemplates::plain('service_btn_manage'), 'callback_data' => 'product_' . $nameloc_qv['id_invoice']]];
                     if (!(method_exists(\Faoxima\Telegram\Support\InfoCardRenderer::class, 'isQrDisabled') && \Faoxima\Telegram\Support\InfoCardRenderer::isQrDisabled())) {
                         $__qvRow[] = ['text' => \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_qr_code_btn', '📷 دریافت QR Code'), 'callback_data' => 'infocard_qr_' . $nameloc_qv['id_invoice']];
@@ -193,7 +202,7 @@ final class ServiceDetail
                 }
                 $keyboardlists['inline_keyboard'][] = $backuser;
                 $keyboard_json = json_encode($keyboardlists);
-                $rxSvcFoundTpl = $datatextbot['dyn_errors_service_found_count'] ?? "🛍 %s عدد سرویس یافت برای مشاهده و مدیریت سرویس روی یکی از سرویس ها کلیک کنید";
+                $rxSvcFoundTpl = $datatextbot['dyn_errors_service_found_count'] ?? "🛍 %s عدد سرویس یافت برای مشاهده و مدیریت اشتراک روی یکی از سرویس ها کلیک کنید";
                 sendmessage($from_id, sprintf($rxSvcFoundTpl, $countservice), $keyboard_json, 'html');
                 \Faoxima\Telegram\Navigation\Steps::step("home", $from_id);
                 return;
@@ -214,8 +223,12 @@ final class ServiceDetail
             if (is_array($marzban) && isset($marzban['name_panel']) && $marzban['name_panel'] != null) {
                 \Faoxima\Core\Database\Db::update("user", "Processing_value_four", $marzban['name_panel'], "id", $from_id);
             }
-            $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username']);
+            $DataUserOut = $ManagePanel->DataUser($nameloc['Service_location'], $nameloc['username'], 'links', (string) $nameloc['id_invoice']);
+            $panelUserId = ServiceSearch::numericId($DataUserOut['panel_user_id'] ?? null) ?? ServiceSearch::cachedPanelUserId($nameloc);
             if (is_array($DataUserOut) && isset($DataUserOut['status']) && $DataUserOut['status'] !== 'Unsuccessful') {
+                if ($panelUserId !== null) {
+                    $DataUserOut['panel_user_id'] = $panelUserId;
+                }
                 try {
                     \Faoxima\Core\Database\Db::update("invoice", "user_info", json_encode($DataUserOut, JSON_UNESCAPED_UNICODE), "id_invoice", $nameloc['id_invoice']);
                 } catch (Throwable $e) {
@@ -383,7 +396,7 @@ final class ServiceDetail
                     }
                 }
                 $manualHasSub = trim((string) $manualDelivery['sub']) !== '';
-                $textinfo = "وضعیت سرویس : <b>$status_var</b>
+                $textinfo = "وضعیت اشتراک : <b>$status_var</b>
 نام اشتراک : {$DataUserOut['username']}
 📎 کد پیگیری سرویس : {$nameloc['id_invoice']}
 
@@ -453,9 +466,9 @@ final class ServiceDetail
             $statusshowconfig = \Faoxima\Services\Panels\PanelFeatures::panel_feature_enabled($nameloc['Service_location'], 'configbtn') ? "onconfig" : "offconfig";
             $statusremoveserveice = \Faoxima\Services\Panels\PanelFeatures::panel_feature_enabled($nameloc['Service_location'], 'refund') ? "on" : "off";
             if (!in_array($status, ["active", "on_hold", "disabled", "Unknown"])) {
-                $textinfo = "وضعیت سرویس : <b>$status_var</b>
+                $textinfo = "وضعیت اشتراک : <b>$status_var</b>
 👤 نام اشتراک : <code>{$DataUserOut['username']}</code>
-🌍 موقعیت سرویس :{$nameloc['Service_location']}
+🌍 موقعیت اشتراک :{$nameloc['Service_location']}
 نام محصول :{$nameloc['name_product']}
 
 📶 اخرین زمان اتصال شما : $lastonline
@@ -660,8 +673,8 @@ $nameconfig";
                 }
                 $rwChangelinkHint = (($marzban['type'] ?? '') != "remnawave") ? \Faoxima\Telegram\Support\MessageTemplates::get('service_info_changelink_hint') : "";
                 $textinfo_tpl = $datatextbot['text_service_detail'] ?? "🗂 نام پلن : {product}
-📊وضعیت سرویس : {status}
-🌍 موقعیت سرویس :{location}
+📊وضعیت اشتراک : {status}
+🌍 موقعیت اشتراک :{location}
 👤 نام اشتراک : <code>{username}</code>
 
 🔋 ترافیک : {traffic}
@@ -681,8 +694,7 @@ $nameconfig";
                     '{expire_date}' => $expirationDate,
                     '{days_left}' => $day,
                 ];
-                $textinfo_tpl = preg_replace('/نام[\h‌]+(?:سرویس|محصول|اشتراک)(?=\h*:\h*\{product\})/u', 'نام پلن', $textinfo_tpl) ?? $textinfo_tpl;
-                $textinfo_tpl = preg_replace('/شناسه(?:ٔ)?[\h‌]+(?:سرویس|اشتراک)(?=\h*:\h*(?:<code>)?\{username\})/u', 'نام اشتراک', $textinfo_tpl) ?? $textinfo_tpl;
+                $textinfo_tpl = SubscriptionText::template($textinfo_tpl);
                 $textinfo = strtr($textinfo_tpl, $textinfo_replacements);
                 $textinfo = "$textinfo\n$userpassword\n$nameconfig\n\n$textconnect\n\n$rwChangelinkHint";
                 $rxReservationSummary = is_callable([\Faoxima\Services\Renewal\ReservationOrders::class, 'reservationSummaryForService']) ? \Faoxima\Services\Renewal\ReservationOrders::reservationSummaryForService($pdo, (string) $nameloc['username'], (string) $nameloc['Service_location'], (string) $nameloc['id_invoice']) : null;
@@ -690,9 +702,7 @@ $nameconfig";
                     $textinfo .= "\n\n" . htmlspecialchars((string) $rxReservationSummary['text'], ENT_QUOTES, 'UTF-8');
                 }
             }
-            if (!empty($DataUserOut['panel_user_id'])) {
-                $textinfo .= "\n🪪 شناسهٔ اشتراک: <code>{$DataUserOut['panel_user_id']}</code>";
-            }
+            $textinfo .= SubscriptionText::idLine($panelUserId);
             if (($marzban['type'] ?? '') == "remnawave") {
                 $rwLight = !empty($DataUserOut['is_online']) ? \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_online') : \Faoxima\Telegram\Support\MessageTemplates::plain('service_info_offline');
                 $textinfo .= "\n" . \Faoxima\Telegram\Support\MessageTemplates::get('service_info_line_connection', [], ['status' => $rwLight]);

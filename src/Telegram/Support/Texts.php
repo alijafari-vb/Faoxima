@@ -60,13 +60,13 @@ final class Texts
         } catch (\Throwable $rx_tb_err) {
             return $fallback;
         }
-        if (is_string($rx_tb_row)) {
-            return $rx_tb_row !== '' ? $rx_tb_row : $fallback;
+        $value = is_array($rx_tb_row) ? ($rx_tb_row['text'] ?? null) : $rx_tb_row;
+        if (!is_string($value) || $value === '') {
+            return $fallback;
         }
-        if (is_array($rx_tb_row) && isset($rx_tb_row['text']) && is_string($rx_tb_row['text']) && $rx_tb_row['text'] !== '') {
-            return $rx_tb_row['text'];
-        }
-        return $fallback;
+        return preg_match('/^dyn_(?:purchase|admin_notify|serviceaction|serviceextra|renewconfirm|testaccount|cron_(?:volume|time|removal))_/', (string) $id_text)
+            ? SubscriptionText::customerLabel(SubscriptionText::template($value))
+            : $value;
     }
 
     public static function faoxima_mask_user_id($userId): string

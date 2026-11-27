@@ -52,7 +52,7 @@ final class ServiceKeyboardServiceScreens
             [$mkBtn('user_subscription', 'buy_service')],
             [$mkBtn('user_subscription', 'helpbtn'), $mkBtn('user_subscription', 'notusernameme')],
         ]);
-        $addScreen('subscription', 'اشتراک و سرویس‌های من', 'cart-check', 'جزئیات سرویس و دکمه‌های سرویس‌های من.', $subRows, [
+        $addScreen('subscription', 'اشتراک و اشتراک‌های من', 'cart-check', 'جزئیات اشتراک و دکمه‌های اشتراک‌های من.', $subRows, [
             'note' => 'عنوان و مقدار هر فیلد، تمدید و خرید حجم رنگ مستقل دارند. مقادیر برای هر کاربر متفاوت است؛ رنگ انتخابی برای همان خانه اعمال می‌شود.',
         ]);
 
