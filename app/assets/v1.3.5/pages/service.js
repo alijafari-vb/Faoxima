@@ -6,11 +6,11 @@ import {
 } from '../utils.js?v=0.0.52';
 import { hapticImpact, hapticNotify, showConfirm, openLink, supportsNativeDownload, downloadFileNative } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.6';
-import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.75';
+import { showVerifyPending } from '../card-verify.js?v=0.0.7';
+import { renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml } from '../payment-ui.js?v=0.0.76';
 
 const ALL_ACTIONS = [
-    { id: 'renew',           label: 'تمدید سرویس',            ico: 'rotate',     cls: '', inline: true  },
+    { id: 'renew',           label: 'تمدید اشتراک',            ico: 'rotate',     cls: '', inline: true  },
     { id: 'extra_time',      label: 'خرید زمان اضافه',         ico: 'hourglass',  cls: '', inline: true  },
     { id: 'extra_volume',    label: 'خرید حجم اضافه',          ico: 'box',        cls: '', inline: true  },
     { id: 'changelink',      label: 'تغییر لینک',              ico: 'link',       cls: '', inline: false },
@@ -26,11 +26,11 @@ const ALL_ACTIONS = [
 ];
 const ACTION_HINTS = {
     renew: 'انتخاب پلن و ادامهٔ اشتراک', extra_time: 'روزهای بیشتری به سرویس اضافه کن',
-    extra_volume: 'افزایش حجم قابل استفاده', changelink: 'ساخت لینک اتصال جدید',
+    extra_volume: 'افزایش حجم قابل استفاده', changelink: 'ساخت لینک اشتراک جدید',
     refund: 'ثبت درخواست بازگشت وجه', toggle_status: 'مدیریت وضعیت اتصال',
     transfer: 'واگذاری سرویس به حساب دیگر', change_location: 'انتخاب موقعیت اتصال',
     report_problem: 'پیگیری مشکل اتصال', note: 'یک نام یا یادداشت شخصی',
-    update_info: 'دریافت آخرین وضعیت سرویس', subscription: 'مشاهده و کپی لینک اتصال', config: 'نمایش تنظیمات اتصال',
+    update_info: 'دریافت آخرین وضعیت اشتراک', subscription: 'مشاهده و کپی لینک اشتراک', config: 'نمایش تنظیمات اتصال',
 };
 const SENSITIVE_ACTIONS = new Set(['change_location', 'report_problem', 'transfer', 'refund', 'subscription', 'update_info']);
 
@@ -492,7 +492,7 @@ function parseStructuredFields(c) {
     fields.forEach((f) => {
         const key = f.label.toLowerCase();
         const isSecret = key === 'password';
-        const faLabel = key === 'username' ? 'نام کاربری'
+        const faLabel = key === 'username' ? 'نام اشتراک'
             : key === 'password' ? 'رمز عبور'
             : key === 'ipsec psk' ? 'IPsec PSK'
             : f.label;
@@ -899,8 +899,8 @@ function renderBody($body, info, username, reload) {
     const { primary: primaryActions, extra: extraActions } = managementActionGroups(visibleActions);
 
     $body.innerHTML = `
-        <section class="sd-hero sd-panel ${statusBadge}" aria-label="مشخصات سرویس">
-            <div class="sd-hero-top"><span class="sd-hero-icon">${icon('globe')}</span><span class="sd-eyebrow">جزئیات سرویس</span>
+        <section class="sd-hero sd-panel ${statusBadge}" aria-label="مشخصات اشتراک">
+            <div class="sd-hero-top"><span class="sd-hero-icon">${icon('globe')}</span><span class="sd-eyebrow">جزئیات اشتراک</span>
             <span class="badge ${statusBadge}">
                 ${icon(statusIcon, 'class="ico"')}
                 ${escapeHtml(statusText)}
@@ -923,7 +923,7 @@ function renderBody($body, info, username, reload) {
         <section class="sd-panel sd-stock">
             <p class="muted center" style="font-size:13px">
                 ${icon('box', 'class="ico ico-leading"')}
-                این سرویس از انبار کانفیگ ارسال شده است؛ نمایش لحظه‌ای مصرف برای آن در دسترس نیست.
+                این اشتراک از انبار کانفیگ ارسال شده است؛ نمایش لحظه‌ای مصرف برای آن در دسترس نیست.
             </p>
         </section>
         ` : `
@@ -994,7 +994,7 @@ function renderBody($body, info, username, reload) {
 
         ${visibleActions.length > 0 ? `
         <section class="sd-management">
-            <div class="sd-management-heading"><h2 class="sd-section-title">مدیریت سرویس</h2><span>دسترسی سریع به تنظیمات</span></div>
+            <div class="sd-management-heading"><h2 class="sd-section-title">مدیریت اشتراک</h2><span>دسترسی سریع به تنظیمات</span></div>
             <div id="action-grid" class="sd-action-groups">
                 ${visibleActions.filter(a => a.id === 'renew').map(managementButton).join('')}
                 ${primaryActions.length > 0 ? `<div class="sd-action-grid">${primaryActions.map(managementButton).join('')}</div>` : ''}
@@ -1231,7 +1231,7 @@ function scrollToSubscription($body, info) {
 
     scrollToConfig($body);
     if (!info.subscription_url) {
-        toast('لینک اشتراک برای این سرویس موجود نیست', 'warn', 3000);
+        toast('لینک اشتراک برای این اشتراک موجود نیست', 'warn', 3000);
     }
 }
 
@@ -1352,8 +1352,8 @@ async function showConfigSection($body, info, username) {
 function renderNotePanel($panel, info, username, reload) {
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon('note')} یادداشت سرویس</p>
-            <p class="muted" style="font-size:13px">می‌توانید یک یادداشت کوتاه برای این سرویس ذخیره کنید (حداکثر ۲۰۰ کاراکتر).</p>
+            <p class="section-title">${icon('note')} یادداشت اشتراک</p>
+            <p class="muted" style="font-size:13px">می‌توانید یک یادداشت کوتاه برای این اشتراک ذخیره کنید (حداکثر ۲۰۰ کاراکتر).</p>
             <div class="form-row mt-sm">
                 <input id="note-input" type="text" maxlength="200"
                        placeholder="مثلاً: گوشی همسر"
@@ -1417,13 +1417,13 @@ function renderToggleStatusPanel($panel, info, username, reload) {
 
     $panel.innerHTML = `
         <div class="card-section sd-form">
-            ${actionPanelHeading('تغییر وضعیت سرویس', ico)}
+            ${actionPanelHeading('تغییر وضعیت اشتراک', ico)}
             <div class="sd-status-change">
                 <span><small>وضعیت فعلی</small><b class="${isActive ? 'sd-state-on' : 'sd-state-off'}">${escapeHtml(isActive ? 'فعال' : 'غیرفعال')}</b></span>
                 ${icon('arrowLeft')}
                 <span><small>پس از تأیید</small><b class="${isActive ? 'sd-state-off' : 'sd-state-on'}">${willBecome}</b></span>
             </div>
-            <p class="sd-form-description">${isActive ? 'با خاموش‌کردن، اتصال این سرویس متوقف می‌شود.' : 'با روشن‌کردن، وضعیت این سرویس به فعال تغییر می‌کند.'}</p>
+            <p class="sd-form-description">${isActive ? 'با غیرفعال‌کردن، اتصال این اشتراک متوقف می‌شود.' : 'با فعال‌کردن، وضعیت این اشتراک به فعال تغییر می‌کند.'}</p>
             <button id="toggle-confirm" type="button" class="btn btn-primary btn-block mt-md ${isActive ? 'sd-confirm-off' : ''}">
                 ${icon(ico, 'class="ico"')}
                 <span class="toggle-label">${escapeHtml(cta)}</span>
@@ -1507,7 +1507,7 @@ function renderReportProblemPanel($panel, info, username) {
 async function renderRenewPanel($panel, info, username, reload) {
     $panel.innerHTML = `
         <div class="card-section sd-form">
-            ${actionPanelHeading('تمدید سرویس', 'rotate')}
+            ${actionPanelHeading('تمدید اشتراک', 'rotate')}
             <div id="renew-list">${skeletonList(3)}</div>
             <div id="renew-confirm-host"></div>
             <div id="renew-pay-host"></div>
@@ -1683,7 +1683,7 @@ function renderRenewCustomForm($panel, opts, username, reload) {
             const blocked = !!r?.obj?.blocked;
             monetary = blocked ? null : pricing;
             updateCustomPriceSummary($summary, { volume: v, days: d, tariff: Number(pricing.price_per_gb), total: Number(pricing.price),
-                state: blocked ? 'error' : 'ready', message: blocked ? (r.obj.text || 'تمدید این سرویس فعلاً امکان‌پذیر نیست.') : '' });
+                state: blocked ? 'error' : 'ready', message: blocked ? (r.obj.text || 'تمدید این اشتراک فعلاً امکان‌پذیر نیست.') : '' });
             $submit.disabled = blocked;
         } catch (err) {
             if (seq !== priceSeq || !$summary.isConnected) return;
@@ -1842,7 +1842,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
             $btn.disabled = !!pobj.blocked;
         } catch (err) {
             if (seq !== previewSeq) return;
-            if ($preview) $preview.textContent = 'پیش‌نمایش تمدید موقتاً دریافت نشد؛ هنگام تأیید، وضعیت سرویس دوباره از پنل بررسی می‌شود.';
+            if ($preview) $preview.textContent = 'پیش‌نمایش تمدید موقتاً دریافت نشد؛ هنگام تأیید، وضعیت اشتراک دوباره از پنل بررسی می‌شود.';
             $btn.disabled = choice.code === '__custom__';
         }
     };
@@ -1851,7 +1851,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
 
     $btn.addEventListener('click', async () => {
         const shownAmount = $host.querySelector('#rc-amount')?.textContent || `${fmtNum(basePrice)} تومان`;
-        const sure = await showConfirm(`آیا از تمدید سرویس «${choice.name}» با مبلغ ${shownAmount} مطمئن هستید؟`);
+        const sure = await showConfirm(`آیا از تمدید اشتراک «${choice.name}» با مبلغ ${shownAmount} مطمئن هستید؟`);
         if (!sure) return;
         const old = $label.textContent;
         $btn.disabled = true;
@@ -1918,7 +1918,7 @@ function renderRenewConfirm($panel, opts, choice, username, reload) {
                 renderRenewConfirm($panel, opts, choice, username, reload);
                 return;
             }
-            const msg = err.message || 'خطا در تمدید سرویس';
+            const msg = err.message || 'خطا در تمدید اشتراک';
             toast(msg, 'error', 5000);
             $btn.disabled = false;
             $label.textContent = old;
@@ -2040,8 +2040,8 @@ async function renderRenewInlinePayment($panel, pay, reload) {
             });
             const obj = r?.obj || {};
             handleInitResult($host, method.id, obj, {
-                successText: 'پس از تأیید ادمین، سرویس شما به‌صورت خودکار تمدید خواهد شد.',
-                successCta:  { href: '#/services', label: 'بازگشت به سرویس‌ها' },
+                successText: 'پس از تأیید ادمین، اشتراک شما به‌صورت خودکار تمدید خواهد شد.',
+                successCta:  { href: '#/services', label: 'بازگشت به اشتراک‌ها' },
             });
         } catch (err) {
             if (showVerifyPending($host, err)) return;
@@ -2356,7 +2356,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
             const obj = r?.obj || {};
             handleInitResult($host, method.id, obj, {
                 successText: 'پس از تأیید ادمین، خرید شما به‌صورت خودکار اعمال خواهد شد.',
-                successCta:  { href: '#/services', label: 'بازگشت به سرویس‌ها' },
+                successCta:  { href: '#/services', label: 'بازگشت به اشتراک‌ها' },
             });
         } catch (err) {
             if (showVerifyPending($host, err)) return;
@@ -2370,7 +2370,7 @@ async function renderExtraInlinePayment($host, pay, reload, $panel, kind) {
 async function renderChangeLocationPanel($panel, username, reload) {
     $panel.innerHTML = `
         <div class="card-section">
-            <p class="section-title">${icon('pin')} تغییر موقعیت سرویس</p>
+            <p class="section-title">${icon('pin')} تغییر موقعیت اشتراک</p>
             <p class="muted" style="font-size:13px">موقعیت جدید را انتخاب کنید. این عملیات بلافاصله انجام می‌شود.</p>
             <div id="cl-list" class="list mt-md">${skeletonList(3)}</div>
         </div>
@@ -2404,7 +2404,7 @@ async function renderChangeLocationPanel($panel, username, reload) {
         btn.addEventListener('click', async () => {
             hapticImpact('light');
             const targetName = btn.dataset.name;
-            const ok = await showConfirm(`موقعیت سرویس به «${targetName}» تغییر کند؟`);
+            const ok = await showConfirm(`موقعیت اشتراک به «${targetName}» تغییر کند؟`);
             if (!ok) return;
 
             $list.querySelectorAll('.plan').forEach((b) => { b.disabled = true; });
@@ -2417,7 +2417,7 @@ async function renderChangeLocationPanel($panel, username, reload) {
                 });
                 const obj = res?.obj || {};
                 hapticNotify('success');
-                toast(obj.message || 'موقعیت سرویس تغییر کرد', 'success', 3500);
+                toast(obj.message || 'موقعیت اشتراک تغییر کرد', 'success', 3500);
                 reload();
             } catch (err) {
                 hapticNotify('error');
@@ -2444,7 +2444,7 @@ function requestAdminAction($panel, actionId, username) {
 
 const ACTION_REQUEST_META = {
     transfer: {
-        title:   'انتقال سرویس به کاربر دیگر',
+        title:   'انتقال اشتراک به کاربر دیگر',
         intro:   'شناسهٔ عددی کاربری که می‌خواهید سرویس به او منتقل شود را وارد کنید. ادمین درخواست را بررسی خواهد کرد.',
         ico:     'transfer',
         fields: [
@@ -2454,7 +2454,7 @@ const ACTION_REQUEST_META = {
     },
     refund: {
         title:   'درخواست بازگشت وجه',
-        intro:   'با ارسال این درخواست، ادمین وضعیت سرویس و امکان بازگشت وجه را بررسی می‌کند. در صورت نیاز، توضیحات کوتاهی اضافه کنید.',
+        intro:   'با ارسال این درخواست، ادمین وضعیت اشتراک و امکان بازگشت وجه را بررسی می‌کند. در صورت نیاز، توضیحات کوتاهی اضافه کنید.',
         ico:     'diamond',
         fields: [
             { id: 'reason', label: 'توضیحات (اختیاری)', type: 'textarea', placeholder: 'مثلاً: سرویس در دو روز اخیر کار نمی‌کند', required: false, maxlength: 500 },
@@ -2611,7 +2611,7 @@ async function submitAdminRequest($panel, actionId, username, payload) {
                     <h2>درخواست ارسال شد</h2>
                     <p>${escapeHtml(obj.message || 'ادمین پس از بررسی با شما تماس می‌گیرد.')}</p>
                 </div>
-                <button type="button" class="btn btn-ghost btn-block" data-panel-close>بازگشت به مدیریت سرویس</button>
+                <button type="button" class="btn btn-ghost btn-block" data-panel-close>بازگشت به مدیریت اشتراک</button>
             </div>`;
     } catch (err) {
         hapticNotify('error');

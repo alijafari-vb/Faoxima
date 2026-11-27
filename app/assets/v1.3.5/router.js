@@ -1,19 +1,19 @@
-import { home } from './pages/home.js?v=0.0.100';
-import { services as servicesPage } from './pages/services.js?v=0.0.55';
+import { home } from './pages/home.js?v=0.0.101';
+import { services as servicesPage } from './pages/services.js?v=0.0.56';
 
-import { buy as buyPage } from './pages/buy.js?v=0.0.69';
-import { account as accountPage } from './pages/account.js?v=0.0.56';
+import { buy as buyPage } from './pages/buy.js?v=0.0.70';
+import { account as accountPage } from './pages/account.js?v=0.0.57';
 import { settings as settingsPage } from './pages/settings.js?v=0.0.53';
-import { recharge as rechargePage } from './pages/recharge.js?v=0.0.71';
+import { recharge as rechargePage } from './pages/recharge.js?v=0.0.72';
 import { icon } from './icons.js?v=0.0.52';
-import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.75';
-import { startVerifyTracker } from './card-verify.js?v=0.0.6';
+import { methodLabel, handleInitResult } from './payment-ui.js?v=0.0.76';
+import { startVerifyTracker } from './card-verify.js?v=0.0.7';
 
 
 let _watchModulePromise = null;
 function loadWatchPage() {
     if (_watchModulePromise) return _watchModulePromise;
-    _watchModulePromise = import('./pages/gateway-watch.js?v=3');
+    _watchModulePromise = import('./pages/gateway-watch.js?v=4');
     return _watchModulePromise;
 }
 
@@ -67,14 +67,14 @@ async function watchResumePage(view, encodedOrderId) {
         }
     } catch (_) {  }
     if (statusObj.tonpay_custom) {
-        const customMod = await import('./pages/tonpay-custom.js?v=0.0.10');
+        const customMod = await import('./pages/tonpay-custom.js?v=0.0.11');
         return customMod.startTonpayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.tonpay_custom,
         });
     }
     if (statusObj.atlaspay_custom) {
-        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.3');
+        const atlasMod = await import('./pages/atlaspay-custom.js?v=0.0.4');
         return atlasMod.startAtlaspayCustom(view, orderId, {
             mode: flowStr === 'direct_buy' ? 'direct_buy' : 'recharge',
             initialView: statusObj.atlaspay_custom,
@@ -138,7 +138,7 @@ async function watchResumePage(view, encodedOrderId) {
                     <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${orderId}</span></div>
                     <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                         <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                        <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                        <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                     </div>
                 </div>
             </article>`;
@@ -177,7 +177,7 @@ async function watchResumePage(view, encodedOrderId) {
                         <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${st.order_id || '—'}</span></div>
                         <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                             <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                            <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                            <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                         </div>
                     </div>
                 </article>`;
@@ -211,7 +211,7 @@ function loadServicePage() {
 
 
     const url = new URL('./pages/service.js', import.meta.url);
-    url.searchParams.set('v', `${ver}-0.0.78`);
+    url.searchParams.set('v', `${ver}-0.0.79`);
     _serviceModulePromise = import(url.href).catch((err) => {
 
 
@@ -231,7 +231,7 @@ async function serviceDetailPage(view, ...params) {
 let _usertestModulePromise = null;
 function loadUsertestPage() {
     if (_usertestModulePromise) return _usertestModulePromise;
-    _usertestModulePromise = import('./pages/usertest.js?v=0.0.71');
+    _usertestModulePromise = import('./pages/usertest.js?v=0.0.72');
     return _usertestModulePromise;
 }
 async function usertestPage(view) {

@@ -3,7 +3,7 @@ import { escapeHtml, copyToClipboard, toast, blobToDataUrl, rialCopyValue } from
 import { hapticImpact, hapticNotify, isDesktopPlatform } from './telegram.js?v=0.0.52';
 import { icon } from './icons.js?v=0.0.52';
 import { getToken } from './state.js';
-import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.6';
+import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from './card-verify.js?v=0.0.7';
 
 export function iconForMethod(m) {
     const id = String(m.id || '').toLowerCase();
@@ -337,7 +337,7 @@ export function wireCardToCard(view, d, opts = {}) {
 let _gatewayWatchModulePromise = null;
 function loadGatewayWatch() {
     if (_gatewayWatchModulePromise) return _gatewayWatchModulePromise;
-    _gatewayWatchModulePromise = import('./pages/gateway-watch.js?v=3');
+    _gatewayWatchModulePromise = import('./pages/gateway-watch.js?v=4');
     return _gatewayWatchModulePromise;
 }
 
@@ -424,14 +424,14 @@ function renderFulfillmentPending(view, statusObj) {
                     ${icon('hourglass', 'class="ico ico-xxl ico-warn"')}
                 </div>
                 <h2 style="margin:6px 0;font-size:18px">پرداخت تایید شد</h2>
-                <p class="muted">سرویس شما در حال آماده‌سازی است و هنوز فعال‌شدن آن تایید نشده است. نتیجه نهایی در بخش سفارش‌های شما نمایش داده می‌شود.</p>
+                <p class="muted">اشتراک شما در حال آماده‌سازی است و هنوز فعال‌شدن آن تایید نشده است. نتیجه نهایی در بخش سفارش‌های شما نمایش داده می‌شود.</p>
                 <div class="kv mt-md">
                     <span class="kv-label">کد پیگیری</span>
                     <span class="kv-value mono gold">${escapeHtml(statusObj.order_id || '—')}</span>
                 </div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>
         </article>`;
@@ -457,7 +457,7 @@ function renderGenericSuccess(view, statusObj, opts) {
                 </div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>
         </article>`;
@@ -513,7 +513,7 @@ function renderGatewayTimeout(view, opts) {
 let _tonpayCustomModulePromise = null;
 function loadTonpayCustom() {
     if (_tonpayCustomModulePromise) return _tonpayCustomModulePromise;
-    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.10');
+    _tonpayCustomModulePromise = import('./pages/tonpay-custom.js?v=0.0.11');
     return _tonpayCustomModulePromise;
 }
 
@@ -538,7 +538,7 @@ export function startTonpayCustomFlow(rootView, obj, opts = {}) {
 let _atlaspayCustomModulePromise = null;
 function loadAtlaspayCustom() {
     if (_atlaspayCustomModulePromise) return _atlaspayCustomModulePromise;
-    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.3');
+    _atlaspayCustomModulePromise = import('./pages/atlaspay-custom.js?v=0.0.4');
     return _atlaspayCustomModulePromise;
 }
 
@@ -908,7 +908,7 @@ export function handleInitResult(view, methodId, obj, opts = {}) {
 export function inlinePaymentSummaryHtml(pay, opts = {}) {
     const username = String(pay.username || pay.purchase_username || '');
     const amount = Number(pay.amount_due || 0);
-    return `<header class="direct-checkout-heading"><span>${icon('wallet')}</span><div><small>تکمیل سفارش</small><h3>${escapeHtml(opts.bannerTitle || 'یک قدم تا تکمیل خرید')}</h3></div><span class="direct-checkout-badge">پرداخت مستقیم</span></header><div class="direct-checkout-total"><span>مبلغ قابل پرداخت</span><strong>${fmtNum(amount)} <small>تومان</small></strong><p>${escapeHtml(opts.bannerHint || 'روش پرداخت را انتخاب کن؛ پس از تأیید پرداخت، سفارش ادامه پیدا می‌کند.')}</p></div><details class="direct-checkout-details"><summary>${icon('fileText')} جزئیات سفارش ${icon('chevronDown')}</summary>${opts.showBreakdown !== false ? `<div class="kv"><span class="kv-label">موجودی کیف پول</span><span class="kv-value">${fmtNum(pay.balance)} تومان</span></div><div class="kv"><span class="kv-label">قیمت سفارش</span><span class="kv-value">${fmtNum(pay.price)} تومان</span></div>` : ''}${walletBreakdownHtml(pay.checkout)}${username ? `<div class="kv"><span class="kv-label">نام کاربری سرویس</span><span class="kv-value" dir="ltr">${escapeHtml(username)}</span></div>` : ''}</details><div class="direct-method-heading"><h4>انتخاب روش پرداخت</h4><span>یک روش را برای ادامه انتخاب کن</span></div>`;
+    return `<header class="direct-checkout-heading"><span>${icon('wallet')}</span><div><small>تکمیل سفارش</small><h3>${escapeHtml(opts.bannerTitle || 'یک قدم تا تکمیل خرید')}</h3></div><span class="direct-checkout-badge">پرداخت مستقیم</span></header><div class="direct-checkout-total"><span>مبلغ قابل پرداخت</span><strong>${fmtNum(amount)} <small>تومان</small></strong><p>${escapeHtml(opts.bannerHint || 'روش پرداخت را انتخاب کن؛ پس از تأیید پرداخت، سفارش ادامه پیدا می‌کند.')}</p></div><details class="direct-checkout-details"><summary>${icon('fileText')} جزئیات سفارش ${icon('chevronDown')}</summary>${opts.showBreakdown !== false ? `<div class="kv"><span class="kv-label">موجودی کیف پول</span><span class="kv-value">${fmtNum(pay.balance)} تومان</span></div><div class="kv"><span class="kv-label">قیمت سفارش</span><span class="kv-value">${fmtNum(pay.price)} تومان</span></div>` : ''}${walletBreakdownHtml(pay.checkout)}${username ? `<div class="kv"><span class="kv-label">نام اشتراک</span><span class="kv-value" dir="ltr">${escapeHtml(username)}</span></div>` : ''}</details><div class="direct-method-heading"><h4>انتخاب روش پرداخت</h4><span>یک روش را برای ادامه انتخاب کن</span></div>`;
 }
 
 export async function renderInlinePayment(rootView, host, pay, opts = {}) {

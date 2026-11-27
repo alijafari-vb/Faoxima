@@ -87,7 +87,7 @@ export function startGatewayWatch(view, opts) {
 
 
     const finalizingMessages = {
-        direct_buy:      'پرداخت تایید شد — در حال ساخت سرویس…',
+        direct_buy:      'پرداخت تایید شد — در حال ساخت اشتراک…',
         recharge:        'پرداخت تایید شد — در حال شارژ کیف‌پول…',
         crypto_offline:  'پرداخت تایید شد — در حال نهایی‌سازی…',
     };

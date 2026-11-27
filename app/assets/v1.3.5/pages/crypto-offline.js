@@ -2,7 +2,7 @@ import { call } from '../api.js?v=0.0.53';
 import { escapeHtml, copyToClipboard, toast, blobToDataUrl } from '../utils.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, hapticNotify, showConfirm } from '../telegram.js?v=0.0.52';
-import { startGatewayWatch } from './gateway-watch.js?v=3';
+import { startGatewayWatch } from './gateway-watch.js?v=4';
 import { getToken } from '../state.js';
 
 
@@ -572,7 +572,7 @@ export function renderCryptoOffline(view, opts = {}) {
                     ? `مبلغ ${escapeHtml(Number(statusObj.amount || 0).toLocaleString('en-US'))} تومان پرداخت و اعمال شد.`
                     : `مبلغ ${escapeHtml(Number(statusObj.amount || 0).toLocaleString('en-US'))} تومان به حساب شما اضافه شد.`;
                 const ctaHref = isPendingAction ? '#/services' : '#/buy';
-                const ctaLabel = isPendingAction ? 'سرویس‌های من' : 'خرید سرویس';
+                const ctaLabel = isPendingAction ? 'اشتراک‌های من' : 'خرید اشتراک';
 
                 view.innerHTML = `
                     <article class="payment-flow crypto-page payment-outcome" data-outcome="success">

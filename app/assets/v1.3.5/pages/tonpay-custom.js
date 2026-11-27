@@ -436,11 +436,11 @@ export function startTonpayCustom(view, orderId, opts = {}) {
             <div class="payment-outcome" data-outcome="success">
                 <div style="font-size:42px;line-height:1;color:var(--green);margin:4px 0 10px">${icon('checkCircle', 'class="ico ico-xxl ico-success"')}</div>
                 <h2 style="margin:6px 0;font-size:18px">پرداخت با موفقیت تأیید شد</h2>
-                <p class="muted">${mode === 'direct_buy' ? 'سرویس شما فعال شد.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
+                <p class="muted">${mode === 'direct_buy' ? 'اشتراک شما فعال شد.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
                 <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${escapeHtml(orderId)}</span></div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>`);
     }
@@ -451,11 +451,11 @@ export function startTonpayCustom(view, orderId, opts = {}) {
             <div style="text-align:center;padding:10px 0">
                 <div style="font-size:42px;line-height:1;color:var(--yellow);margin:4px 0 10px">${icon('hourglass', 'class="ico ico-xxl ico-warn"')}</div>
                 <h2 style="margin:6px 0;font-size:18px">پرداخت تأیید شد</h2>
-                <p class="muted">${mode === 'direct_buy' ? 'سرویس شما در حال آماده‌سازی است و هنوز فعال‌شدن آن تأیید نشده است. نتیجه نهایی در بخش سفارش‌های شما نمایش داده می‌شود.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
+                <p class="muted">${mode === 'direct_buy' ? 'اشتراک شما در حال آماده‌سازی است و هنوز فعال‌شدن آن تأیید نشده است. نتیجه نهایی در بخش سفارش‌های شما نمایش داده می‌شود.' : `مبلغ ${credited} تومان به کیف پول شما اضافه شد.`}</p>
                 <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${escapeHtml(orderId)}</span></div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                     <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                    <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                 </div>
             </div>`);
     }

@@ -3,7 +3,7 @@ import { call, ApiError } from '../api.js?v=0.0.53';
 import { escapeHtml, fmtPrice, skeletonList, toast, copyToClipboard, wireAmountInput, amountValue, blobToDataUrl, rialCopyValue } from '../utils.js?v=0.0.53';
 import { hapticImpact, hapticNotify, isDesktopPlatform } from '../telegram.js?v=0.0.52';
 import { icon } from '../icons.js?v=0.0.52';
-import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from '../card-verify.js?v=0.0.6';
+import { isVerifyPayment, verifyAmountHtml, verifyReceiptNoteHtml, wireVerify, showVerifyPending } from '../card-verify.js?v=0.0.7';
 
 function iconForMethod(m) {
     const id = String(m.id || '').toLowerCase();
@@ -987,7 +987,7 @@ function openLink(url, opts) {
 
 async function startTonpayCustomForRecharge(view, obj) {
     try {
-        const mod = await import('./tonpay-custom.js?v=0.0.10');
+        const mod = await import('./tonpay-custom.js?v=0.0.11');
         mod.startTonpayCustom(view, String(obj.order_id || ''), {
             mode: 'recharge',
             initialView: obj.view || null,
@@ -1000,7 +1000,7 @@ async function startTonpayCustomForRecharge(view, obj) {
 
 async function startAtlaspayCustomForRecharge(view, obj) {
     try {
-        const mod = await import('./atlaspay-custom.js?v=0.0.3');
+        const mod = await import('./atlaspay-custom.js?v=0.0.4');
         mod.startAtlaspayCustom(view, String(obj.order_id || ''), {
             mode: 'recharge',
             initialView: obj.view || null,
@@ -1014,7 +1014,7 @@ async function startAtlaspayCustomForRecharge(view, obj) {
 async function startGatewayWatchForRecharge(view, methodId, obj) {
     if (obj.url) openLink(obj.url);
     try {
-        const mod = await import( './gateway-watch.js?v=3');
+        const mod = await import( './gateway-watch.js?v=4');
         if (!mod || typeof mod.startGatewayWatch !== 'function') {
             const $r = view.querySelector('#pay-result-host');
             if ($r) {
@@ -1059,7 +1059,7 @@ async function startGatewayWatchForRecharge(view, methodId, obj) {
                             <div class="kv mt-md"><span class="kv-label">کد پیگیری</span><span class="kv-value mono gold">${escapeHtml(st.order_id || '—')}</span></div>
                             <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
                                 <a href="#/account" class="btn btn-primary btn-block" style="flex:1">حساب من</a>
-                                <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید سرویس</a>
+                                <a href="#/buy" class="btn btn-ghost btn-block" style="flex:1">خرید اشتراک</a>
                             </div>
                         </div>
                     </article>`;

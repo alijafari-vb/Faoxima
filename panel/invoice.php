@@ -48,7 +48,7 @@ unset($adminWebPage);
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>مدیریت سفارشات | ربات فاکسیما</title>
+    <title>سفارش‌های خرید | ربات فاکسیما</title>
     <link rel="stylesheet" href="css/theme.css?v=filterdrawer111">
 <script src="js/theme.js?v=dark62" defer>
 
@@ -66,9 +66,9 @@ unset($adminWebPage);
                 <div>
                     <div class="page-head__title">
                         <svg class="svg-icon svg-lg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" stroke="none" d="M302.793,440.856c0-1.925,0.096-3.861,0.286-5.834c0.868-8.667,3.013-16.371,6.216-23.006c2.174-4.529,4.891-8.533,7.942-12.032H35.753c-6.292,0-12.518,1.373-17.829,4.405c-5.32,3.06-9.83,7.522-13.166,14.234c-2.212,4.49-3.881,10.049-4.577,16.989C0.057,436.853,0,438.073,0,439.274c0,4.577,0.848,8.876,2.441,13.004c1.601,4.119,3.947,8.066,6.96,11.718c5.996,7.294,14.711,13.338,24.321,16.904c6.398,2.393,13.157,3.68,19.678,3.709h-0.01l269.158,0.152c-5.597-5.244-10.316-11.403-13.748-18.334C304.986,458.714,302.793,450.029,302.793,440.856z"/><path fill="currentColor" stroke="none" d="M511.276,27.22H152.364c0.162,22.815,0.668,46.764,0.668,71.82c0,43.581-1.583,90.345-9.573,139.522c-7.484,46.098-20.622,94.32-43.256,143.907h256.477v0.134c8.914,0.114,17.685,2.364,25.37,6.664c7.837,4.395,14.597,11.022,18.726,19.612c2.573,5.387,3.785,11.345,3.785,17.333c0,4.93-0.83,9.907-2.651,14.606c-1.83,4.701-4.691,9.162-8.819,12.69c-6.026,5.158-13.339,7.628-20.308,7.598c-6.092,0-11.947-1.783-16.913-4.976c-4.977-3.194-9.115-7.838-11.575-13.586l16.093-6.903c1.012,2.355,2.727,4.339,4.939,5.749c2.193,1.421,4.824,2.212,7.456,2.212c3.022-0.02,6.016-0.954,8.952-3.423c1.563-1.335,2.908-3.251,3.852-5.702c0.954-2.431,1.478-5.339,1.478-8.266c0-3.565-0.792-7.102-2.069-9.753c-2.422-5.025-6.417-9.057-11.518-11.928c-5.082-2.851-11.221-4.452-17.419-4.433c-6.14-0.01-12.29,1.526-17.639,4.681c-5.358,3.175-9.991,7.894-13.357,14.835c-2.231,4.634-3.871,10.287-4.557,17.161c-0.144,1.382-0.2,2.746-0.2,4.081c0,6.388,1.496,12.338,4.195,17.81c2.697,5.473,6.616,10.449,11.46,14.654c5.997,5.225,13.366,9.2,21.308,11.451l8.771,0.009c8.524-0.028,14.559-1.553,20.222-4.08c5.635-2.527,10.983-6.293,17.066-11.155c24.121-19.23,42.951-43.123,57.729-70.409c14.777-27.286,25.428-57.958,33.006-90.326C509.245,244.073,512.02,172.662,512,108.717C512,79.59,511.447,52.036,511.276,27.22z M205.774,83.147h136.024c0.314,31.072,0.162,63.926-2.918,98.248H202.847C205.928,147.073,206.09,114.218,205.774,83.147z M417.794,329.717H174.665v-20.431h243.129V329.717z M436.805,252.882H193.676V232.46h243.129V252.882z"/></svg>
-                        لیست سفارشات
+                        سفارش‌های خرید
                     </div>
-                    <div class="page-head__sub">آرشیو کامل سفارشات کاربران</div>
+                    <div class="page-head__sub">خرید اولیه و وضعیت اشتراک مرتبط</div>
                 </div>
             </div>
 
@@ -104,7 +104,7 @@ unset($adminWebPage);
             </details>
 
             <div class="card invoice-results">
-                <div class="invoice-results__head"><div><h2>آرشیو سفارش‌ها</h2><p>جزئیات خریدها، وضعیت سرویس و اطلاعات کاربران</p></div><span class="invoice-page-count"><?php echo strtr(number_format(count($listinvoice)), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); ?> سفارش در این صفحه</span></div>
+                <div class="invoice-results__head"><div><h2>آرشیو خریدها</h2><p>اطلاعات سفارش خرید و اشتراک مرتبط</p></div><span class="invoice-page-count"><?php echo strtr(number_format(count($listinvoice)), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); ?> سفارش در این صفحه</span></div>
 <?php $invBulkAction = \Faoxima\Admin\Web\Support\Pagination::fx_qs(array_merge($invFilterParams, ['p' => (isset($_GET['p']) && is_string($_GET['p']) && ctype_digit($_GET['p'])) ? $_GET['p'] : null])); ?>
                 <form method="POST" action="<?php echo htmlspecialchars('invoice.php' . ($invBulkAction !== '' ? '?' . $invBulkAction : ''), ENT_QUOTES, 'UTF-8'); ?>" id="bulk-form">
                 <?php echo \Faoxima\Admin\Web\Support\Csrf::fx_csrf_field(); ?>
@@ -114,11 +114,12 @@ unset($adminWebPage);
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="check-all" onclick="faoximaToggleAll(this)"></th>
-                                <th>شناسه سفارش</th>
-                                <th>آیدی کاربر</th>
-                                <th>نام کانفیگ</th>
-                                <th>لوکیشن</th>
-                                <th>محصول</th>
+                                <th>شماره سفارش</th>
+                                <th>شناسهٔ تلگرام کاربر</th>
+                                <th>نام اشتراک</th>
+                                <th>شناسهٔ اشتراک</th>
+                                <th>موقعیت اشتراک</th>
+                                <th>نام پلن</th>
                                 <th>تاریخ سفارش</th>
                                 <th>مبلغ (تومان)</th>
                                 <th>وضعیت</th>
@@ -147,17 +148,18 @@ unset($adminWebPage);
                         ?>
                             <tr data-detail-row data-detail-title="سفارش <?php echo htmlspecialchars((string)$list['id_invoice'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <td><label class="fx-check-row"><input type="checkbox" name="ids[]" value="<?php echo htmlspecialchars($list['id_invoice'], ENT_QUOTES, 'UTF-8'); ?>"></label></td>
-                                <td data-label="شناسه سفارش" data-summary="1"><bdi class="invoice-reference">#<?php echo htmlspecialchars((string)$list['id_invoice'], ENT_QUOTES, 'UTF-8'); ?></bdi></td>
-                                <td data-label="آیدی کاربر">
+                                <td data-label="شماره سفارش" data-summary="1"><bdi class="invoice-reference">#<?php echo htmlspecialchars((string)$list['id_invoice'], ENT_QUOTES, 'UTF-8'); ?></bdi></td>
+                                <td data-label="شناسهٔ تلگرام کاربر">
                                     <a href="user.php?id=<?php echo $list['id_user']; ?>" class="text-link">
                                         <?php echo $list['id_user']; ?>
                                     </a>
                                 </td>
-                                <td data-label="نام کانفیگ" style="direction:ltr; text-align:right;">
+                                <td data-label="نام اشتراک" style="direction:ltr; text-align:right;">
                                     <bdi class="invoice-config"><?php echo htmlspecialchars($list['username'], ENT_QUOTES, 'UTF-8'); ?></bdi>
                                 </td>
-                                <td data-label="لوکیشن"><span class="invoice-location"><?php echo htmlspecialchars($list['Service_location'], ENT_QUOTES, 'UTF-8'); ?></span></td>
-                                <td data-label="محصول" data-summary="1"><span class="invoice-product"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td data-label="شناسهٔ اشتراک"><bdi><?php echo \Faoxima\Services\Subscriptions\ServiceSearch::cachedPanelUserId($list) ?? '—'; ?></bdi></td>
+                                <td data-label="موقعیت اشتراک"><span class="invoice-location"><?php echo htmlspecialchars($list['Service_location'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td data-label="نام پلن" data-summary="1"><span class="invoice-product"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></span></td>
                                 <td data-label="تاریخ سفارش" style="direction:ltr; text-align:right;"><span class="invoice-date"><?php echo htmlspecialchars((string)$time_sell, ENT_QUOTES, 'UTF-8'); ?></span></td>
                                 <td data-label="مبلغ (تومان)"><span class="invoice-amount"><bdi><?php echo $price; ?></bdi><?php if ((float)$list['price_product'] !== 0.0): ?> <small class="currency-unit">تومان</small><?php endif; ?></span></td>
                                 <td data-label="وضعیت" data-summary="1"><span class="badge <?php echo $statusClass; ?>"><?php echo $statusText; ?></span></td>
@@ -174,7 +176,7 @@ unset($adminWebPage);
                     ?>
                 </div>
                 <div style="padding:12px 0;">
-                    <button type="submit" class="btn btn-soft-danger btn-sm js-bulk-delete-btn" style="display:none;" onclick="return confirm('آیا از حذف سفارشات انتخاب‌شده مطمئن هستید؟')">
+                    <button type="submit" class="btn btn-soft-danger btn-sm js-bulk-delete-btn" style="display:none;" onclick="return confirm('آیا از حذف سفارش‌های انتخاب‌شده مطمئن هستید؟')">
                         <?php echo \Faoxima\Admin\Web\Support\Icons::icon('trash', 'svg-icon'); ?> حذف انتخاب‌شده‌ها
                     </button>
                 </div>

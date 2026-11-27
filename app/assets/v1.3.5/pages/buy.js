@@ -1,15 +1,29 @@
 import { durationCardsHtml, bindDurationCards, customPriceSummaryHtml, updateCustomPriceSummary } from '../custom-duration.js?v=1';
 import { call } from '../api.js?v=0.0.53';
 import {
-    escapeHtml, fmtPrice, fmtGb, fmtDays, fmtIpLimit, fmtSymbolicLimit, skeletonList, emptyState, toast, fmtNumber,
+    escapeHtml, fmtPrice, fmtIpLimit, fmtSymbolicLimit, skeletonList, emptyState, toast, fmtNumber,
 } from '../utils.js?v=0.0.52';
 import { hapticImpact, hapticNotify, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { getBuyDraft, setBuyDraft, clearBuyDraft } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
-import { showVerifyPending } from '../card-verify.js?v=0.0.6';
+import { showVerifyPending } from '../card-verify.js?v=0.0.7';
 import {
     fmtNum, renderMethodCard, handleInitResult, resolveWalletChoice, walletBreakdownHtml, inlinePaymentSummaryHtml,
-} from '../payment-ui.js?v=0.0.75';
+} from '../payment-ui.js?v=0.0.76';
+
+const planNumber = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2 });
+const fmtPlanTerm = (value, unit) => {
+    if (value === null || value === '' || !Number.isFinite(Number(value))) return '—';
+    return Number(value) === 0 ? 'نامحدود' : `${planNumber.format(value)} ${unit}`;
+};
+const fmtGb = (value) => fmtPlanTerm(value, 'گیگ');
+const fmtDays = (value) => fmtPlanTerm(value, 'روز');
+const planTitle = (volume, days) => {
+    const traffic = fmtGb(volume);
+    const duration = fmtDays(days);
+    if (traffic === 'نامحدود' && duration === 'نامحدود') return 'حجم و مدت نامحدود';
+    return `${traffic === 'نامحدود' ? 'حجم نامحدود' : traffic}، ${duration === 'نامحدود' ? 'مدت نامحدود' : duration}`;
+};
 
 
 let _successModulePromise = null;
@@ -19,7 +33,7 @@ function loadSuccessModule() {
     const ver = (cfg.version || cfg.cacheBust || Date.now()).toString();
     try {
         const url = new URL('./service-success.js', import.meta.url);
-        url.searchParams.set('v', `${ver}-0.0.2`);
+        url.searchParams.set('v', `${ver}-0.0.3`);
         _successModulePromise = import(url.href).catch((err) => {
             console.warn('[buy] dynamic import of service-success.js with cache-bust failed, retrying plain', err);
             _successModulePromise = null;
@@ -45,18 +59,18 @@ function renderFallbackSuccess(view, res) {
                 <div style="font-size:48px;line-height:1;color:var(--green);margin:8px 0">
                     ${icon('checkCircle', 'class="ico ico-xxl ico-success"')}
                 </div>
-                <h2 style="margin:8px 0;font-size:20px">سرویس شما با موفقیت ساخته شد</h2>
+                <h2 style="margin:8px 0;font-size:20px">اشتراک شما با موفقیت ساخته شد</h2>
                 <p class="muted">جزئیات و کانفیگ سرویس برای شما در تلگرام ارسال شد.</p>
                 <div class="kv mt-md">
                     <span class="kv-label">کد پیگیری</span>
                     <span class="kv-value mono gold">${escapeHtml(id)}</span>
                 </div>
                 <div class="kv">
-                    <span class="kv-label">نام کاربری</span>
+                    <span class="kv-label">نام اشتراک</span>
                     <span class="kv-value mono">${escapeHtml(u)}</span>
                 </div>
                 <div class="row-spread mt-md stack-on-mobile" style="gap:10px">
-                    <a href="#/services/${encodeURIComponent(u)}" class="btn btn-primary btn-block" style="flex:1">مشاهده سرویس</a>
+                    <a href="#/services/${encodeURIComponent(u)}" class="btn btn-primary btn-block" style="flex:1">مشاهده اشتراک</a>
                     <a href="#/" class="btn btn-ghost btn-block" style="flex:1">خانه</a>
                 </div>
             </div>
@@ -67,15 +81,15 @@ const STEPS = [
     { key: 'panel',     label: 'موقعیت' },
     { key: 'category',  label: 'دسته‌بندی' },
     { key: 'time',      label: 'زمان' },
-    { key: 'product',   label: 'سرویس' },
+    { key: 'product',   label: 'پلن' },
     { key: 'confirm',   label: 'تایید' },
 ];
 
 const FA_NUMS = ['۱', '۲', '۳', '۴', '۵'];
 const STEP_DETAILS = [
-    { title: 'از اینجا، متصل شو.', text: 'موقعیت دلخواهت را انتخاب کن؛ بعد سرویس را متناسب با نیازت بساز.', ico: 'globe' },
-    { title: 'انتخابی برای تو.', text: 'دسته‌بندی دلخواهت را پیدا کن یا همهٔ سرویس‌ها را ببین.', ico: 'fileText' },
-    { title: 'مدت اشتراک تو.', text: 'مدت اشتراک را انتخاب کن تا سرویس‌های متناسب را ببینی.', ico: 'calendar' },
+    { title: 'از اینجا، متصل شو.', text: 'موقعیت دلخواهت را انتخاب کن؛ بعد پلن را متناسب با نیازت بساز.', ico: 'globe' },
+    { title: 'انتخابی برای تو.', text: 'دسته‌بندی دلخواهت را پیدا کن یا همهٔ پلن‌ها را ببین.', ico: 'fileText' },
+    { title: 'مدت اشتراک تو.', text: 'مدت اشتراک را انتخاب کن تا پلن‌های متناسب را ببینی.', ico: 'calendar' },
     { title: 'پلن مناسب تو.', text: 'حجم، مدت و قیمت را مقایسه کن و پلن مناسب خودت را بردار.', ico: 'box' },
     { title: 'یک قدم تا اتصال.', text: 'جزئیات انتخابت را بررسی کن و خرید را تکمیل کن.', ico: 'checkCircle' },
 ];
@@ -201,7 +215,7 @@ export async function buy(view) {
                         <div class="plan-title">${escapeHtml(p.name)}</div>
                         <div class="plan-meta">
                             ${p.is_custom ? `<span>${icon('box')} حجم سفارشی</span>` : ''}
-                            ${p.is_username ? `<span>${icon('user')} نام کاربری دلخواه${p.is_username_required ? ' (ضروری)' : ''}</span>` : ''}
+                            ${p.is_username ? `<span>${icon('user')} نام اشتراک دلخواه${p.is_username_required ? ' (ضروری)' : ''}</span>` : ''}
                             ${!p.is_custom && !p.is_username ? '<span class="buy-location-caption">مشاهدهٔ پلن‌ها و تعرفه‌ها</span>' : ''}
                         </div>
                     </div>
@@ -227,7 +241,7 @@ export async function buy(view) {
     async function renderCategoryStep(host) {
         host.innerHTML = `
             ${backRow('بازگشت')}
-            <div class="buy-list-heading"><h2>دسته‌بندی سرویس‌ها</h2><span>متناسب با استفادهٔ تو</span></div>
+            <div class="buy-list-heading"><h2>دسته‌بندی پلن‌ها</h2><span>متناسب با استفادهٔ تو</span></div>
             <div id="cat-list" class="list mt-md">${skeletonList(3)}</div>
         `;
         wireBackBtn(host);
@@ -346,7 +360,7 @@ export async function buy(view) {
                 const res = await call('services', { params });
                 const list = Array.isArray(res?.obj) ? res.obj : [];
                 if (!list.length) {
-                    target.innerHTML = emptyState('سرویسی یافت نشد', 'با این تنظیمات هیچ سرویسی موجود نیست.');
+                    target.innerHTML = emptyState('پلنی یافت نشد', 'با این تنظیمات هیچ پلنی موجود نیست.');
                     return;
                 }
                 target.innerHTML = `
@@ -354,7 +368,7 @@ export async function buy(view) {
                         ${list.map((p) => `
                             <button class="plan" data-id="${escapeHtml(p.id)}" data-name="${escapeHtml(p.name)}" data-traffic="${escapeHtml(p.traffic_gb)}" data-time="${escapeHtml(p.time_days)}" data-price="${escapeHtml(p.price)}" data-iplimit="${escapeHtml(p.ip_limit || 0)}" data-ipguard="${p.ip_limit_guard_active ? '1' : '0'}" data-symlimit="${p.symbolic_limit_enabled ? '1' : '0'}" data-symlimitusers="${escapeHtml(p.symbolic_limit_users || 0)}" data-hwidlimit="${escapeHtml(p.hwid_limit || 0)}" data-hwidsupported="${p.hwid_limit_supported ? '1' : '0'}" data-fxquote="${escapeHtml(p.fx_quote || '')}">
                                 <div class="plan-info">
-                                    <div class="plan-title">${escapeHtml(`${fmtGb(p.traffic_gb)} · ${fmtDays(p.time_days)}`)}</div>
+                                    <div class="plan-title" dir="rtl">${escapeHtml(planTitle(p.traffic_gb, p.time_days))}</div>
                                     <div class="plan-meta">
                                         <span>${icon('box')} ${escapeHtml(fmtGb(p.traffic_gb))}</span>
                                         <span>${icon('calendar')} ${escapeHtml(fmtDays(p.time_days))}</span>
@@ -425,7 +439,7 @@ export async function buy(view) {
                         <div class="range-row">
                             <label>حجم (گیگابایت) <span class="v" id="t-val">${fmtNumber(trafficVal)}</span></label>
                             <input id="t-range" class="range-input" type="range" min="${tMin}" max="${tMax}" step="1" value="${trafficVal}" />
-                            <div class="muted mono" style="font-size:11px">حداقل: ${fmtNumber(tMin)} GB · حداکثر: ${fmtNumber(tMax)} GB</div>
+                            <div class="muted" style="font-size:11px">حداقل ${fmtGb(tMin)}، حداکثر ${fmtGb(tMax)}</div>
                         </div>
                         <div class="range-row mt-md">
                             <label>مدت زمان (روز) <span class="v" id="d-val">${fmtNumber(timeVal)}</span></label>
@@ -513,27 +527,26 @@ export async function buy(view) {
 
         host.innerHTML = `
             ${backRow('بازگشت')}
-            <div class="buy-list-heading"><h2>خلاصهٔ سفارش</h2><span>جزئیات سرویس انتخابی تو</span></div>
+            <div class="buy-list-heading"><h2>خلاصهٔ سفارش</h2><span>جزئیات اشتراک انتخابی تو</span></div>
 
             <div class="card buy-order-card" style="padding:16px">
                 <div class="kv"><span class="kv-label">${icon('pin')} موقعیت</span><span class="kv-value">${escapeHtml(draft.panel.name)}</span></div>
-                <div class="kv"><span class="kv-label">${icon('fileText')} سرویس</span><span class="kv-value">${escapeHtml(p.name)}</span></div>
                 <div class="kv"><span class="kv-label">${icon('box')} حجم</span><span class="kv-value">${escapeHtml(fmtGb(p.traffic_gb))}</span></div>
                 <div class="kv"><span class="kv-label">${icon('calendar')} مدت زمان</span><span class="kv-value">${escapeHtml(fmtDays(p.time_days))}</span></div>
                 ${fmtSymbolicLimit(p) ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtSymbolicLimit(p))}</span></div>` : (p.ip_limit_guard_active ? `<div class="kv"><span class="kv-label">${icon('users')} تعداد کاربر مجاز</span><span class="kv-value">${escapeHtml(fmtIpLimit(p.ip_limit))}</span></div>` : '')}
                 ${(p.hwid_limit_supported && Number(p.hwid_limit) > 0) ? `<div class="kv"><span class="kv-label">${icon('mobileDevice')} محدودیت دستگاه</span><span class="kv-value">${escapeHtml(String(p.hwid_limit))} دستگاه</span></div>` : ''}
-                ${p.duration_pricing ? `<div class="kv"><span class="kv-label">تعرفه هر گیگابایت</span><span class="kv-value" id="buy-tariff">${fmtNumber(p.price_per_gb)} تومان/GB</span></div>` : ''}
+                ${p.duration_pricing ? `<div class="kv"><span class="kv-label">تعرفه هر گیگابایت</span><span class="kv-value" id="buy-tariff">${planNumber.format(p.price_per_gb)} تومان</span></div>` : ''}
                 <div class="kv"><span class="kv-label">${icon('wallet')} مبلغ قابل پرداخت</span><span class="kv-value gold" id="buy-price">${escapeHtml(fmtPrice(p.price))}</span></div>
             </div>
 
             ${showUsername ? `
                 <div class="form-row mt-md">
-                    <label for="custom-username">نام کاربری دلخواه ${usernameRequired ? '<span style="color:#e74c3c">(ضروری)</span>' : '(اختیاری)'}</label>
+                    <label for="custom-username">نام اشتراک دلخواه ${usernameRequired ? '<span style="color:#e74c3c">(ضروری)</span>' : '(اختیاری)'}</label>
                     <div style="display:flex;gap:8px;align-items:center">
                         <input id="custom-username" type="text" placeholder="مثلا alireza" maxlength="40" style="flex:1" ${usernameRequired ? 'required' : ''} />
                         ${usernameRandom ? '<button type="button" id="gen-random-username" class="btn btn-ghost" style="white-space:nowrap;padding:8px 14px;min-height:auto">🎲 رندوم</button>' : ''}
                     </div>
-                    ${usernameRequired ? '<small class="muted" style="display:block;margin-top:4px;font-size:11px">⚠️ برای این پنل، انتخاب نام کاربری اجباری است و سرویس بدون نام ساخته نمی‌شود.</small>' : ''}
+                    ${usernameRequired ? '<small class="muted" style="display:block;margin-top:4px;font-size:11px">⚠️ برای این پنل، انتخاب نام اشتراک اجباری است و سرویس بدون نام ساخته نمی‌شود.</small>' : ''}
                 </div>
             ` : ''}
             ${showNote ? `
@@ -549,7 +562,7 @@ export async function buy(view) {
             </div>
 
             <button class="btn btn-primary btn-block mt-md" id="do-purchase">
-                <span>پرداخت و ساخت سرویس</span>
+                <span>پرداخت و ساخت اشتراک</span>
                 <span class="arrow">${icon('select', 'class="ico"')}</span>
             </button>
             <p class="muted mono mt-sm" style="font-size:11px;text-align:center">با کلیک روی دکمه بالا، مبلغ از کیف پول شما کسر خواهد شد.</p>
@@ -581,12 +594,12 @@ export async function buy(view) {
             const discountCode = host.querySelector('#buy-discount')?.value?.trim() || '';
 
             if (usernameRequired && !customUsername) {
-                toast('برای این پنل نام کاربری دلخواه ضروری است؛ لطفاً نام کاربری انتخاب کنید.', 'error');
+                toast('برای این پنل نام اشتراک دلخواه ضروری است؛ لطفاً نام اشتراک انتخاب کنید.', 'error');
                 host.querySelector('#custom-username')?.focus();
                 return;
             }
             if (usernameRequired && !/^[A-Za-z0-9_.-]{3,40}$/.test(customUsername)) {
-                toast('نام کاربری معتبر نیست. فقط حروف انگلیسی، عدد، _ . - مجاز است (۳ تا ۴۰ کاراکتر).', 'error');
+                toast('نام اشتراک معتبر نیست. فقط حروف انگلیسی، عدد، _ . - مجاز است (۳ تا ۴۰ کاراکتر).', 'error');
                 host.querySelector('#custom-username')?.focus();
                 return;
             }
@@ -606,7 +619,7 @@ export async function buy(view) {
                     if (shownPrice) shownPrice.textContent = fmtPrice(p.price);
                     const shownTariff = host.querySelector('#buy-tariff');
                     if (shownTariff) {
-                        shownTariff.textContent = `${fmtNumber(p.price_per_gb)} تومان/GB`;
+                        shownTariff.textContent = `${planNumber.format(p.price_per_gb)} تومان`;
                         shownTariff.parentElement.hidden = !p.duration_pricing;
                     }
                 } catch (err) {
@@ -617,7 +630,7 @@ export async function buy(view) {
                 }
             }
 
-            const ok = await showConfirm(`آیا از خرید «${p.name}» با مبلغ ${fmtPrice(p.price)} مطمئن هستید؟${p.duration_pricing ? `\n${p.traffic_gb} GB · ${p.time_days} روز · ${fmtNumber(p.price_per_gb)} تومان/GB` : ''}`);
+            const ok = await showConfirm(`آیا از خرید «${planTitle(p.traffic_gb, p.time_days)}» با مبلغ ${fmtPrice(p.price)} مطمئن هستید؟${p.duration_pricing ? `\nتعرفهٔ هر گیگ ${planNumber.format(p.price_per_gb)} تومان` : ''}`);
             if (!ok) return;
 
             $btn.disabled = true;
@@ -657,7 +670,7 @@ export async function buy(view) {
                     if (!ready) {
                         if ($ckHost) $ckHost.innerHTML = '';
                         $btn.disabled = false;
-                        $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                        $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                         return;
                     }
                     renderInlinePayment(host, ready);
@@ -711,7 +724,7 @@ export async function buy(view) {
                     if (!readyErr) {
                         if ($ckHostErr) $ckHostErr.innerHTML = '';
                         $btn.disabled = false;
-                        $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                        $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                         return;
                     }
                     renderInlinePayment(host, readyErr);
@@ -730,13 +743,13 @@ export async function buy(view) {
                     toast('موجودی شما کافی نیست — یک روش پرداخت انتخاب کنید', 'warn', 5000);
                     setTimeout(() => { window.location.hash = '#/recharge'; }, 800);
                     $btn.disabled = false;
-                    $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                    $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
                     return;
                 }
 
-                toast(err.message || 'خطا در ساخت سرویس', 'error', 5000);
+                toast(err.message || 'خطا در ساخت اشتراک', 'error', 5000);
                 $btn.disabled = false;
-                $btn.innerHTML = `<span>پرداخت و ساخت سرویس</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
+                $btn.innerHTML = `<span>پرداخت و ساخت اشتراک</span><span class="arrow">${icon('select', 'class="ico"')}</span>`;
             }
         });
     }
@@ -852,7 +865,7 @@ export async function buy(view) {
                 handleInitResult($inline, method.id, obj, {
                     rootView: view,
                     purchaseUsername: username,
-                    successText: 'پس از تأیید پرداخت، سرویس شما به‌صورت خودکار ساخته می‌شود.',
+                    successText: 'پس از تأیید پرداخت، اشتراک شما به‌صورت خودکار ساخته می‌شود.',
                     successCta:  { href: '#/', label: 'بازگشت به خانه' },
                     onSuccess:   () => { clearBuyDraft(); },
                 });

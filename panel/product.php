@@ -101,7 +101,7 @@ if (is_string($nameProduct)) {
 
             <?php echo \Faoxima\Admin\Web\Support\BulkDelete::fx_bulk_delete_flash_html(); ?>
 
-            <?php echo \Faoxima\Admin\Web\Support\SearchFilter::fx_search_ui('product.php', $prodQ, [], 'جستجو در شناسه، نام محصول، لوکیشن یا دسته‌بندی…'); ?>
+            <?php echo \Faoxima\Admin\Web\Support\SearchFilter::fx_search_ui('product.php', $prodQ, [], 'جستجو در شناسه، نام پلن، لوکیشن یا دسته‌بندی…'); ?>
 
             <div class="card product-catalog">
                 <div class="product-catalog__head"><div><h2>کاتالوگ محصولات</h2><p>قیمت، مشخصات سرویس و پنل‌های ارائه‌دهنده</p></div><span class="product-count"><?php echo strtr(number_format((int)$pg['total']), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); ?> محصول<?php echo $prodQ !== '' ? ' مطابق جستجو' : ''; ?></span></div>
@@ -114,7 +114,7 @@ if (is_string($nameProduct)) {
                             <tr>
                                 <th><input type="checkbox" id="check-all" onclick="faoximaToggleAll(this)"></th>
                                 <th>شناسه</th>
-                                <th>نام محصول</th>
+                                <th>نام پلن</th>
                                 <th>قیمت</th>
                                 <th>حجم (GB)</th>
                                 <th>زمان (روز)</th>
@@ -135,7 +135,7 @@ if (is_string($nameProduct)) {
                             <tr data-detail-row data-detail-title="<?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <td><label class="fx-check-row"><input type="checkbox" name="ids[]" value="<?php echo $list['id']; ?>"></label></td>
                                 <td data-label="شناسه" data-summary="1"><bdi class="product-id">#<?php echo (int)$list['id']; ?></bdi></td>
-                                <td data-label="نام محصول" data-summary="1"><span class="product-name"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></span></td>
+                                <td data-label="نام پلن" data-summary="1"><span class="product-name"><?php echo htmlspecialchars($list['name_product'], ENT_QUOTES, 'UTF-8'); ?></span></td>
                                 <td data-label="قیمت" data-summary="1"><span class="product-price"><bdi><?php echo number_format($list['price_product']); ?></bdi><small class="currency-unit">تومان</small></span></td>
                                 <td data-label="حجم (GB)"><span class="product-spec"><?php echo ((int)$list['Volume_constraint'] === 0) ? 'نامحدود' : (int)$list['Volume_constraint'] . ' GB'; ?></span></td>
                                 <td data-label="زمان (روز)"><span class="product-spec"><?php echo (int)$list['Service_time']; ?> روز</span></td>
@@ -313,7 +313,7 @@ if (is_string($nameProduct)) {
             <?php echo \Faoxima\Admin\Web\Support\Csrf::fx_csrf_field(); ?>
             <div class="form-group">
                 <label class="form-label">نام پلن</label>
-                <input type="text" name="nameproduct" id="clone_name" class="form-control" placeholder="نام محصول را وارد کنید" required>
+                <input type="text" name="nameproduct" id="clone_name" class="form-control" placeholder="نام پلن را وارد کنید" required>
             </div>
 
             <div class="form-group">

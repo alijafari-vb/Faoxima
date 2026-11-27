@@ -98,7 +98,7 @@ unset($adminWebPage);
             </details>
 
             <div class="card invoice-results">
-                <div class="invoice-results__head"><div><h2>آرشیو تراکنش‌ها</h2><p>جزئیات مبلغ، روش پرداخت و وضعیت تراکنش</p></div><span class="invoice-page-count"><?php echo strtr(number_format(count($listpayment)), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); ?> تراکنش در این صفحه</span></div>
+                <div class="invoice-results__head"><div><h2>آرشیو تراکنش‌ها</h2><p>پرداخت‌ها و واریزهای ثبت‌شده، با مبلغ و روش پرداخت</p></div><span class="invoice-page-count"><?php echo strtr(number_format(count($listpayment)), ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹']); ?> تراکنش در این صفحه</span></div>
                 <form method="POST" action="payment.php" id="bulk-form">
                 <?php echo \Faoxima\Admin\Web\Support\Csrf::fx_csrf_field(); ?>
                 <input type="hidden" name="action" value="bulk_delete">
@@ -107,8 +107,8 @@ unset($adminWebPage);
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="check-all" onclick="faoximaToggleAll(this)"></th>
-                                <th>آیدی کاربر</th>
-                                <th>کد پیگیری</th>
+                                <th>شناسهٔ تلگرام کاربر</th>
+                                <th>کد پیگیری پرداخت</th>
                                 <th>مبلغ (تومان)</th>
                                 <th>زمان</th>
                                 <th>روش پرداخت</th>
@@ -131,12 +131,12 @@ unset($adminWebPage);
                         ?>
                             <tr data-detail-row data-detail-title="پرداخت <?php echo htmlspecialchars($list['id_order'], ENT_QUOTES, 'UTF-8'); ?>">
                                 <td><label class="fx-check-row"><input type="checkbox" name="ids[]" value="<?php echo (int)$list['id']; ?>"></label></td>
-                                <td data-label="آیدی کاربر">
+                                <td data-label="شناسهٔ تلگرام کاربر">
                                     <a href="user.php?id=<?php echo $list['id_user']; ?>" class="text-link">
                                         <?php echo $list['id_user']; ?>
                                     </a>
                                 </td>
-                                <td data-label="کد پیگیری" data-summary="1">
+                                <td data-label="کد پیگیری پرداخت" data-summary="1">
                                     <span class="track-id invoice-reference" onclick="copyToClipboard('<?php echo addslashes($list['id_order']); ?>')" title="کپی کردن">
                                         <?php echo htmlspecialchars($list['id_order'], ENT_QUOTES, 'UTF-8'); ?>
                                     </span>

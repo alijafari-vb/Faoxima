@@ -40,7 +40,7 @@ export function renderServiceSuccess(view, res, opts = {}) {
         <article class="ss-page" aria-label="خرید موفق">
             <header class="ss-hero" role="status">
                 <span class="ss-success-icon" aria-hidden="true">${icon('check')}</span>
-                <div><span class="ss-eyebrow">خرید تکمیل شد</span><h1>سرویس تو آماده‌ست!</h1><p>از بخش اتصال، اطلاعات سرویس را دریافت کن.</p></div>
+                <div><span class="ss-eyebrow">خرید تکمیل شد</span><h1>اشتراک تو آماده‌ست!</h1><p>از بخش اتصال، اطلاعات اشتراک را دریافت کن.</p></div>
                 <span class="ss-hero-spark" aria-hidden="true">${icon('checkCircle')}</span>
             </header>
 
@@ -54,21 +54,22 @@ export function renderServiceSuccess(view, res, opts = {}) {
             ` : ''}
 
             <section class="ss-overview" aria-labelledby="ss-overview-title">
-                <div class="ss-overview-heading"><div><span class="ss-eyebrow">سرویس جدید تو</span><h2 id="ss-overview-title">${escapeHtml(productName)}</h2></div><span class="ss-status"><i></i> فعال</span></div>
+                <div class="ss-overview-heading"><div><span class="ss-eyebrow">اشتراک جدید تو</span><h2 id="ss-overview-title">${escapeHtml(productName)}</h2></div><span class="ss-status"><i></i> فعال</span></div>
                 ${!isManual ? `<div class="ss-stats"><div>${icon('box')}<span>حجم باقی‌مانده</span><strong>${escapeHtml(unlimitedVolume ? 'نامحدود' : fmtBytes(Math.max(0, totalBytes - usedBytes)))}</strong></div><div>${icon('calendar')}<span>تاریخ انقضا</span><strong>${escapeHtml(expiration)}</strong></div></div><div class="ss-usage-heading"><span>مصرف سرویس</span><b dir="ltr">${escapeHtml(fmtBytes(usedBytes))} / ${escapeHtml(unlimitedVolume ? '∞' : fmtBytes(totalBytes))}</b></div><div class="ss-usage" ${unlimitedVolume ? '' : `role="progressbar" aria-label="مصرف سرویس" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent.toFixed(1)}"`}><span style="width:${percent}%"></span></div>` : ''}
                 <dl class="ss-details">
-                    ${detailRow('نام کاربری', displayUsername, 'user', username === '—' ? '' : username)}
+                    ${detailRow('نام اشتراک', displayUsername, 'user', username === '—' ? '' : username)}
+                    ${service.panel_user_id ? detailRow('شناسهٔ اشتراک', String(service.panel_user_id), 'fileText') : ''}
                     ${detailRow('موقعیت', panelName, 'pin')}
                     ${isManual ? detailRow('تاریخ انقضا', expiration, 'calendar') : ''}
-                    ${detailRow('کد پیگیری', orderId, 'fileText', orderId === '—' ? '' : orderId)}
+                    ${detailRow('شماره سفارش', orderId, 'fileText', orderId === '—' ? '' : orderId)}
                 </dl>
                 ${headerTag ? `<div class="ss-bot-tag" dir="ltr">@${escapeHtml(String(headerTag).replace(/^@/, ''))}</div>` : ''}
             </section>
 
             ${remainingOutputs.length ? `<section class="ss-outputs" aria-labelledby="ss-outputs-title"><div class="ss-list-heading"><h2 id="ss-outputs-title">${connectionData ? 'روش‌های دیگر اتصال' : 'اطلاعات اتصال'}</h2><span>برای دریافت، گزینهٔ دلخواه را باز کن</span></div><div id="service-output-host"></div></section>` : ''}
-            ${!connectionData && !remainingOutputs.length ? `<div class="ss-empty">${icon('info')} اطلاعات اتصال را از بخش مدیریت سرویس بررسی کن.</div>` : ''}
+            ${!connectionData && !remainingOutputs.length ? `<div class="ss-empty">${icon('info')} اطلاعات اتصال را از بخش مدیریت اشتراک بررسی کن.</div>` : ''}
 
-            <footer class="ss-footer"><a href="#/services/${encodeURIComponent(username)}" class="btn btn-primary">${icon('settings')} مدیریت سرویس ${icon('arrowLeft')}</a><a href="#/" class="ss-home-link">${icon('home')} بازگشت به خانه</a></footer>
+            <footer class="ss-footer"><a href="#/services/${encodeURIComponent(username)}${orderId === '—' ? '' : '/' + encodeURIComponent(orderId)}" class="btn btn-primary">${icon('settings')} مدیریت اشتراک ${icon('arrowLeft')}</a><a href="#/" class="ss-home-link">${icon('home')} بازگشت به خانه</a></footer>
         </article>`;
 
     const outputHost = view.querySelector('#service-output-host');

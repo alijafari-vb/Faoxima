@@ -40,7 +40,10 @@ const server = createServer(async (request, response) => {
         } else if (action === 'categories' || action === 'time_ranges') {
             payload = [];
         } else if (action === 'services') {
-            payload = [{ id: 'offer', name: 'پیش‌فرض تست', traffic_gb: 20, time_days: 60, price: 50000, symbolic_limit_enabled: true, symbolic_limit_users: 2 }];
+            payload = [
+                { id: 'offer', name: 'پیش‌فرض تست', traffic_gb: 20, time_days: 60, price: 50000, symbolic_limit_enabled: true, symbolic_limit_users: 2 },
+                { id: 'unlimited', name: 'پلن داخلی', traffic_gb: 0, time_days: 0, price: 80000 },
+            ];
         }
         response.setHeader('Content-Type', 'application/json');
         response.end(JSON.stringify({ status: true, obj: payload }));
@@ -99,8 +102,16 @@ const server = createServer(async (request, response) => {
         await offer.waitFor();
         assert.equal(await page.locator('#panel-list').count(), 0);
         assert.match(await page.locator('.buy-step-count').innerText(), /از\s+۴/);
-        assert.doesNotMatch(await offer.locator('.plan-title').innerText(), /پیش‌فرض/);
+        assert.equal(await offer.locator('.plan-title').innerText(), '۲۰ گیگ، ۶۰ روز');
+        assert.equal(await offer.locator('.plan-title').getAttribute('dir'), 'rtl');
         assert.equal(await offer.locator('.plan-meta > span').count(), 3);
+        assert.match(await offer.locator('.plan-meta').innerText(), /۲۰ گیگ/);
+        assert.doesNotMatch(await offer.innerText(), /GB|پیش‌فرض/);
+        assert.equal(await page.locator('[data-id="unlimited"] .plan-title').innerText(), 'حجم و مدت نامحدود');
+        await offer.click();
+        await page.getByRole('heading', { name: 'خلاصهٔ سفارش' }).waitFor();
+        assert.match(await page.locator('#view').innerText(), /۲۰ گیگ/);
+        assert.doesNotMatch(await page.locator('#view').innerText(), /GB|پیش‌فرض تست/);
         assert.deepEqual(errors, []);
         console.log('Mobile cards (320–430px), exact-order routes, private POST, admin scope and single-panel checkout passed.');
     } finally {

@@ -142,12 +142,12 @@ export async function account(view) {
         <nav class="account-shortcuts" aria-label="خدمات حساب">
             <a href="#/buy" class="account-shortcut account-shortcut-buy">
                 <span class="account-shortcut-icon">${icon('cart')}</span>
-                <span class="account-shortcut-copy"><b>خرید سرویس</b><small>انتخاب پلن و شروع یک اتصال تازه</small></span>
+                <span class="account-shortcut-copy"><b>خرید اشتراک</b><small>انتخاب پلن و شروع یک اتصال تازه</small></span>
                 ${icon('chevronLeft', 'class="ico account-shortcut-arrow"')}
             </a>
             <a href="#/services" class="account-shortcut account-shortcut-services">
                 <span class="account-shortcut-icon">${icon('fileText')}</span>
-                <span class="account-shortcut-copy"><b>سرویس‌های من</b><small>مشاهده، مدیریت و تمدید</small></span>
+                <span class="account-shortcut-copy"><b>اشتراک‌های من</b><small>مشاهده، مدیریت و تمدید</small></span>
                 ${icon('chevronLeft', 'class="ico account-shortcut-arrow"')}
             </a>
             <a href="#/tickets" class="account-shortcut account-shortcut-support">

@@ -157,7 +157,7 @@ unset($adminWebPage);
                     <div class="page-head__sub"><?php echo function_exists('jdate') ? jdate('l، j F Y') : date('Y/m/d'); ?></div>
                 </div>
                 <div class="chip-row">
-                    <a href="invoice.php" class="chip"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('receipt', 'svg-icon svg-sm'); ?><span>سفارشات</span></a>
+                    <a href="invoice.php" class="chip"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('receipt', 'svg-icon svg-sm'); ?><span>سفارش‌های خرید</span></a>
                     <a href="reports.php" class="chip"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('chart-bar', 'svg-icon svg-sm'); ?><span>گزارش‌ها</span></a>
                 </div>
             </div>
@@ -177,7 +177,7 @@ unset($adminWebPage);
                 <div class="stat-card observe-in">
                     <div class="stat-card__top">
                         <div class="stat-card__info">
-                            <span class="stat-card__label">تعداد کل سفارشات</span>
+                            <span class="stat-card__label">تعداد سفارش‌های خرید</span>
                             
                         </div>
                         <span class="stat-card__icon icon-rose"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('cart-check-round', 'svg-icon'); ?></span>
@@ -302,7 +302,7 @@ unset($adminWebPage);
                 <div class="panel__head">
                     <div class="orders-heading">
                         <span class="orders-heading__icon" aria-hidden="true"><?php echo \Faoxima\Admin\Web\Support\Icons::icon('cart-check-round', 'svg-icon'); ?></span>
-                        <div><div class="panel__title">آخرین سفارشات</div><div class="panel__sub">سفارش‌های ثبت‌شده در ۲۴ ساعت اخیر</div></div>
+                        <div><div class="panel__title">آخرین سفارش‌های خرید</div><div class="panel__sub">سفارش‌های ثبت‌شده در ۲۴ ساعت اخیر</div></div>
                     </div>
                     <a href="invoice.php" class="btn btn-sm orders-all"><span>همهٔ سفارش‌ها</span><?php echo \Faoxima\Admin\Web\Support\Icons::icon('arrow-left', 'svg-icon svg-sm'); ?></a>
                 </div>

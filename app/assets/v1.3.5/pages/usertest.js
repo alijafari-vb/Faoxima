@@ -68,7 +68,7 @@ function renderPanelList($host, panels, info) {
 
 function renderCreateForm($host, panel, info) {
     const panels = (Array.isArray(info.panels) ? info.panels : []).filter(p => p && p.available !== false);
-    $host.innerHTML = `<section class="ut-create"><div class="ut-selected"><span>${icon('pin')}</span><div><small>موقعیت انتخابی</small><b>${escapeHtml(panel?.name || 'سرویس تست')}</b></div>${panels.length > 1 ? '<button type="button" class="ut-change" id="ut-change-location">تغییر</button>' : ''}</div><div class="ut-quota">${icon('gift')} سهمیهٔ باقی‌مانده <strong>${escapeHtml(quotaLeft(panel, info))}</strong></div><div class="form-row" id="ut-username-row" hidden><label for="ut-username">نام کاربری سرویس</label><input id="ut-username" type="text" maxlength="32" placeholder="مثلاً myuser" dir="ltr" autocomplete="off" /></div><button id="ut-submit" type="button" class="btn btn-primary btn-block">${icon('gift')}<span class="ut-label">ساخت اکانت تست</span>${icon('arrowLeft')}</button><div id="ut-error-host" aria-live="polite"></div></section>`;
+    $host.innerHTML = `<section class="ut-create"><div class="ut-selected"><span>${icon('pin')}</span><div><small>موقعیت انتخابی</small><b>${escapeHtml(panel?.name || 'سرویس تست')}</b></div>${panels.length > 1 ? '<button type="button" class="ut-change" id="ut-change-location">تغییر</button>' : ''}</div><div class="ut-quota">${icon('gift')} سهمیهٔ باقی‌مانده <strong>${escapeHtml(quotaLeft(panel, info))}</strong></div><div class="form-row" id="ut-username-row" hidden><label for="ut-username">نام اشتراک</label><input id="ut-username" type="text" maxlength="32" placeholder="مثلاً myuser" dir="ltr" autocomplete="off" /></div><button id="ut-submit" type="button" class="btn btn-primary btn-block">${icon('gift')}<span class="ut-label">ساخت اشتراک تست</span>${icon('arrowLeft')}</button><div id="ut-error-host" aria-live="polite"></div></section>`;
     $host.querySelector('#ut-change-location')?.addEventListener('click', () => renderPanelList($host, panels, info));
     const $submit = $host.querySelector('#ut-submit');
     const $label = $submit.querySelector('.ut-label');
@@ -149,7 +149,7 @@ function renderSuccess($host, obj) {
             ${configs.length ? `<div class="codeblock mt-md">${escapeHtml(configs.join('\n'))}</div>` : ''}
         `}
         <div class="ut-success-actions">
-            <a href="#/services/${encodeURIComponent(svc.username || '')}" class="btn ${showNativeDownload || linkValue || hasOutputs ? 'btn-ghost' : 'btn-primary'} btn-block" style="flex:1">مشاهده سرویس</a>
+            <a href="#/services/${encodeURIComponent(svc.username || '')}" class="btn ${showNativeDownload || linkValue || hasOutputs ? 'btn-ghost' : 'btn-primary'} btn-block" style="flex:1">مشاهده اشتراک</a>
             <a href="#/" class="btn btn-ghost btn-block" style="flex:1">خانه</a>
         </div>
     `;

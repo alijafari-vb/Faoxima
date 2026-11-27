@@ -48,13 +48,13 @@ export async function services(view) {
                 </div>
                 <div class="services-filter-bar">
                     <span class="services-filter-label">وضعیت در این صفحه</span>
-                    <div class="services-filters" role="group" aria-label="فیلتر وضعیت سرویس‌های این صفحه">
+                    <div class="services-filters" role="group" aria-label="فیلتر وضعیت اشتراک‌های این صفحه">
                         <button type="button" data-service-filter="all" aria-pressed="true">همه</button>
                         <button type="button" data-service-filter="active" aria-pressed="false">فعال</button>
                         <button type="button" data-service-filter="attention" aria-pressed="false">نیاز به بررسی</button>
                     </div>
                 </div>
-                <div class="services-results-head"><span id="services-results-label">در حال دریافت سرویس‌ها…</span><span id="services-count" class="hidden"></span></div>
+                <div class="services-results-head"><span id="services-results-label">در حال دریافت اشتراک‌ها…</span><span id="services-count" class="hidden"></span></div>
                 <div id="services-list" class="services-list" aria-busy="true">
                     ${skeletonList(4)}
                 </div>
@@ -124,8 +124,8 @@ export async function services(view) {
             const filtered = statusFilter !== 'all' && currentItems.length > 0;
             $list.innerHTML = `<div class="services-empty">
                 <span class="services-empty-icon">${icon(query || filtered ? 'search' : 'box')}</span>
-                <h2>${filtered ? 'در این صفحه سرویسی با این وضعیت نیست' : query ? 'نتیجه‌ای پیدا نشد' : 'اولین اتصال را بساز'}</h2>
-                <p>${filtered ? 'فیلتر را عوض کن یا صفحهٔ بعد را ببین.' : query ? 'شناسه را بررسی کن یا جست‌وجو را پاک کن.' : 'با انتخاب یک پلن، سرویس تو همین‌جا نمایش داده می‌شود.'}</p>
+                <h2>${filtered ? 'در این صفحه اشتراکی با این وضعیت نیست' : query ? 'نتیجه‌ای پیدا نشد' : 'اولین اتصال را بساز'}</h2>
+                <p>${filtered ? 'فیلتر را عوض کن یا صفحهٔ بعد را ببین.' : query ? 'شناسه را بررسی کن یا جست‌وجو را پاک کن.' : 'با انتخاب یک پلن، اشتراک تو همین‌جا نمایش داده می‌شود.'}</p>
                 ${filtered ? '<button type="button" class="btn btn-ghost" id="services-reset-filter">نمایش همه</button>' : query ? '<button type="button" class="btn btn-ghost" id="services-reset-search">پاک کردن جست‌وجو</button>' : `<a href="#/buy" class="btn btn-primary">${icon('plus')} خرید اولین سرویس</a>`}
             </div>`;
             $list.querySelector('#services-reset-filter')?.addEventListener('click', () => setFilter('all'));
@@ -157,7 +157,7 @@ export async function services(view) {
         $list.innerHTML = skeletonList(4);
         $list.setAttribute('aria-busy', 'true');
         $filters.forEach(btn => { btn.disabled = true; });
-        $resultsLabel.textContent = 'در حال دریافت سرویس‌ها…';
+        $resultsLabel.textContent = 'در حال دریافت اشتراک‌ها…';
         $pager.classList.add('hidden');
 
         try {
@@ -175,14 +175,14 @@ export async function services(view) {
             totalItems = Number(res?.obj?.total) || items.length;
 
             $count.classList.toggle('hidden', totalItems === 0);
-            $count.textContent = `${fmtNumber(totalItems)} سرویس در مجموع`;
+            $count.textContent = `${fmtNumber(totalItems)} اشتراک در مجموع`;
             currentItems = items;
 
             renderItems();
 
             if (totalPages > 1) {
                 $pager.classList.remove('hidden');
-                $info.textContent = `صفحه ${fmtNumber(page)} از ${fmtNumber(totalPages)} (${fmtNumber(totalItems)} سرویس)`;
+                $info.textContent = `صفحه ${fmtNumber(page)} از ${fmtNumber(totalPages)} (${fmtNumber(totalItems)} اشتراک)`;
                 $prev.disabled = page <= 1;
                 $next.disabled = page >= totalPages;
             }
@@ -190,7 +190,7 @@ export async function services(view) {
             if (disposed || seq !== requestSeq) return;
             $count.classList.add('hidden');
             currentItems = [];
-            $resultsLabel.textContent = 'دریافت سرویس‌ها انجام نشد';
+            $resultsLabel.textContent = 'دریافت اشتراک‌ها انجام نشد';
             $list.innerHTML = `
                 <div class="empty">
                     ${icon('alert', 'class="ico ico-xxl ico-warn"')}

@@ -4,8 +4,8 @@ import { setUser } from '../state.js';
 import { icon } from '../icons.js?v=0.0.52';
 import { hapticImpact, showConfirm, getInitDataUnsafe } from '../telegram.js?v=0.0.52';
 import { mountHomeBell } from '../notifications.js?v=0.0.52';
-import { methodLabel } from '../payment-ui.js?v=0.0.75';
-import { cancelVerifyPayment } from '../card-verify.js?v=0.0.6';
+import { methodLabel } from '../payment-ui.js?v=0.0.76';
+import { cancelVerifyPayment } from '../card-verify.js?v=0.0.7';
 
 function greetingName() {
     try {
@@ -88,7 +88,7 @@ export async function home(view) {
                 ${icon('cart', 'class="ico ico-xl action-icon is-green"')}
                 <span class="home-shortcut-copy">
                     <span class="home-shortcut-eyebrow">یک اتصال تازه</span>
-                    <span class="home-shortcut-title">خرید سرویس</span>
+                    <span class="home-shortcut-title">خرید اشتراک</span>
                     <span class="home-shortcut-description">پلن مناسب خودت را انتخاب کن</span>
                 </span>
                 <span class="home-shortcut-go" aria-hidden="true">${icon('arrowLeft')}</span>
@@ -96,8 +96,8 @@ export async function home(view) {
             <a href="#/services" class="action-tile home-shortcut-services">
                 ${icon('fileText', 'class="ico ico-xl action-icon is-yellow"')}
                 <span class="home-shortcut-copy">
-                    <span class="home-shortcut-title">سرویس‌های من</span>
-                    <span class="home-shortcut-description">مدیریت و تمدید سرویس‌ها</span>
+                    <span class="home-shortcut-title">اشتراک‌های من</span>
+                    <span class="home-shortcut-description">مدیریت و تمدید اشتراک‌ها</span>
                 </span>
                 <span class="home-shortcut-go" aria-hidden="true">${icon('chevronLeft')}</span>
             </a>
