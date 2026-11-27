@@ -530,7 +530,12 @@ final class ServiceSearch
             }
         }
         foreach ($rows as &$row) {
-            $row = array_replace($row, $accounts[$row['Service_location'] ?? ''][$row['username'] ?? ''] ?? ['panel_user_id' => null]);
+            $account = $accounts[$row['Service_location'] ?? ''][$row['username'] ?? ''] ?? [];
+            if (!isset($account['panel_user_id'])) {
+                $cached = json_decode((string) ($row['user_info'] ?? ''), true);
+                $account['panel_user_id'] = self::numericId($cached['panel_user_id'] ?? null);
+            }
+            $row = array_replace($row, $account);
         }
         unset($row);
         return $rows;

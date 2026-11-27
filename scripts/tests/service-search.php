@@ -238,6 +238,11 @@ $rows = ServiceSearch::addPanelIds($pdo, $pdo->query('SELECT * FROM invoice ORDE
 same(['91', null, null, '91', null, null], array_column($rows, 'panel_user_id'), 'batch numeric enrichment keyed by panel and username');
 $tableRows = ServiceSearch::addPanelIds($pdo, [$rows[0], $rows[1]], includeUsage: true);
 same(['status' => 'active', 'expire' => 2000000000, 'data_limit' => 500, 'used_traffic' => 250], $tableRows[0]['panel_usage'], 'table uses Rebecca usage data without copying its subscription links');
+$cachedIdRows = ServiceSearch::addPanelIds($pdo, [
+    array_replace($rows[0], ['username' => 'absent-from-panel', 'user_info' => '{"panel_user_id":123456}']),
+    array_replace($rows[0], ['user_info' => '{"panel_user_id":100}']),
+]);
+same(['123456', '91'], array_column($cachedIdRows, 'panel_user_id'), 'display retains a cached ID when missing and prefers the live ID when available');
 
 same(
     ['—', '∞', '0B', '512B', '0.5GB', '21GB', '1.2TB', '1TB'],
@@ -260,6 +265,14 @@ same(
     'only the relevant finite days or traffic cells turn red below their thresholds'
 );
 same(['🟢 same-name (91)', '1GB', '4'], array_column($table[1], 'text'), 'warnings preserve short labels and username space');
+$inactiveRows = array_map(
+    static fn(string $status): array => array_replace($warningRows[0], ['Status' => $status, 'panel_usage' => ['status' => 'active']]),
+    ['disablebyadmin', 'disabled', 'sendedwarn']
+);
+$inactive = SubscriptionTable::buttons($inactiveRows, 'recent', 'd', 'svctable', 'quickview_');
+same(['🔴 same-name (91)', '🔴 same-name (91)', '⚠️ same-name (91)'],
+    array_map(static fn(array $row): string => $row[0]['text'], array_slice($inactive, 1)),
+    'a live active response preserves the official disabled and warning states');
 same(['<1GB', 'تمام', '∞', '—'], array_column(array_column(array_slice($table, 2), 1), 'text'), 'traffic distinguishes near-threshold, depleted, unlimited, and unknown values');
 same(['منقضی', '∞', '—'], array_column(array_column(array_slice($table, 3), 2), 'text'), 'days distinguish expired, unlimited, and unknown values');
 same(array_fill(0, 3, 'quickview_e123'), array_column($table[1], 'callback_data'), 'warning cells still open subscription details');

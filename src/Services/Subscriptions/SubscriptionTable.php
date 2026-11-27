@@ -43,7 +43,13 @@ final class SubscriptionTable
         }
         $buttons = [$headings];
         foreach ($rows as $row) {
-            $status = match ($row['panel_usage']['status'] ?? $row['Status']) {
+            $localStatus = $row['Status'];
+            $panelStatus = $row['panel_usage']['status'] ?? $localStatus;
+            if (in_array($localStatus, ['disabled', 'disablebyadmin'], true)
+                || ($localStatus === 'sendedwarn' && $panelStatus === 'active')) {
+                $panelStatus = $localStatus;
+            }
+            $status = match ($panelStatus) {
                 'disabled', 'disablebyadmin' => '🔴',
                 'end_of_time', 'expired' => '⌛',
                 'end_of_volume', 'limited' => '📉',
