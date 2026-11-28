@@ -8,6 +8,27 @@ use RuntimeException;
 
 final class Purchase
 {
+    public static function logWalletPurchaseIssue(string $invoice, string $stage, string $reason, ?int $httpCode = null): string
+    {
+        $reference = strtoupper(substr(hash('sha256', $invoice), 0, 12));
+        $knownReasons = [
+            'panel_lock_unavailable', 'panel_limit', 'invoice_already_claimed', 'invoice_mismatch',
+            'invoice_price_mismatch', 'insufficient_balance', 'charge_failed', 'ledger_not_saved',
+            'outcome_unknown', 'discount_capacity', 'discount_per_user_limit', 'discount_not_found',
+            'discount_already_reserved', 'discount_invalid_code', 'discount_db_unavailable',
+            'claim_unavailable', 'provider_identity_unavailable', 'provider_result_unverified',
+            'provider_rejected', 'invoice_not_activated',
+        ];
+        if (preg_match('/SQLSTATE\[([0-9A-Z]{5})\](?:: [^:\r\n]*: (\d{3,5}))?/', $reason, $matches)) {
+            $reason = 'sqlstate_' . $matches[1] . (isset($matches[2]) ? '_' . $matches[2] : '');
+        } elseif (!in_array($reason, $knownReasons, true)) {
+            $reason = 'unknown';
+        }
+        $http = ($httpCode >= 100 && $httpCode <= 599) ? ' http=' . $httpCode : '';
+        error_log("[Wallet purchase] ref=$reference stage=$stage reason=$reason$http");
+        return $reference;
+    }
+
     public static function fundWalletInvoice(PDO $pdo, array $user, string $invoice, string $panel, string $username, float $price, string $discount, string $note, ?string $confirmation = null, array $effects = []): array
     {
         $existingInvoice = null;

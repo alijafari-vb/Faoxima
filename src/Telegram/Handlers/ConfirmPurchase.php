@@ -320,7 +320,9 @@ final class ConfirmPurchase
             try {
                 if ($existingInvoice !== null) {
                     $fund = ['ok' => false, 'reason' => 'invoice_already_claimed', 'existing_invoice' => $existingInvoice];
-                } elseif ($panelLimitLock === null || \Faoxima\Services\Panels\PanelLimits::panel_creation_limit_reached_unlocked($marzban_list_get)) {
+                } elseif ($panelLimitLock === null) {
+                    $fund = ['ok' => false, 'reason' => 'panel_lock_unavailable'];
+                } elseif (\Faoxima\Services\Panels\PanelLimits::panel_creation_limit_reached_unlocked($marzban_list_get)) {
                     $fund = ['ok' => false, 'reason' => 'panel_limit'];
                 } else {
                     $fund = \Faoxima\Services\Fulfillment\Purchase::fundWalletInvoice(
@@ -338,6 +340,8 @@ final class ConfirmPurchase
                 \Faoxima\Services\Panels\PanelLimits::panel_limit_lock_release($panelLimitLock);
             }
             if (empty($fund['ok'])) {
+                $reason = (string) ($fund['reason'] ?? '');
+                $ref = \Faoxima\Services\Fulfillment\Purchase::logWalletPurchaseIssue((string) $randomString, 'funding', $reason);
                 if (!empty($fund['existing_invoice'])) {
                     try {
                         \Faoxima\Services\Fulfillment\Purchase::recoverWalletInvoice(
@@ -348,7 +352,14 @@ final class ConfirmPurchase
                     }
                 }
                 rxEndProgressMessage($from_id, $rxProgress);
-                sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
+                $message = match ($reason) {
+                    'panel_limit' => \Faoxima\Telegram\Support\Texts::faoxima_textbot_get('dyn_purchase_panel_limit_reached', 'ظرفیت ساخت اشتراک در این پنل تکمیل شده است.'),
+                    'panel_lock_unavailable' => '❌ ثبت خرید موقتاً در دسترس نیست. کمی بعد دوباره تلاش کنید.',
+                    'insufficient_balance' => \Faoxima\Telegram\Support\MessageTemplates::get('wallet_transfer_insufficient_balance'),
+                    'invoice_already_claimed', 'outcome_unknown' => '⏳ وضعیت خرید نیاز به بررسی دارد. تا مشخص شدن نتیجه، پرداخت را تکرار نکنید.',
+                    default => $textbotlang['users']['sell']['ErrorConfig'],
+                };
+                sendmessage($from_id, $message . "\n\nکد پیگیری خطا: <code>$ref</code>", $keyboard, 'HTML');
                 \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
                 return;
             }
@@ -387,6 +398,12 @@ final class ConfirmPurchase
             );
             $dataoutput = $provision['remote'];
             if ($provision['uncertain']) {
+                $reason = !empty($provision['claim_unavailable']) ? 'claim_unavailable'
+                    : (($dataoutput['msg'] ?? '') === 'wallet_purchase_provider_identity_unavailable'
+                        ? 'provider_identity_unavailable' : 'provider_result_unverified');
+                $ref = \Faoxima\Services\Fulfillment\Purchase::logWalletPurchaseIssue(
+                    (string) $randomString, 'provisioning', $reason, (int) ($dataoutput['http_code'] ?? 0)
+                );
                 if (empty($provision['claim_unavailable'])) {
                     \Faoxima\Services\Fulfillment\Purchase::finishWalletInvoice($pdo, (string) $from_id, (string) $randomString, 'manual_review');
                 }
@@ -395,18 +412,22 @@ final class ConfirmPurchase
                     \Faoxima\Payments\Fulfillment\Settlement::alertAdmin($reviewKey . $randomString, 'نتیجه ساخت اشتراک کیف پول نامشخص است؛ پیش از ساخت مجدد، سرویس و تسویه بررسی شود.', ['username' => $username_ac, 'panel' => $marzban_list_get['name_panel'], 'invoice' => $randomString]);
                 }
                 rxEndProgressMessage($from_id, $rxProgress);
-                sendmessage($from_id, \Faoxima\Telegram\Support\MessageTemplates::get('service_provision_result_unknown'), $keyboard, 'HTML');
+                sendmessage($from_id, \Faoxima\Telegram\Support\MessageTemplates::get('service_provision_result_unknown')
+                    . "\n\nکد پیگیری خطا: <code>$ref</code>", $keyboard, 'HTML');
                 \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
                 return;
             }
             if (!isset($dataoutput['username']) || $dataoutput['username'] === null || $dataoutput['username'] === '') {
+                $ref = \Faoxima\Services\Fulfillment\Purchase::logWalletPurchaseIssue(
+                    (string) $randomString, 'provisioning', 'provider_rejected', (int) ($dataoutput['http_code'] ?? 0)
+                );
                 \Faoxima\Services\Fulfillment\Purchase::refundWalletInvoice(
                     $pdo, (string) $from_id, (string) $randomString,
                     $purchaseAmount, $discountCode, 'بازگشت وجه به دلیل خطای ساخت سرویس'
                 );
                 $dataoutput['msg'] = \Faoxima\Services\Panels\PanelMessages::rx_panel_error_text($dataoutput['msg'] ?? null, $dataoutput['detail'] ?? null);
                 rxEndProgressMessage($from_id, $rxProgress);
-                sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
+                sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'] . "\n\nکد پیگیری خطا: <code>$ref</code>", $keyboard, 'HTML');
                 $texterros = "⭕️ خطای ساخت اشتراک
 <blockquote>✍️ دلیل خطا :
 {$dataoutput['msg']}</blockquote>
@@ -427,8 +448,9 @@ final class ConfirmPurchase
             $username_ac = \Faoxima\Services\Panels\PanelMessages::rx_adopt_created_username($dataoutput, $username_ac, $randomString);
             \Faoxima\Services\Panels\PanelMessages::rx_notify_username_renamed($from_id, $dataoutput, $marzban_list_get);
             if (!\Faoxima\Services\Fulfillment\Purchase::finishWalletInvoice($pdo, (string) $from_id, (string) $randomString, 'active')) {
+                $ref = \Faoxima\Services\Fulfillment\Purchase::logWalletPurchaseIssue((string) $randomString, 'activation', 'invoice_not_activated');
                 rxEndProgressMessage($from_id, $rxProgress);
-                sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'], $keyboard, 'HTML');
+                sendmessage($from_id, $textbotlang['users']['sell']['ErrorConfig'] . "\n\nکد پیگیری خطا: <code>$ref</code>", $keyboard, 'HTML');
                 \Faoxima\Telegram\Navigation\Steps::step('home', $from_id);
                 return;
             }
