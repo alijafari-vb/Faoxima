@@ -334,13 +334,15 @@ final class SellDiscounts
         }
     }
 
-    public static function chargeServiceWallet(PDO $pdo, string $code, array $user, $amount, $agent, string $operationId, ?array $debit = null): array
+    public static function chargeServiceWallet(PDO $pdo, string $code, array $user, $amount, $agent, string $operationId,
+        ?array $debit = null, bool $useResellerPurchaseCredit = false): array
     {
         $allowNegative = $agent === 'n2' ? (int)($user['maxbuyagent'] ?? 0) : 0;
-        return self::chargeWallet($pdo, $code, $user, $amount, $allowNegative, $operationId, $debit);
+        return self::chargeWallet($pdo, $code, $user, $amount, $allowNegative, $operationId, $debit, $useResellerPurchaseCredit);
     }
 
-    private static function chargeWallet(PDO $pdo, string $code, array $user, $amount, int $allowNegative, string $operationId, ?array $debit): array
+    private static function chargeWallet(PDO $pdo, string $code, array $user, $amount, int $allowNegative,
+        string $operationId, ?array $debit, bool $useResellerPurchaseCredit = false): array
     {
         $own = !$pdo->inTransaction();
         $savepoint = 'rx_discount_charge_' . bin2hex(random_bytes(4));
@@ -358,7 +360,7 @@ final class SellDiscounts
                 }
             }
             $charged = (float)$amount > 0
-                ? \Faoxima\Wallet\Balance\Balances::charge($pdo, $user['id'], $amount, $allowNegative)
+                ? \Faoxima\Wallet\Balance\Balances::charge($pdo, $user['id'], $amount, $allowNegative, $useResellerPurchaseCredit)
                 : ['ok' => true, 'new_balance' => (float)($user['Balance'] ?? 0)];
             if (empty($charged['ok'])) {
                 throw new RuntimeException(($charged['reason'] ?? '') === 'insufficient-or-stale' ? 'insufficient_balance' : 'charge_failed');

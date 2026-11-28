@@ -51,7 +51,8 @@ final class Purchase
                 }
                 $funding = \Faoxima\Orders\Discounts\SellDiscounts::chargeServiceWallet(
                     $pdo, $discount, $user, $price, $user['agent'] ?? 'f', $invoice,
-                    ['category' => 'purchase', 'note' => $note, 'invoice' => $invoice]
+                    ['category' => 'purchase', 'note' => $note, 'invoice' => $invoice],
+                    useResellerPurchaseCredit: true
                 );
                 if (!empty($funding['ok'])) {
                     $reference = $confirmation ?? 'invoice:' . $invoice;

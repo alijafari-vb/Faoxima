@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Faoxima\Services\Fulfillment\Purchase;
 use Faoxima\Services\Renewal\WalletRenewal;
 use Faoxima\Services\Subscriptions\InvoiceDeletion;
 
@@ -66,4 +67,47 @@ $value = json_decode($history[0]['value'], true);
 check($value['invoice_id'] === 'wallet' && $value['id_order'] === $reference && (float) $history[0]['price'] === 12345.0,
     'History is tied to the original subscription, operation and actual wallet charge');
 check($pdo->query("SELECT Status FROM invoice WHERE id_invoice = 'wallet'")->fetchColumn() === 'active', 'Verified operation activates the subscription');
+
+$pdo->exec("ALTER TABLE invoice ADD Service_location VARCHAR(50), ADD name_product VARCHAR(100), ADD price_product DECIMAL(12,2)");
+$pdo->exec("CREATE TEMPORARY TABLE user (id VARCHAR(40) PRIMARY KEY, Balance INT NOT NULL, agent VARCHAR(5), maxbuyagent VARCHAR(100))");
+$pdo->exec("CREATE TEMPORARY TABLE wallet_ledger (
+    id_user VARCHAR(40), direction VARCHAR(10), amount INT, balance_after INT, category VARCHAR(40),
+    description TEXT, id_order VARCHAR(40), ref_table VARCHAR(40), ref_id VARCHAR(40)
+)");
+$account = $pdo->prepare('INSERT INTO user (id, Balance, agent, maxbuyagent) VALUES (?, ?, ?, ?)');
+$purchase = $pdo->prepare("INSERT INTO invoice (id_invoice, id_user, username, Status, Service_location, name_product, price_product)
+    VALUES (?, ?, ?, 'unpaid', 'test-panel', 'test-plan', 1000)");
+$scenarios = [
+    // role, stored cap, starting balance, expected balance
+    'unlimited' => ['n2', '0', 0, -1000],
+    'already-in-debt' => ['n2', '0', -500, -1500],
+    'exact-cap' => ['n2', '1000', 0, -1000],
+    'over-cap' => ['n2', '999', 0, 0],
+    'ordinary' => ['f', '0', 0, 0],
+    'level-one' => ['n', '0', 0, 0],
+    'missing-cap' => ['n2', null, 0, 0],
+    'invalid-cap' => ['n2', 'invalid', 0, 0],
+    'funded' => ['f', '0', 1500, 500],
+];
+foreach ($scenarios as $id => [$role, $limit, $before, $after]) {
+    $account->execute([$id, $before, $role, $limit]);
+    $purchase->execute([$id, $id, $id]);
+    $user = ['id' => $id, 'agent' => $role, 'maxbuyagent' => $limit];
+    if (in_array($id, ['over-cap', 'ordinary'], true)) {
+        $user = ['id' => $id, 'agent' => 'n2', 'maxbuyagent' => '2000'];
+    }
+    $charge = Purchase::fundWalletInvoice($pdo, $user, $id, 'test-panel', $id, 1000, '', 'fixture', 'telegram:' . $id);
+    $expected = $after !== $before;
+    check($charge['ok'] === $expected, "Purchase credit eligibility for $id");
+    $balance = $pdo->prepare('SELECT Balance FROM user WHERE id = ?');
+    $balance->execute([$id]);
+    check((int) $balance->fetchColumn() === $after, "Wallet balance for $id");
+    if ($expected) {
+        $retry = Purchase::fundWalletInvoice($pdo, $user, $id, 'test-panel', $id, 1000, '', 'fixture', 'telegram:' . $id);
+        check($retry['reason'] === 'invoice_already_claimed', "Retry is blocked for $id");
+    }
+    $debits = $pdo->prepare("SELECT COUNT(*) FROM wallet_ledger WHERE id_user = ? AND direction = 'debit'");
+    $debits->execute([$id]);
+    check((int) $debits->fetchColumn() === (int) $expected, "Ledger debit is written once for $id");
+}
 echo "Subscription lifecycle checks passed.\n";

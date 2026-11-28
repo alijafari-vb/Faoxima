@@ -22,7 +22,7 @@ final class Balances
         return $stmt;
         }
 
-    public static function charge($runtimePdo, $userId, $delta, $allowNegativeUpTo = 0) {
+    public static function charge($runtimePdo, $userId, $delta, $allowNegativeUpTo = 0, bool $useResellerPurchaseCredit = false) {
         $pdo = $runtimePdo;
         $delta = (float) $delta;
         if ($delta <= 0) return ['ok' => false, 'reason' => 'invalid-delta', 'new_balance' => null];
@@ -31,8 +31,19 @@ final class Balances
 
         $minBalance = $delta - $allowNegativeUpTo;
         try {
-            $stmt = $pdo->prepare("UPDATE user SET Balance = Balance - :d WHERE id = :u AND Balance >= :m");
-            $stmt->execute([':d' => $delta, ':u' => $userId, ':m' => $minBalance]);
+            $guard = 'Balance >= :m';
+            $params = [':d' => $delta, ':u' => $userId, ':m' => $minBalance];
+            if ($useResellerPurchaseCredit) {
+                // A stored zero is the legacy unlimited-debt setting for advanced reseller purchases.
+                $guard = "(Balance >= :m OR (BINARY agent = 'n2' AND CASE
+                    WHEN maxbuyagent REGEXP '^0+$' THEN 1
+                    WHEN maxbuyagent REGEXP '^[0-9]+$' THEN Balance + (maxbuyagent + 0.0E0) >= :reseller_amount
+                    ELSE 0 END))";
+                $params[':m'] = $delta;
+                $params[':reseller_amount'] = $delta;
+            }
+            $stmt = $pdo->prepare("UPDATE user SET Balance = Balance - :d WHERE id = :u AND $guard");
+            $stmt->execute($params);
             if ($stmt->rowCount() < 1) {
                 return ['ok' => false, 'reason' => 'insufficient-or-stale', 'new_balance' => null];
             }
