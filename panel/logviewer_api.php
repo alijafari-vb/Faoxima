@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../src/bootstrap.php';
+
 if (!defined('FAOXIMA_SKIP_BOTAPI_ROUTER')) {
     define('FAOXIMA_SKIP_BOTAPI_ROUTER', true);
 }
@@ -22,6 +24,7 @@ try {
     if (ob_get_level() > 0) {
         ob_end_clean();
     }
+    error_log(sprintf('[logviewer] Initialization failed: %s in %s:%d', get_class($e), basename($e->getFile()), $e->getLine()));
     \Faoxima\Admin\Web\Support\LogviewerApiPage::lv_fail('server', 500);
 }
 
@@ -60,7 +63,6 @@ if (in_array($action, $postActions, true)) {
 
 session_write_close();
 
-require_once __DIR__ . '/../src/bootstrap.php';
 $adminWebPage = 'logviewer_api.php';
 \Faoxima\Admin\Web\Actions\LogViewerActions::handle(
     action: $action ?? null,
